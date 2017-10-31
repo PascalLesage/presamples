@@ -1,9 +1,9 @@
 from __future__ import print_function, unicode_literals
 from eight import *
 
-from . import projects,mapping
-from .filesystem import md5
-from .utils import MAX_INT_32, TYPE_DICTIONARY, numpy_string
+from bw2data import projects,mapping
+from bw2data.filesystem import md5
+from bw2data.utils import MAX_INT_32, TYPE_DICTIONARY, numpy_string
 import json
 import numpy as np
 import os

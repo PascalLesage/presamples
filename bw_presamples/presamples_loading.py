@@ -1,10 +1,9 @@
 # -*- coding: utf-8 -*-
-from __future__ import print_function, unicode_literals, division
 from eight import *
 
-from .indexing import index_with_arrays as _
-from .matrices import TechnosphereBiosphereMatrixBuilder as MB
-from .utils import md5
+from bw2calc.indexing import index_with_arrays as _
+from bw2calc.matrices import TechnosphereBiosphereMatrixBuilder as MB
+from bw2calc.utils import md5
 import json
 import numpy as np
 import os
@@ -57,7 +56,7 @@ class Presamples(object):
 
     Presampled arrays are provided as a list of directory paths. Each directory contains a datapackage file: 
 
-    * ``datapackage.json``: A JSON file following the `datapackage standard <http://frictionlessdata.io/guides/data-package/>`__ that indicates the provenance of the data. The specific content of the datapackage will depend on what the presample contains.
+    * ``datapackage.json``: A JSON file following the `datapackage standard <http://frictionlessdata.io/guides/data-package/>`__ that indicates the provenance of the data. The specific content of the datapackage will depend on what the presamples contains.
     All datapackage.json files should minimally have the following information:
 
     .. code-block:: json
@@ -65,7 +64,7 @@ class Presamples(object):
         {
           "id": uuid,
           "profile": "data-package",
-          "content": list describing what type of data is found in the presample ("inventory_elements", "cfs", or "parameters"). If empty, the presamples is empty.
+          "content": list describing what type of data is found in the presamples ("inventory_elements", "cfs", or "parameters"). If empty, the presamples is empty.
           "resources": list of resources, which depends on the presamples content.
         }
 

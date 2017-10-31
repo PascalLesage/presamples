@@ -11,10 +11,10 @@ import shutil
 import uuid
 
 
-def create_presample_package(inventory_elements=None, inventory_elements_samples=None, inventory_mapped=False, inventory_dtype="float32",
-                             cfs=None, cfs_samples=None, cfs_mapped=False, cfs_dtype="float32",
-                             parameters=None, parameters_samples=None, parameters_dtype="float32",
-                             id_=None, overwrite=False):
+def create_presamples_package(inventory_elements=None, inventory_elements_samples=None, inventory_mapped=False, inventory_dtype="float32",
+                              cfs=None, cfs_samples=None, cfs_mapped=False, cfs_dtype="float32",
+                              parameters=None, parameters_samples=None, parameters_dtype="float32",
+                              id_=None, overwrite=False):
     """Create a new subdirectory in the ``project`` folder that stores presampled values.
 
     The presamples values can be for the following types of objects:
@@ -22,7 +22,7 @@ def create_presample_package(inventory_elements=None, inventory_elements_samples
         * Characterization factors (i.e. elements of the C matrix)
         * Exogenous parameters
     
-    The presample directory necessarily contains the following file:
+    The presamples directory necessarily contains the following file:
     * ``datapackage.json``: Contains metadata about the other files, including integrity checks. 
     
     If the presamples package is to contain sampled values for elements of the inventory matrices,

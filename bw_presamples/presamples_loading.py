@@ -232,7 +232,7 @@ class Presamples(object):
             returned.append(
                 {
                 'stored_data_type': 'inventory_elements',
-                'params': np.load(params_fp),
+                'params': np.load(elements_fp),
                 'samples': {
                     'filepath': samples_fp,
                     'shape': samples_md['shape'],

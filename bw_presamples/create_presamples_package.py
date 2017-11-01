@@ -114,7 +114,7 @@ def create_presamples_package(inventory_elements=None, inventory_elements_sample
 
     # inventory_elements
     if inventory_elements is not None:
-        assert inventory_elements_samples, "Cannot process inventory elements, missing information"
+        assert inventory_elements_samples is not None, "Cannot process inventory elements, missing information"
         assert len(inventory_elements)==inventory_elements_samples.shape[0], \
             "The number of inventory elements does not correspond to the number of inventory element samples"
 
@@ -128,7 +128,7 @@ def create_presamples_package(inventory_elements=None, inventory_elements_sample
 
         inventory_elements_arr = np.zeros(len(inventory_elements), dtype=inv_dtype)
 
-        _ = lambda x: x if mapped else mapping[x]
+        _ = lambda x: x if inventory_mapped else mapping[x]
 
         for i, row in enumerate(inventory_elements):
             processed = (_(row[0]), _(row[1]), MAX_INT_32, MAX_INT_32, TYPE_DICTIONARY[row[2]])
@@ -164,7 +164,7 @@ def create_presamples_package(inventory_elements=None, inventory_elements_sample
 
     # cfs
     if cfs is not None:
-        assert cfs_samples, "Cannot process cfs, missing information"
+        assert cfs_samples is not None, "Cannot process cfs, missing information"
         assert len(cfs)==cfs_samples.shape[0], \
             "The number of cfs does not correspond to the number of cf samples"
 
@@ -175,7 +175,7 @@ def create_presamples_package(inventory_elements=None, inventory_elements_sample
 
         cfs_arr = np.zeros(len(cfs), dtype=ia_dtype)
 
-        _ = lambda x: x if mapped else mapping[x]
+        _ = lambda x: x if cfs_mapped else mapping[x]
 
         for i, row in enumerate(cfs):
             processed = (_(row), MAX_INT_32)

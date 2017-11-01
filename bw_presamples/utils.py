@@ -40,7 +40,7 @@ def convert_exchange_to_param(exc):
     """Transforms a bw2data.backends.peewee.proxies.Exchange into a param (input['key'], output['key'], type)"""
     return (exc.input.key, exc.output.key, exc['type'])
 
-def get_technosphere_input_params_with_shared_unit(act_key, unit,  as_params=True):
+def get_technosphere_input_params_with_shared_unit(act_key, unit, as_params=True):
     """ Returns all technosphere inputs with a specified unit
     If ``as_params``, the params, as (input.key, output.key, type) are returned,
     else the actual exchanges are returned"""
@@ -99,7 +99,7 @@ def inputs_sum_to_fixed_amount_sample(params, expected_sum='total_static', hold_
         return None
     # Get expected sum
     if expected_sum == 'total_static':
-        expected_sum = sum_amounts_of_exchages(exc_list)
+        expected_sum = sum_amounts_of_exchanges(exc_list)
 
     # Get rough samples
     samples_arr = get_rough_samples(exc_list, iterations)    

@@ -10,6 +10,12 @@ import os
 import shutil
 import uuid
 
+def convert_1d_to_2d_if_needed(arr):
+    """Convert, if applicable, a 1d numpy array to a 2d numpy array"""
+    if arr is not None and len(arr.shape)==1:
+        return np.reshape(arr, (1, arr.shape[0]))
+    else:
+        return arr
 
 def create_presamples_package(inventory_elements=None, inventory_elements_samples=None, inventory_mapped=False, inventory_dtype="float32",
                               cfs=None, cfs_samples=None, cfs_mapped=False, cfs_dtype="float32",
@@ -74,18 +80,31 @@ def create_presamples_package(inventory_elements=None, inventory_elements_sample
 
     """
 
-    # Common to all types of stored presamples
+    # Convert all samples_arrays to 2d, if necessary:
+    inventory_elements_samples = convert_1d_to_2d_if_needed(inventory_elements_samples)
+    cfs_samples = convert_1d_to_2d_if_needed(cfs_samples)
+    parameters_samples = convert_1d_to_2d_if_needed(parameters_samples) 
+    
+    # Ensure all samples are numpy arrays with the same number of iterations
+    passed_samples = [samples for samples in [inventory_elements_samples, cfs_samples, parameters_samples] if samples is not None]
+    assert all([isinstance(arr, (np.ndarray, None)) for arr in passed_samples]), "Not all passed samples are numpy arrays"
+    if len(passed_samples)>1:
+        assert all([arr.shape[1] == passed_samples[0].shape[1] for arr in passed_samples]), "The number of iterations in passed samples are not constant across types of samples"
+
+    # Generate id_ 
     if id_ is None:
         id_ = uuid.uuid4().hex
     
+    # Create presamples directory
     base_dir = os.path.join(projects.request_directory('presamples'), id_)
     if os.path.isdir(base_dir):
         if not overwrite:
             raise ValueError("This presampled directory already exists")
         else:
             shutil.rmtree(base_dir)
-
     os.mkdir(base_dir)
+    
+    # Initiate datapackage
     datapackage = {
         "id": id_,
         "profile": "data-package",
@@ -93,12 +112,9 @@ def create_presamples_package(inventory_elements=None, inventory_elements_sample
         "resources": []
         }
 
-    
-
     # inventory_elements
     if inventory_elements is not None:
         assert inventory_elements_samples, "Cannot process inventory elements, missing information"
-        assert isinstance(inventory_elements_samples, np.ndarray), "The inventory elements samples should be in a numpy array"
         assert len(inventory_elements)==inventory_elements_samples.shape[0], \
             "The number of inventory elements does not correspond to the number of inventory element samples"
 
@@ -149,7 +165,6 @@ def create_presamples_package(inventory_elements=None, inventory_elements_sample
     # cfs
     if cfs is not None:
         assert cfs_samples, "Cannot process cfs, missing information"
-        assert isinstance(cfs_samples, np.ndarray), "The cfs samples should be in a numpy array"
         assert len(cfs)==cfs_samples.shape[0], \
             "The number of cfs does not correspond to the number of cf samples"
 
@@ -195,11 +210,8 @@ def create_presamples_package(inventory_elements=None, inventory_elements_sample
             ])
                 
     if parameters is not None:
-        assert parameters_samples, "Exogenous parameters were passed, but parameter samples are missing."
-        assert len(parameters)==parameters_samples.shape[0], "The number of exogenous parameters does not correspond to the number of samples"
-        assert isinstance(parameters_samples, np.ndarray), "The exogenous parameters samples should be a numpy array"
-        if elements is not None:
-            assert elements_samples.shape[1]==parameters_samples.shape[1], 'Number of iterations differs for elements and exogenous parameters: invalid samples'
+        assert parameters_samples is not None, "Exogenous parameters were passed, but parameter samples are missing."
+        assert len(parameters)==parameters_samples.shape[0], "The number of exogenous parameters ({}) does not correspond to the number of samples {}".format(len(parameters), parameters_samples.shape[0])
 
         parameters_samples_fp = os.path.join(base_dir, "{}.parameters_samples.npy".format(id_))
         parameters_fp = os.path.join(base_dir, "{}.parameters.json".format(id_))

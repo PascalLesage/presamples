@@ -181,7 +181,7 @@ class Presamples(object):
         self.tech_params, self.bio_params, self.tech_mask, self.bio_mask, \
             self.inventory_samples = Presamples.get_inventory(data)
         self.cf_params, self.cf_samples = Presamples.get_cfs(data)
-        self.exogenous_variables, self.exogenous_samples = Presamples.get_exogenous(data)
+        self.exogenous_parameters, self.exogenous_parameters_samples = Presamples.get_exogenous(data)
 
     @staticmethod
     def validate_dirpath(dirpath):
@@ -377,9 +377,9 @@ class Presamples(object):
             return None, None
 
     @nonempty
-    def return_exogenous_variables_and_samples(self, iterations):
-        rows = len(self.exogenous_variables)
-        exogenous_samples = np.empty([rows, iterations])
+    def return_exogenous_parameters_and_samples(self, iterations):
+        rows = len(self.exogenous_parameters)
+        exogenous_parameters_samples = np.empty([rows, iterations])
         for iteration in range(iterations):
-            exogenous_samples[:, iteration] = self.exogenous_samples.sample()
-        return self.exogenous_variables, exogenous_samples
+            exogenous_parameters_samples[:, iteration] = self.exogenous_parameters_samples.sample()
+        return self.exogenous_parameters, exogenous_parameters_samples

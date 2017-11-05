@@ -247,4 +247,35 @@ def create_presamples_package(inventory_elements=None, inventory_elements_sample
 
     return id_, base_dir
 
-
+def convert_parameter_set_dict_to_presample_package(ps_dict, id_=None,
+                                                    overwrite=None, 
+                                                    forced_precision="float32"
+                                                    ):
+    if ps_dict.get('parameters'):
+        parameters = ps_dict['parameters']
+        parameters_samples = ps_dict['parameters_samples']
+    else:
+        parameters = None
+        parameters_samples = None
+    
+    if ps_dict.get('inventory_elements'):
+        inventory_elements = ps_dict['inventory_elements']
+        inventory_elements_samples = ps_dict['inventory_elements_samples']
+    else:
+        inventory_elements = None
+        inventory_elements_samples = None    
+    
+    if ps_dict.get('cfs'):
+        inventory_elements = ps_dict['cfs']
+        inventory_elements_samples = ps_dict['cfs_samples']
+    else:
+        cfs = None
+        cfs_samples = None    
+    
+    id_, base_dir = create_presamples_package(inventory_elements=inventory_elements,
+        inventory_elements_samples=inventory_elements_samples, inventory_dtype=forced_precision,
+        cfs=cfs, cfs_samples=cfs_samples, cfs_dtype=forced_precision,
+        parameters=parameters, parameters_samples=parameters_samples, parameters_dtype=forced_precision,
+        id_=id_, overwrite=overwrite
+        )
+    return id_, base_dir

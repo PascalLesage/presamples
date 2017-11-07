@@ -2,3 +2,4 @@ recursive-include *.py
 include pytest.ini
 include LICENSE
 include *.md
+include *.txt

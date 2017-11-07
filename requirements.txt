@@ -1,2 +1,5 @@
+bw2calc
+bw2data
 numpy
 scipy
+stats_arrays

@@ -6,6 +6,7 @@ from bw2calc.matrices import TechnosphereBiosphereMatrixBuilder as MB
 from bw2calc.utils import md5
 import json
 import numpy as np
+from numpy.random import RandomState
 import os
 import wrapt
 
@@ -19,7 +20,7 @@ def nonempty(wrapped, instance, args, kwargs):
         return wrapped(*args, **kwargs)
 
 
-class IrregularPresamplesArray(object):
+class IrregularPresamplesArray(RandomState):
     """A wrapper around a list of memory-mapped Numpy arrays with heterogeneous shapes.
 
     This class provides a simple way to consistently sample arrays with different shapes and datatypes.
@@ -31,8 +32,8 @@ class IrregularPresamplesArray(object):
 
     """
     def __init__(self, filepaths, seed=None):
+        super(IrregularPresamplesArray, self).__init__(seed)
         self.seed = seed
-        np.random.seed(seed)
 
         self.data = [
             (np.load(fp, mmap_mode='r'), shape[1])
@@ -42,7 +43,7 @@ class IrregularPresamplesArray(object):
     def sample(self):
         """Draw a new sample from the pre-sample arrays"""
         # TODO: fix max value to MAX_SIGNED_INT_32 after merging
-        index = np.random.randint(0, 2147483647)
+        index = self.randint(0, 2147483647)
         arr = np.hstack([arr[:, index % ncols] for arr, ncols in self.data])
         return np.hstack([arr[:, index % ncols] for arr, ncols in self.data])
 

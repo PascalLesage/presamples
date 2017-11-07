@@ -33,7 +33,7 @@ class IrregularPresamplesArray(RandomState):
     """
     def __init__(self, filepaths, seed=None):
         super(IrregularPresamplesArray, self).__init__(seed)
-        self.seed = seed
+        self.seed_value = seed
 
         self.data = [
             (np.load(fp, mmap_mode='r'), shape[1])

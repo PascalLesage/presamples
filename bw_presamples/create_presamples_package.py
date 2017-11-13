@@ -20,7 +20,7 @@ def convert_1d_to_2d_if_needed(arr):
 def create_presamples_package(inventory_elements=None, inventory_elements_samples=None, inventory_mapped=False, inventory_dtype="float32",
                               cfs=None, cfs_samples=None, cfs_mapped=False, cfs_dtype="float32",
                               parameters=None, parameters_samples=None, parameters_dtype="float32",
-                              id_=None, overwrite=False):
+                              id_=None, overwrite=False, description="", name=None):
     """Create a new subdirectory in the ``project`` folder that stores presampled values.
 
     The presamples values can be for the following types of objects:
@@ -75,6 +75,8 @@ def create_presamples_package(inventory_elements=None, inventory_elements_sample
     The following arguments are optional:
     * ``id_``: Unique id for this collection of presamples. Optional, generated automatically if not set.
     * ``overwrite``: If True, replace an existing presamples package with the same ``_id`` if it exists. Default ``False``
+    * ``description``: Markdown description of the presamples package content and context
+    * ``name``: short url-usable (and preferably human-readable) name of the package. If ``None``, the ``name`` is set equal to ``_id``
 
     Returns ``id_`` and the absolute path of the created directory.
 
@@ -94,6 +96,8 @@ def create_presamples_package(inventory_elements=None, inventory_elements_sample
     # Generate id_ 
     if id_ is None:
         id_ = uuid.uuid4().hex
+    if name in None:
+        name = id_
     
     # Create presamples directory
     base_dir = os.path.join(projects.request_directory('presamples'), id_)
@@ -107,9 +111,11 @@ def create_presamples_package(inventory_elements=None, inventory_elements_sample
     # Initiate datapackage
     datapackage = {
         "id": id_,
+        "name": name,
         "profile": "data-package",
         "content": [],
-        "resources": []
+        "resources": [],
+        "description": description,
         }
 
     # inventory_elements

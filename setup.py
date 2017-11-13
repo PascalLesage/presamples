@@ -32,7 +32,7 @@ setup(
     license=open('LICENSE').read(),
     install_requires=[
         'numpy',
-        'scipy',
+        'brightway2',
     ],
     url="https://brightwaylca.org/",
     long_description=open('README.md').read(),

@@ -1,2 +1,4 @@
 numpy
 brightway2
+pytest
+scipy

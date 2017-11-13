@@ -169,12 +169,12 @@ class MatrixPresamples(object):
         # Check that metadata is the same
         assert len({el['matrix'] for el in group}) == 1, "Conflicting matrices"
         assert len({
-            (el['row from label'], el['row to label']m el['row dict'])
+            (el['row from label'], el['row to label'], el['row dict'])
             for el in group
         }) == 1, "Conflicting labels"
         if any(['col dict' in o for o in group]):
             assert len({
-                (el['col from label'], el['col to label']m el['col dict'])
+                (el['col from label'], el['col to label'], el['col dict'])
                 for el in group
             }) == 1, "Conflicting labels"
 

@@ -126,7 +126,7 @@ def create_matrix_presamples_package(data, name=None,
 
     """
     # Convert all arrays
-    to_array = lambda x: np.array(x) if not isinstance(x, np.ndarray)
+    to_array = lambda x: np.array(x) if not isinstance(x, np.ndarray) else x
     to_2d = lambda x: np.reshape(x, (1, -1)) if len(x.shape) == 1 else x
     samples = to_2d(to_array(samples))
     id_ = id_ or uuid.uuid4().hex

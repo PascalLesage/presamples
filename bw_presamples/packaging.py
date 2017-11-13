@@ -36,7 +36,7 @@ def format_technosphere_presamples(indices):
         }
 
     """
-    metadata =         {
+    metadata = {
         'row from label': 'input',
         'row to label': 'row',
         'row dict': 'product_dict',
@@ -63,10 +63,53 @@ def format_technosphere_presamples(indices):
     return format_presamples(indices, 'technosphere', dtype, func, metadata)
 
 
+def format_biosphere_presamples(indices):
+    """Format biosphere presamples into an array.
+
+    Input data has the form ``[(flow id, activity id)]``, where both ids are **unmapped**.
+
+    Returns an array with columns ``[('input', np.uint32), ('output', np.uint32), ('row', MAX_SIGNED_32BIT_INT), ('col', MAX_SIGNED_32BIT_INT)]``, and the following metadata::
+
+        {
+            'row from label': 'input',
+            'row to label': 'row',
+            'row dict': 'biosphere_dict',
+            'col from label': 'output',
+            'col to label': 'col',
+            'col dict': 'activity_dict',
+            'matrix': 'biosphere_matrix'
+        }
+
+    """
+    metadata = {
+        'row from label': 'input',
+        'row to label': 'row',
+        'row dict': 'biosphere_dict',
+        'col from label': 'output',
+        'col to label': 'col',
+        'col dict': 'activity_dict',
+        'matrix': 'biosphere_matrix'
+    }
+    dtype = [
+        ('input', np.uint32),
+        ('output', np.uint32),
+        ('row', np.uint32),
+        ('col', np.uint32),
+    ]
+    def func(row):
+        return (
+            mapping[row[0]],
+            mapping[row[1]],
+            MAX_SIGNED_32BIT_INT,
+            MAX_SIGNED_32BIT_INT,
+        )
+    return format_presamples(indices, 'biosphere', dtype, func, metadata)
+
+
 def format_cf_presamples(indices):
     """Format characterization factor presamples into an array.
 
-    Input data has the form ``[flow id]``.
+    Input data has the form ``[flow id]``, where ``flow id`` is an **unmapped** biosphere flow key like ``('biosphere', 'something')``.
 
     Returns an array with columns ``[('flow', np.uint32), ('row', MAX_SIGNED_32BIT_INT)]``, and the following metadata::
 
@@ -94,6 +137,7 @@ def format_cf_presamples(indices):
 
 FORMATTERS = {
     'technosphere': format_technosphere_presamples,
+    'biosphere': format_biosphere_presamples,
     'cf': format_cf_presamples,
 }
 
@@ -109,7 +153,7 @@ def format_presamples(indices, kind, dtype=None, row_formatter=None, metadata=No
     else:
         array = np.zeros(len(indices), dtype=dtype)
         for index, row in enumerate(indices):
-            array[i] = row_formatter(row)
+            array[index] = row_formatter(row)
 
         return array, metadata
 
@@ -128,7 +172,6 @@ def create_matrix_presamples_package(data, name=None,
     # Convert all arrays
     to_array = lambda x: np.array(x) if not isinstance(x, np.ndarray) else x
     to_2d = lambda x: np.reshape(x, (1, -1)) if len(x.shape) == 1 else x
-    samples = to_2d(to_array(samples))
     id_ = id_ or uuid.uuid4().hex
 
     # Create presamples directory

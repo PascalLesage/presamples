@@ -9,6 +9,7 @@ __all__ = [
 	'convert_parameter_set_dict_to_presample_package',
 	'inputs_sum_to_fixed_amount_sample',
 	'kronecker_delta_selector',
+	'Campaign'
 ]
 
 
@@ -26,4 +27,5 @@ from .utils import (
 	inputs_sum_to_fixed_amount_sample,
 	kronecker_delta_selector,
 	)
+from .campaigns import Campaign
 	

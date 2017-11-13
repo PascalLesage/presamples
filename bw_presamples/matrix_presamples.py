@@ -195,6 +195,14 @@ class MatrixPresamples(object):
     @nonempty
     def index_arrays(self, lca):
         for elem in self.data:
+            # Allow for iterative indexing, starting with inventory
+            if elem.get('indexed'):
+                continue
+            elif not hasattr(lca, elem['row dict']):
+                continue
+            elif "col dict" in elem and not hasattr(lca, elem['col dict']):
+                continue
+
             _(
                 getattr(elem['indices'], elem['row from label']),
                 getattr(elem['indices'], elem['row to label']),
@@ -206,6 +214,7 @@ class MatrixPresamples(object):
                     getattr(elem['indices'], elem['col to label']),
                     getattr(lca, elem['col dict'])
                 )
+            elem['indexed'] = True
 
     @nonempty
     def update_matrices(self, lca):
@@ -213,7 +222,11 @@ class MatrixPresamples(object):
             sample = elem['sampler'].sample()
             if elem['type'] == 'technosphere':
                 MB.fix_supply_use(elem['indices'], sample)
-            matrix = getattr(lca, elem['matrix'])
+            try:
+                matrix = getattr(lca, elem['matrix'])
+            except AttributeError:
+                # This LCA doesn't have this matrix
+                continue
             if 'col dict' in elem:
                 matrix[
                     getattr(elem['indices'], elem['row to label']),

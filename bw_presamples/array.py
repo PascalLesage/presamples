@@ -1,6 +1,9 @@
 from numpy.random import RandomState
 import numpy as np
 
+# Max signed 32 bit integer, compatible with Windows
+MAX_SIGNED_32BIT_INT = 2147483647
+
 
 class IrregularPresamplesArray(RandomState):
     """A wrapper around a list of memory-mapped Numpy arrays with heterogeneous shapes.
@@ -24,7 +27,6 @@ class IrregularPresamplesArray(RandomState):
 
     def sample(self):
         """Draw a new sample from the pre-sample arrays"""
-        # Max signed 32 bit integer, compatible with Windows
-        index = self.randint(0, 2147483647)
+        index = self.randint(0, MAX_SIGNED_32BIT_INT)
         arr = np.hstack([arr[:, index % ncols] for arr, ncols in self.data])
         return np.hstack([arr[:, index % ncols] for arr, ncols in self.data])

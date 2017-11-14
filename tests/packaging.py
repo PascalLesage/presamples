@@ -1,6 +1,6 @@
 from bw2data import mapping
 from bw2data.tests import bw2test
-from bw_presamples import create_matrix_presamples_package
+from bw_presamples import *
 from bw_presamples.packaging import MAX_SIGNED_32BIT_INT
 from pathlib import Path
 import json
@@ -18,7 +18,7 @@ TYPE_DICTIONARY = {
 }
 
 @bw2test
-def test_basic_packaging():
+def test_basic_matrix_packaging():
     mapping.add('ABCDEF')
     t1 = [('A', 'A', 0), ('A', 'B', 1), ('B', 'C', 3)]
     t2 = np.arange(12).reshape((3, 4))
@@ -138,6 +138,78 @@ def test_basic_packaging():
 
     # Test without optional fields
     create_matrix_presamples_package(inputs)
+
+@bw2test
+def test_basic_parameter_packaging():
+    s1 = np.arange(12).reshape((3, 4))
+    s2 = np.arange(15).reshape((3, 5))
+    n1 = list('ABC')
+    n2 = list('DEF')
+    id_, dirpath = create_parameter_presamples_package([(s1, n1), (s2, n2)],
+        name='foo', id_='bar')
+    assert id_ == 'bar'
+    dirpath = Path(dirpath)
+    expected = [
+        'bar.0.names.json', 'bar.0.samples.npy',
+        'bar.1.names.json', 'bar.1.samples.npy',
+        'datapackage.json'
+    ]
+    assert list(os.listdir(dirpath)) == expected
+    expected = np.arange(12).reshape((3, 4))
+    assert np.allclose(np.load(dirpath / 'bar.0.samples.npy'), expected)
+    expected = ['A', 'B', 'C']
+    assert json.load(open(dirpath / 'bar.0.names.json')) ==  expected
+    expected = ['D', 'E', 'F']
+    assert json.load(open(dirpath / 'bar.1.names.json')) ==  expected
+    expected = {
+        'id': 'bar',
+        'name': 'foo',
+        'profile': 'data-package',
+        'resources': [{
+            'profile': 'data-resource',
+            'samples': {
+                'dtype': 'int64',
+                'filepath': 'bar.0.samples.npy',
+                'md5': '1d1de948043b8e205e1d6390f67d6ee5',
+                'shape': [3, 4],
+                "format": "npy",
+                "mediatype": "application/octet-stream"
+            },
+            'names': {
+                'filepath': 'bar.0.names.json',
+                'md5': '79be56d273f4ae0adfdb829928558e6a',
+                "format": "json",
+                "mediatype": "application/json"
+            },
+        }, {
+            'profile': 'data-resource',
+            'samples': {
+                'dtype': 'int64',
+                'filepath': 'bar.1.samples.npy',
+                'md5': '65bf1e51e87170e5ce6fb65f7f1a56e2',
+                'shape': [3, 5],
+                "format": "npy",
+                "mediatype": "application/octet-stream"
+            },
+            'names': {
+                'filepath': 'bar.1.names.json',
+                'md5': 'cbad242046cd8f057f1cb4827805439e',
+                "format": "json",
+                "mediatype": "application/json"
+            },
+        }
+    ]}
+    assert json.load(open(dirpath / 'datapackage.json')) == expected
+
+    # Test without optional fields
+    create_parameter_presamples_package([(s1, n1), (s2, n2)])
+
+@bw2test
+def test_parameter_shape_mismatch():
+    s1 = np.arange(20).reshape((5, 4))
+    n1 = list('ABC')
+    with pytest.raises(ValueError):
+        create_parameter_presamples_package([(s1, n1)])
 
 @bw2test
 def test_custom_metadata():

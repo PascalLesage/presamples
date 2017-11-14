@@ -13,6 +13,9 @@ import uuid
 # Max signed 32 bit integer, compatible with Windows
 MAX_SIGNED_32BIT_INT = 2147483647
 
+to_array = lambda x: np.array(x) if not isinstance(x, np.ndarray) else x
+to_2d = lambda x: np.reshape(x, (1, -1)) if len(x.shape) == 1 else x
+
 
 def split_inventory_presamples(samples, indices):
     pass
@@ -177,6 +180,17 @@ def format_matrix_presamples(indices, kind, dtype=None, row_formatter=None, meta
         return array, metadata
 
 
+def get_presample_directory(id_, overwrite=False):
+    dirpath = Path(projects.request_directory('presamples')) / id_
+    if os.path.isdir(dirpath):
+        if not overwrite:
+            raise ValueError("The presampled directory {} already exists".format(dirpath))
+        else:
+            shutil.rmtree(dirpath)
+    os.mkdir(dirpath)
+    return dirpath
+
+
 def create_matrix_presamples_package(data, name=None,
         id_=None, overwrite=False):
     """Create a new subdirectory in the ``project`` folder that stores presampled values.
@@ -188,19 +202,8 @@ def create_matrix_presamples_package(data, name=None,
     Returns ``id_`` and the absolute path of the created directory.
 
     """
-    # Convert all arrays
-    to_array = lambda x: np.array(x) if not isinstance(x, np.ndarray) else x
-    to_2d = lambda x: np.reshape(x, (1, -1)) if len(x.shape) == 1 else x
     id_ = id_ or uuid.uuid4().hex
-
-    # Create presamples directory
-    dirpath = Path(projects.request_directory('presamples')) / id_
-    if os.path.isdir(dirpath):
-        if not overwrite:
-            raise ValueError("The presampled directory {} already exists".format(dirpath))
-        else:
-            shutil.rmtree(dirpath)
-    os.mkdir(dirpath)
+    dirpath = get_presample_directory(id_, overwrite)
 
     datapackage = {
         "name": str(name),
@@ -248,70 +251,66 @@ def create_matrix_presamples_package(data, name=None,
     return id_, dirpath
 
 
+def create_parameter_presamples_package(data, name=None,
+        id_=None, overwrite=False):
+    """Create a new subdirectory in the ``project`` folder that stores presampled values for parameters.
 
-    # if parameters is not None:
-    #     assert parameters_samples is not None, "Exogenous parameters were passed, but parameter samples are missing."
-    #     assert len(parameters)==parameters_samples.shape[0], "The number of exogenous parameters ({}) does not correspond to the number of samples {}".format(len(parameters), parameters_samples.shape[0])
+    Parameters are not directly inserted into matrices, but can be used to generate matrix presamples, or as inputs to sensitivity analysis.
 
-    #     parameters_samples_fp = os.path.join(base_dir, "{}.parameters_samples.npy".format(id_))
-    #     parameters_fp = os.path.join(base_dir, "{}.parameters.json".format(id_))
+    ``data`` is a list of ``(samples, names)``. ``samples`` should be a Numpy array; ``names`` is a python list of strings.
 
-    #     with open(parameters_fp, "w") as f:
-    #         json.dump(parameters, f)
-    #     np.save(parameters_samples_fp, parameters_samples, allow_pickle=False)
+    The following arguments are optional:
+    * ``id_``: Unique id for this collection of presamples. Optional, generated automatically if not set.
+    * ``overwrite``: If True, replace an existing presamples package with the same ``_id`` if it exists. Default ``False``
 
-    #     datapackage['content'].append('parameters')
-    #     datapackage['resources'].extend(
-    #         [
-    #         {
-    #             "name": "parameters_samples",
-    #             "path": "{}.parameters_samples.npy".format(id_),
-    #             "profile": "data-resource",
-    #             "format": "npy",
-    #             "mediatype": "application/octet-stream",
-    #             "hash": md5(parameters_samples_fp),
-    #             "dtype": parameters_dtype,
-    #             "shape": parameters_samples.shape
-    #         }, {
-    #             "name": "parameters",
-    #             "path": "{}.parameters.json".format(id_),
-    #             "profile": "data-resource",
-    #             "format": "json",
-    #             "mediatype": "application/json",
-    #             "hash": md5(parameters_fp),
-    #         }
-    #         ])
+    Returns ``id_`` and the absolute path of the created directory.
 
+    """
+    id_ = id_ or uuid.uuid4().hex
+    dirpath = get_presample_directory(id_, overwrite)
 
-# def convert_parameter_set_dict_to_presample_package(ps_dict, id_=None,
-#                                                     overwrite=None,
-#                                                     forced_precision="float32"
-#                                                     ):
-#     if ps_dict.get('parameters'):
-#         parameters = ps_dict['parameters']
-#         parameters_samples = ps_dict['parameters_samples']
-#     else:
-#         parameters = None
-#         parameters_samples = None
+    datapackage = {
+        "name": str(name),
+        "id": id_,
+        "profile": "data-package",
+        "resources": []
+    }
 
-#     if ps_dict.get('inventory_elements'):
-#         inventory_elements = ps_dict['inventory_elements']
-#         inventory_elements_samples = ps_dict['inventory_elements_samples']
-#     else:
-#         inventory_elements = None
-#         inventory_elements_samples = None
+    for index, row in enumerate(data):
+        samples, names = row
+        samples = to_2d(to_array(samples))
 
-#     if ps_dict.get('cfs'):
-#         inventory_elements = ps_dict['cfs']
-#         inventory_elements_samples = ps_dict['cfs_samples']
-#     else:
-#         cfs = None
-#         cfs_samples = None
+        if not len(names) == samples.shape[0]:
+            raise ValueError("Shape mismatch between samples and names: "
+                "{}, {}".format(samples.shape, len(names)))
 
-#     id_, base_dir = create_presamples_package(inventory_elements=inventory_elements,
-#         inventory_elements_samples=inventory_elements_samples, inventory_dtype=forced_precision,
-#         cfs=cfs, cfs_samples=cfs_samples, cfs_dtype=forced_precision,
-#         parameters=parameters, parameters_samples=parameters_samples, parameters_dtype=forced_precision,
-#         id_=id_, overwrite=overwrite
-#         )
-#     return id_, base_dir
+        samples_fp = "{}.{}.samples.npy".format(id_, index)
+        names_fp = "{}.{}.names.json".format(id_, index)
+
+        np.save(dirpath / samples_fp, samples, allow_pickle=False)
+        with open(dirpath / names_fp, "w", encoding='utf-8') as f:
+            json.dump(names, f, ensure_ascii=False)
+
+        result = {
+            'samples': {
+                'filepath': samples_fp,
+                'md5': md5(dirpath / samples_fp),
+                'shape': samples.shape,
+                'dtype': str(samples.dtype),
+                "format": "npy",
+                "mediatype": "application/octet-stream"
+            },
+            'names': {
+                'filepath': names_fp,
+                'md5': md5(dirpath / names_fp),
+                "format": "json",
+                "mediatype": "application/json"
+            },
+            "profile": "data-resource",
+        }
+        datapackage['resources'].append(result)
+
+    with open(dirpath / "datapackage.json", "w", encoding='utf-8') as f:
+        json.dump(datapackage, f, indent=2, ensure_ascii=False)
+
+    return id_, dirpath

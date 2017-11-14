@@ -93,7 +93,7 @@ class MatrixPresamples(object):
         self.data = []
         for dirpath in (dirpaths or []):
             self.validate_dirpath(Path(dirpath))
-            self.data.extend(self.load_data(Path(dirpath), seed))
+            self.data.append(self.load_data(Path(dirpath), seed))
 
         self.empty = not bool(self.data)
 
@@ -160,7 +160,7 @@ class MatrixPresamples(object):
 
         for key, group in itertools.groupby(resources, fltr):
             group = cls.consolidate(dirpath, seed, list(group))
-            results.append(group)
+            results['resources'].append(group)
 
         return results
 
@@ -180,7 +180,7 @@ class MatrixPresamples(object):
 
         indices = [np.load(dirpath / r['indices']['filepath']) for r in group]
         # Check that indices have right shape
-        assert len({o.shape[1] for o in indices}) == 1, "Conflicting index shapes"
+        assert len({o.dtype for o in indices}) == 1, "Conflicting index shapes"
         indices = np.hstack(indices)
         samples = IrregularPresamplesArray([
             (dirpath / el['samples']['filepath'], el['samples']['shape'])
@@ -194,46 +194,48 @@ class MatrixPresamples(object):
 
     @nonempty
     def index_arrays(self, lca):
-        for elem in self.data:
-            # Allow for iterative indexing, starting with inventory
-            if elem.get('indexed'):
-                continue
-            elif not hasattr(lca, elem['row dict']):
-                continue
-            elif "col dict" in elem and not hasattr(lca, elem['col dict']):
-                continue
+        for obj in self.data:
+            for elem in obj['resources']:
+                # Allow for iterative indexing, starting with inventory
+                if elem.get('indexed'):
+                    continue
+                elif not hasattr(lca, elem['row dict']):
+                    continue
+                elif "col dict" in elem and not hasattr(lca, elem['col dict']):
+                    continue
 
-            _(
-                getattr(elem['indices'], elem['row from label']),
-                getattr(elem['indices'], elem['row to label']),
-                getattr(lca, elem['row dict'])
-            )
-            if "col dict" in elem:
                 _(
-                    getattr(elem['indices'], elem['col from label']),
-                    getattr(elem['indices'], elem['col to label']),
-                    getattr(lca, elem['col dict'])
+                    elem['indices'][elem['row from label']],
+                    elem['indices'][elem['row to label']],
+                    getattr(lca, elem['row dict'])
                 )
-            elem['indexed'] = True
+                if "col dict" in elem:
+                    _(
+                        elem['indices'][elem['col from label']],
+                        elem['indices'][elem['col to label']],
+                        getattr(lca, elem['col dict'])
+                    )
+                elem['indexed'] = True
 
     @nonempty
     def update_matrices(self, lca):
-        for elem in self.data:
-            sample = elem['sampler'].sample()
-            if elem['type'] == 'technosphere':
-                MB.fix_supply_use(elem['indices'], sample)
-            try:
-                matrix = getattr(lca, elem['matrix'])
-            except AttributeError:
-                # This LCA doesn't have this matrix
-                continue
-            if 'col dict' in elem:
-                matrix[
-                    getattr(elem['indices'], elem['row to label']),
-                    getattr(elem['indices'], elem['col to label']),
-                ] = sample
-            else:
-                matrix[
-                    getattr(elem['indices'], elem['row to label']),
-                    getattr(elem['indices'], elem['row to label']),
-                ] = sample
+        for obj in self.data:
+            for elem in obj['resources']:
+                sample = elem['samples'].sample()
+                if elem['type'] == 'technosphere':
+                    MB.fix_supply_use(elem['indices'], sample)
+                try:
+                    matrix = getattr(lca, elem['matrix'])
+                except AttributeError:
+                    # This LCA doesn't have this matrix
+                    continue
+                if 'col dict' in elem:
+                    matrix[
+                        elem['indices'][elem['row to label']],
+                        elem['indices'][elem['col to label']],
+                    ] = sample
+                else:
+                    matrix[
+                        elem['indices'][elem['row to label']],
+                        elem['indices'][elem['row to label']],
+                    ] = sample

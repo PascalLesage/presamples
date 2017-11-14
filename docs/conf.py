@@ -13,14 +13,31 @@
 # All configuration values have a default; values that are commented out
 # serve to show the default.
 
-# If extensions (or modules to document with autodoc) are in another directory,
-# add these directories to sys.path here. If the directory is relative to the
-# documentation root, use os.path.abspath to make it absolute, like shown here.
-#
-# import os
-# import sys
-# sys.path.insert(0, os.path.abspath('.'))
+import sys
+from unittest.mock import MagicMock
+from os.path import abspath, dirname
 
+class Mock(MagicMock):
+    @classmethod
+    def __getattr__(cls, name):
+            return MagicMock()
+
+
+MOCK_MODULES = [
+  "bw2calc.indexing",
+  "bw2calc.matrices",
+  "bw2calc.utils",
+  "bw2data",
+  "bw2data.backends.peewee.proxies",
+  "bw2data.filesystem",
+  "bw2data.utils",
+  "numpy",
+  "numpy.random",
+  "wrapt",
+]
+sys.modules.update((mod_name, Mock()) for mod_name in MOCK_MODULES)
+
+sys.path.insert(1, abspath(dirname(dirname(__file__))))
 
 # -- General configuration ------------------------------------------------
 

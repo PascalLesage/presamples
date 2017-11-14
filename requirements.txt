@@ -1,2 +1,4 @@
+bw2calc
+bw2data
 numpy
-brightway2
+wrapt

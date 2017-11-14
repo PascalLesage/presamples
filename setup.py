@@ -32,7 +32,9 @@ setup(
     license=open('LICENSE').read(),
     install_requires=[
         'numpy',
-        'brightway2',
+        'bw2data',
+        'bw2calc',
+        'wrapt',
     ],
     url="https://brightwaylca.org/",
     long_description=open('README.md').read(),

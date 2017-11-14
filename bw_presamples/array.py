@@ -19,14 +19,12 @@ class IrregularPresamplesArray(RandomState):
     def __init__(self, filepaths, seed=None):
         super(IrregularPresamplesArray, self).__init__(seed)
         self.seed_value = seed
-
         self.data = [
-            (np.load(fp, mmap_mode='r'), shape[1])
+            (np.load(str(fp), mmap_mode='r'), shape[1])
             for fp, shape in filepaths
         ]
 
     def sample(self):
         """Draw a new sample from the pre-sample arrays"""
         index = self.randint(0, MAX_SIGNED_32BIT_INT)
-        arr = np.hstack([arr[:, index % ncols] for arr, ncols in self.data])
         return np.hstack([arr[:, index % ncols] for arr, ncols in self.data])

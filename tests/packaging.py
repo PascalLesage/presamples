@@ -136,18 +136,219 @@ def test_basic_packaging():
     ]}
     assert json.load(open(dirpath / 'datapackage.json')) == expected
 
+    # Test without optional fields
+    create_matrix_presamples_package(inputs)
+
 @bw2test
 def test_custom_metadata():
-    pass
+    mapping.add('ABCDEF')
+    a = np.arange(12).reshape((3, 4))
+    b = [(1, 1), (1, 2), (2, 3)]
+    metadata = {
+        'row from label': 'f1',
+        'row to label': 'f3',
+        'row dict': 'some_dict',
+        'col from label': 'f2',
+        'col to label': 'f4',
+        'col dict': 'another_dict',
+        'matrix': 'some_matrix'
+    }
+    frmt = lambda x: (x[0], x[1], 0, 0)
+    dtype = [
+        ('f1', np.uint32),
+        ('f2', np.uint32),
+        ('f3', np.uint32),
+        ('f4', np.uint32),
+    ]
+    id_, dirpath = create_matrix_presamples_package(
+        [(a, b, 'foo', dtype, frmt, metadata)],
+        name='foo', id_='custom'
+    )
+    assert id_ == 'custom'
+    dirpath = Path(dirpath)
+    expected = [
+        'custom.0.indices.npy', 'custom.0.samples.npy',
+        'datapackage.json'
+    ]
+    assert list(os.listdir(dirpath)) == expected
+    expected = [
+        (1, 1, 0, 0),
+        (1, 2, 0, 0),
+        (2, 3, 0, 0),
+    ]
+    assert np.load(dirpath / 'custom.0.indices.npy').tolist() ==  expected
+    expected = {
+        'id': 'custom',
+        'name': 'foo',
+        'profile': 'data-package',
+        'resources': [{
+            'format': 'npy',
+            'mediatype': 'application/octet-stream',
+            'profile': 'data-resource',
+            'samples': {
+                'dtype': 'int64',
+                'filepath': 'custom.0.samples.npy',
+                'md5': '1d1de948043b8e205e1d6390f67d6ee5',
+                'shape': [3, 4]
+            },
+            'indices': {
+                'filepath': 'custom.0.indices.npy',
+                'md5': '6fb3a44ccfb42d193c859fe3e45821b3'
+            },
+            'matrix': 'some_matrix',
+            'row dict': 'some_dict',
+            'row from label': 'f1',
+            'row to label': 'f3',
+            'col dict': 'another_dict',
+            'col from label': 'f2',
+            'col to label': 'f4',
+            'type': 'foo'
+        }
+    ]}
+    assert json.load(open(dirpath / 'datapackage.json')) == expected
+
+@bw2test
+def test_custom_metadata_error():
+    a = np.arange(12).reshape((3, 4))
+    b = [(1, 1), (1, 2), (2, 3)]
+    metadata = {
+        'row from label': 'f1',
+        'row to label': 'f3',
+        'row dict': 'some_dict',
+        'col from label': 'f2',
+        'col to label': 'f4',
+        'col dict': 'another_dict',
+        'matrix': 'some_matrix'
+    }
+    frmt = lambda x: (x[0], x[1], 0, 0)
+    dtype = [
+        ('f1', np.uint32),
+        ('f2', np.uint32),
+        ('f3', np.uint32),
+        ('f4', np.uint32),
+    ]
+    create_matrix_presamples_package(
+        [(a, b, 'foo', dtype, frmt, metadata)]
+    )
+    # Missing `row to label`
+    metadata = {
+        'row from label': 'f1',
+        'row dict': 'some_dict',
+        'col from label': 'f2',
+        'col to label': 'f4',
+        'col dict': 'another_dict',
+        'matrix': 'some_matrix'
+    }
+    with pytest.raises(ValueError):
+        create_matrix_presamples_package(
+            [(a, b, 'foo', dtype, frmt, metadata)]
+        )
+    # No cols is OK
+    metadata = {
+        'row from label': 'f1',
+        'row to label': 'f3',
+        'row dict': 'some_dict',
+        'matrix': 'some_matrix'
+    }
+    create_matrix_presamples_package(
+        [(a, b, 'foo', dtype, frmt, metadata)]
+    )
+    metadata = {
+        'row from label': 'f1',
+        'row to label': 'f3',
+        'row dict': 'some_dict',
+        'col from label': 'f2',
+        'col dict': 'another_dict',
+        'matrix': 'some_matrix'
+    }
+    # Missing `col to label`
+    with pytest.raises(ValueError):
+        create_matrix_presamples_package(
+            [(a, b, 'foo', dtype, frmt, metadata)]
+        )
+    metadata = {
+        'row from label': 'f5',
+        'row to label': 'f3',
+        'row dict': 'some_dict',
+        'matrix': 'some_matrix'
+    }
+    # Missing `f5` field in indices
+    with pytest.raises(ValueError):
+        create_matrix_presamples_package(
+            [(a, b, 'foo', dtype, frmt, metadata)]
+        )
+
+@bw2test
+def test_missing_formatter():
+    a = np.arange(12).reshape((3, 4))
+    b = [(1, 1), (1, 2), (2, 3)]
+    with pytest.raises(KeyError):
+        create_matrix_presamples_package([(a, b, 'foo')])
+
+@bw2test
+def test_incomplete_custom_metadata():
+    a = np.arange(12).reshape((3, 4))
+    b = [(1, 1), (1, 2), (2, 3)]
+    metadata = {
+        'row from label': 'f1',
+        'row to label': 'f2',
+        'row dict': 'some_dict',
+        'matrix': 'some_matrix'
+    }
+    frmt = lambda x: x
+    dtype = [
+        ('f1', np.uint32),
+        ('f2', np.uint32),
+    ]
+    create_matrix_presamples_package(
+        [(a, b, 'foo', dtype, frmt, metadata)]
+    )
+    with pytest.raises(ValueError):
+        create_matrix_presamples_package(
+            [(a, b, 'foo', None, frmt, metadata)]
+        )
+    with pytest.raises(ValueError):
+        create_matrix_presamples_package(
+            [(a, b, 'foo', dtype, None, metadata)]
+        )
+    with pytest.raises(ValueError):
+        create_matrix_presamples_package(
+            [(a, b, 'foo', dtype, frmt, None)]
+        )
 
 @bw2test
 def test_overwrite():
-    pass
-
-@bw2test
-def test_formatting_errors():
-    pass
+    mapping.add('ABCDEF')
+    t1 = [('A', 'A', 0), ('A', 'B', 1), ('B', 'C', 3)]
+    t2 = np.arange(12).reshape((3, 4))
+    inputs = [(t2, t1, 'technosphere')]
+    create_matrix_presamples_package(inputs, name='foo', id_='bar')
+    with pytest.raises(ValueError):
+        create_matrix_presamples_package(
+            inputs, name='foo', id_='bar'
+        )
+    create_matrix_presamples_package(inputs, name='foo', id_='bar', overwrite=True)
 
 @bw2test
 def test_shape_mismatch():
-    pass
+    a = np.arange(12).reshape((3, 4))
+    b = [(1, 1), (1, 2), (2, 3)]
+    metadata = {
+        'row from label': 'f1',
+        'row to label': 'f2',
+        'row dict': 'some_dict',
+        'matrix': 'some_matrix'
+    }
+    frmt = lambda x: x
+    dtype = [
+        ('f1', np.uint32),
+        ('f2', np.uint32),
+    ]
+    create_matrix_presamples_package(
+        [(a, b, 'foo', dtype, frmt, metadata)]
+    )
+    a = np.arange(20).reshape((5, 4))
+    with pytest.raises(ValueError):
+        create_matrix_presamples_package(
+            [(a, b, 'foo', dtype, frmt, metadata)]
+        )

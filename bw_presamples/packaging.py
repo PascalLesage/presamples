@@ -60,7 +60,7 @@ def format_technosphere_presamples(indices):
             MAX_SIGNED_32BIT_INT,
             TYPE_DICTIONARY.get(row[2], row[2])
         )
-    return format_presamples(indices, 'technosphere', dtype, func, metadata)
+    return format_matrix_presamples(indices, 'technosphere', dtype, func, metadata)
 
 
 def format_biosphere_presamples(indices):
@@ -103,7 +103,7 @@ def format_biosphere_presamples(indices):
             MAX_SIGNED_32BIT_INT,
             MAX_SIGNED_32BIT_INT,
         )
-    return format_presamples(indices, 'biosphere', dtype, func, metadata)
+    return format_matrix_presamples(indices, 'biosphere', dtype, func, metadata)
 
 
 def format_cf_presamples(indices):
@@ -132,7 +132,7 @@ def format_cf_presamples(indices):
         ('row', np.uint32),
     ]
     func = lambda row: (mapping[row], MAX_SIGNED_32BIT_INT)
-    return format_presamples(indices, 'cf', dtype, func, metadata)
+    return format_matrix_presamples(indices, 'cf', dtype, func, metadata)
 
 
 FORMATTERS = {
@@ -142,7 +142,24 @@ FORMATTERS = {
 }
 
 
-def format_presamples(indices, kind, dtype=None, row_formatter=None, metadata=None):
+def validate_matrix_presamples_metadata(metadata, dtype):
+    """Make sure ``metdata`` has the required keys, and that ``indices`` agress with ``metadata``."""
+    ROWS = ('row from label', 'row to label', 'row dict', 'matrix')
+    COLUMNS = ('col from label', 'col to label', 'col dict')
+    if not all(field in metadata for field in ROWS):
+        raise ValueError("Must give each of {}".format(ROWS))
+    if "col dict" in metadata and not \
+            all(field in metadata for field in COLUMNS):
+        raise ValueError("Must give each of {}".format(COLUMNS))
+    col_names = {x[0] for x in dtype}
+    metadata_names = {v for k, v in metadata.items() if "label" in k}
+    missing = metadata_names.difference(col_names)
+    if missing:
+        raise ValueError("The following necessary columns are not in the "
+            "indices: {}".format(missing))
+
+
+def format_matrix_presamples(indices, kind, dtype=None, row_formatter=None, metadata=None):
     if dtype is None and row_formatter is None and metadata is None:
         try:
             return FORMATTERS[kind](indices)
@@ -151,6 +168,8 @@ def format_presamples(indices, kind, dtype=None, row_formatter=None, metadata=No
     elif dtype is None or row_formatter is None or metadata is None:
         raise ValueError("Must provide ``dtype``, ``row_formatter``, and ``metadata``")
     else:
+        validate_matrix_presamples_metadata(metadata, dtype)
+
         array = np.zeros(len(indices), dtype=dtype)
         for index, row in enumerate(indices):
             array[index] = row_formatter(row)
@@ -175,7 +194,7 @@ def create_matrix_presamples_package(data, name=None,
     id_ = id_ or uuid.uuid4().hex
 
     # Create presamples directory
-    dirpath = Path(os.path.join(projects.request_directory('presamples'), id_))
+    dirpath = Path(projects.request_directory('presamples')) / id_
     if os.path.isdir(dirpath):
         if not overwrite:
             raise ValueError("The presampled directory {} already exists".format(dirpath))
@@ -193,7 +212,7 @@ def create_matrix_presamples_package(data, name=None,
     for index, row in enumerate(data):
         samples, indices, kind, *other = row
         samples = to_2d(to_array(samples))
-        indices, metadata = format_presamples(indices, kind, *other)
+        indices, metadata = format_matrix_presamples(indices, kind, *other)
 
         if samples.shape[0] != indices.shape[0]:
             error = "Shape mismatch between samples and indices: {}, {}, {}"

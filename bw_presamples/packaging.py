@@ -191,11 +191,36 @@ def get_presample_directory(id_, overwrite=False):
     return dirpath
 
 
-def create_matrix_presamples_package(data, name=None,
+def create_presamples_package(matrix_data=None, parameters=None, name=None,
         id_=None, overwrite=False):
-    """Create a new subdirectory in the ``project`` folder that stores presampled values.
+    """Create a new subdirectory in the ``project`` folder that stores presampled values for matrix data and named parameters.
+
+    Matrix data has sampled data and metadata specifying where and into which matrix new values should be inserted. Named ``parameters`` are not directly inserted into matrices, but can be used to generate matrix presamples, or as inputs to sensitivity analysis.
+
+    ``matrix_data`` is a list of ``(samples, indices, matrix label)``. ``samples`` should be a Numpy array; ``indices`` is an iterable with row and (usually) column indices - the exact format depends on the matrix to be constructed; and ``matrix label`` is a string giving the name of the matrix to be modified in the LCA class.
+
+    TODO: Move the following section to docs
+
+    Matrices outside the three with built-in functions (technosphere, biosphere, cf) can be accomodated in two ways. First, you can write a custom formatter function, based on existing formatters like ``format_biosphere_presamples``, and add this formatter to the ``FORMATTERS`` register:
+
+    .. code-block:: python
+
+        from bw_presamples import FORMATTERS
+
+        def my_formatter(indices):
+            # do something with the indices
+            return some_data
+
+        FORMATTERS['my matrix type'] = my_formatter
+
+    You can also specify the metadata needed to process indices manually. To accomodate In addition, the following arguments can be specified in order, dtype=None, row_formatter=None, metadata=None)
+
+    ``parameters`` is a list of ``(samples, names)``. ``samples`` should be a Numpy array; ``names`` is a python list of strings.
+
+    Both matrix and parameter data should have the same number of possible values (i.e same number of Monte Carlo iterations).
 
     The following arguments are optional:
+    * ``name``: A human-readable name for these samples.
     * ``id_``: Unique id for this collection of presamples. Optional, generated automatically if not set.
     * ``overwrite``: If True, replace an existing presamples package with the same ``_id`` if it exists. Default ``False``
 
@@ -204,7 +229,7 @@ def create_matrix_presamples_package(data, name=None,
     """
     id_ = id_ or uuid.uuid4().hex
     dirpath = get_presample_directory(id_, overwrite)
-
+    num_iterations = None
     datapackage = {
         "name": str(name),
         "id": id_,
@@ -212,9 +237,20 @@ def create_matrix_presamples_package(data, name=None,
         "resources": []
     }
 
-    for index, row in enumerate(data):
+    if not matrix_data and not parameters:
+        raise ValueError("Must specify at least one of `matrix_data` and `parameters`")
+
+    index = 0
+    for index, row in enumerate(matrix_data or []):
         samples, indices, kind, *other = row
         samples = to_2d(to_array(samples))
+
+        if num_iterations is None:
+            num_iterations = samples.shape[1]
+        if samples.shape[1] != num_iterations:
+            raise ValueError("Inconsistent number of Monte Carlo iterations: "
+                "{} and {}".format(samples.shape[1], num_iterations))
+
         indices, metadata = format_matrix_presamples(indices, kind, *other)
 
         if samples.shape[0] != indices.shape[0]:
@@ -232,60 +268,38 @@ def create_matrix_presamples_package(data, name=None,
                 'filepath': samples_fp,
                 'md5': md5(dirpath / samples_fp),
                 'shape': samples.shape,
-                'dtype': str(samples.dtype)
+                'dtype': str(samples.dtype),
+                "format": "npy",
+                "mediatype": "application/octet-stream",
             },
             'indices': {
                 'filepath': indices_fp,
                 'md5': md5(dirpath / indices_fp),
+                "format": "npy",
+                "mediatype": "application/octet-stream",
             },
             "profile": "data-resource",
-            "format": "npy",
-            "mediatype": "application/octet-stream"
         }
         result.update(metadata)
         datapackage['resources'].append(result)
 
-    with open(dirpath / "datapackage.json", "w", encoding='utf-8') as f:
-        json.dump(datapackage, f, indent=2, ensure_ascii=False)
-
-    return id_, dirpath
-
-
-def create_parameter_presamples_package(data, name=None,
-        id_=None, overwrite=False):
-    """Create a new subdirectory in the ``project`` folder that stores presampled values for parameters.
-
-    Parameters are not directly inserted into matrices, but can be used to generate matrix presamples, or as inputs to sensitivity analysis.
-
-    ``data`` is a list of ``(samples, names)``. ``samples`` should be a Numpy array; ``names`` is a python list of strings.
-
-    The following arguments are optional:
-    * ``id_``: Unique id for this collection of presamples. Optional, generated automatically if not set.
-    * ``overwrite``: If True, replace an existing presamples package with the same ``_id`` if it exists. Default ``False``
-
-    Returns ``id_`` and the absolute path of the created directory.
-
-    """
-    id_ = id_ or uuid.uuid4().hex
-    dirpath = get_presample_directory(id_, overwrite)
-
-    datapackage = {
-        "name": str(name),
-        "id": id_,
-        "profile": "data-package",
-        "resources": []
-    }
-
-    for index, row in enumerate(data):
+    offset = index + (1 if index else 0)
+    for index, row in enumerate(parameters or []):
         samples, names = row
         samples = to_2d(to_array(samples))
+
+        if num_iterations is None:
+            num_iterations = samples.shape[1]
+        if samples.shape[1] != num_iterations:
+            raise ValueError("Inconsistent number of Monte Carlo iterations: "
+                "{} and {}".format(samples.shape[1], num_iterations))
 
         if not len(names) == samples.shape[0]:
             raise ValueError("Shape mismatch between samples and names: "
                 "{}, {}".format(samples.shape, len(names)))
 
-        samples_fp = "{}.{}.samples.npy".format(id_, index)
-        names_fp = "{}.{}.names.json".format(id_, index)
+        samples_fp = "{}.{}.samples.npy".format(id_, offset + index)
+        names_fp = "{}.{}.names.json".format(id_, offset + index)
 
         np.save(dirpath / samples_fp, samples, allow_pickle=False)
         with open(dirpath / names_fp, "w", encoding='utf-8') as f:

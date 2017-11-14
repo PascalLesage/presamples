@@ -18,34 +18,40 @@ TYPE_DICTIONARY = {
 }
 
 @bw2test
-def test_basic_matrix_packaging():
+def test_basic_packaging():
     mapping.add('ABCDEF')
     t1 = [('A', 'A', 0), ('A', 'B', 1), ('B', 'C', 3)]
     t2 = np.arange(12).reshape((3, 4))
     b1 = [('A', 'D'), ('A', 'E'), ('B', 'F')]
-    b2 = np.arange(15).reshape((3, 5))
+    b2 = np.arange(12).reshape((3, 4))
     c1 = 'DEF'
-    c2 = np.arange(18).reshape((3, 6))
+    c2 = np.arange(12).reshape((3, 4))
     inputs = [
         (t2, t1, 'technosphere'),
         (b2, b1, 'biosphere'),
         (c2, c1, 'cf'),
     ]
-    id_, dirpath = create_matrix_presamples_package(inputs, name='foo', id_='bar')
+    s1 = np.arange(16).reshape((4, 4))
+    s2 = np.arange(12).reshape((3, 4))
+    n1 = list('ABCD')
+    n2 = list('DEF')
+    id_, dirpath = create_presamples_package(
+        inputs, [(s1, n1), (s2, n2)], name='foo', id_='bar'
+    )
     assert id_ == 'bar'
     dirpath = Path(dirpath)
     expected = [
         'bar.0.indices.npy', 'bar.0.samples.npy',
         'bar.1.indices.npy', 'bar.1.samples.npy',
         'bar.2.indices.npy', 'bar.2.samples.npy',
+        'bar.3.names.json', 'bar.3.samples.npy',
+        'bar.4.names.json', 'bar.4.samples.npy',
         'datapackage.json'
     ]
     assert list(os.listdir(dirpath)) == expected
     expected = np.arange(12).reshape((3, 4))
     assert np.allclose(np.load(dirpath / 'bar.0.samples.npy'), expected)
-    expected = np.arange(15).reshape((3, 5))
     assert np.allclose(np.load(dirpath / 'bar.1.samples.npy'), expected)
-    expected = np.arange(18).reshape((3, 6))
     assert np.allclose(np.load(dirpath / 'bar.2.samples.npy'), expected)
     expected = [
         (1, 1, MAX_SIGNED_32BIT_INT, MAX_SIGNED_32BIT_INT, 0),
@@ -65,102 +71,12 @@ def test_basic_matrix_packaging():
         (6, MAX_SIGNED_32BIT_INT),
     ]
     assert np.load(dirpath / 'bar.2.indices.npy').tolist() ==  expected
-    expected = {
-        'id': 'bar',
-        'name': 'foo',
-        'profile': 'data-package',
-        'resources': [{
-            'format': 'npy',
-            'mediatype': 'application/octet-stream',
-            'profile': 'data-resource',
-            'samples': {
-                'dtype': 'int64',
-                'filepath': 'bar.0.samples.npy',
-                'md5': '1d1de948043b8e205e1d6390f67d6ee5',
-                'shape': [3, 4]
-            },
-            'indices': {
-                'filepath': 'bar.0.indices.npy',
-                'md5': '781ccec1f551faeb0c082fc40e1ee1fa'
-            },
-            'matrix': 'technosphere_matrix',
-            'row dict': 'product_dict',
-            'row from label': 'input',
-            'row to label': 'row',
-            'col dict': 'activity_dict',
-            'col from label': 'output',
-            'col to label': 'col',
-            'type': 'technosphere'
-        }, {
-            'format': 'npy',
-            'mediatype': 'application/octet-stream',
-            'profile': 'data-resource',
-            'samples': {
-                'dtype': 'int64',
-                'filepath': 'bar.1.samples.npy',
-                'md5': '65bf1e51e87170e5ce6fb65f7f1a56e2',
-                'shape': [3, 5]
-            },
-            'indices': {
-                'filepath': 'bar.1.indices.npy',
-                'md5': '82fed4a68bafab13a03bb99e5044c227'
-            },
-            'matrix': 'biosphere_matrix',
-            'row dict': 'biosphere_dict',
-            'row from label': 'input',
-            'row to label': 'row',
-            'col dict': 'activity_dict',
-            'col from label': 'output',
-            'col to label': 'col',
-            'type': 'biosphere'
-        }, {
-            'format': 'npy',
-            'mediatype': 'application/octet-stream',
-            'profile': 'data-resource',
-            'samples': {
-                'dtype': 'int64',
-                'filepath': 'bar.2.samples.npy',
-                'md5': '75e9b72fbe786e7887e4f29669ebd584',
-                'shape': [3, 6]
-            },
-            'indices': {
-                'filepath': 'bar.2.indices.npy',
-                'md5': '5a55dded5bf1e878b457a2756aa11f00'
-            },
-            'matrix': 'characterization_matrix',
-            'row dict': 'biosphere_dict',
-            'row from label': 'flow',
-            'row to label': 'row',
-            'type': 'cf'
-        }
-    ]}
-    assert json.load(open(dirpath / 'datapackage.json')) == expected
-
-    # Test without optional fields
-    create_matrix_presamples_package(inputs)
-
-@bw2test
-def test_basic_parameter_packaging():
-    s1 = np.arange(12).reshape((3, 4))
-    s2 = np.arange(15).reshape((3, 5))
-    n1 = list('ABC')
-    n2 = list('DEF')
-    id_, dirpath = create_parameter_presamples_package([(s1, n1), (s2, n2)],
-        name='foo', id_='bar')
-    assert id_ == 'bar'
-    dirpath = Path(dirpath)
-    expected = [
-        'bar.0.names.json', 'bar.0.samples.npy',
-        'bar.1.names.json', 'bar.1.samples.npy',
-        'datapackage.json'
-    ]
-    assert list(os.listdir(dirpath)) == expected
-    expected = np.arange(12).reshape((3, 4))
-    assert np.allclose(np.load(dirpath / 'bar.0.samples.npy'), expected)
-    expected = ['A', 'B', 'C']
-    assert json.load(open(dirpath / 'bar.0.names.json')) ==  expected
+    expected = np.arange(16).reshape((4, 4))
+    assert np.allclose(np.load(dirpath / 'bar.3.samples.npy'), expected)
+    expected = ['A', 'B', 'C', 'D']
+    assert json.load(open(dirpath / 'bar.3.names.json')) ==  expected
     expected = ['D', 'E', 'F']
-    assert json.load(open(dirpath / 'bar.1.names.json')) ==  expected
+    assert json.load(open(dirpath / 'bar.4.names.json')) ==  expected
     expected = {
         'id': 'bar',
         'name': 'foo',
@@ -172,12 +88,81 @@ def test_basic_parameter_packaging():
                 'filepath': 'bar.0.samples.npy',
                 'md5': '1d1de948043b8e205e1d6390f67d6ee5',
                 'shape': [3, 4],
+                'format': 'npy',
+                'mediatype': 'application/octet-stream',
+            },
+            'indices': {
+                'filepath': 'bar.0.indices.npy',
+                'md5': '781ccec1f551faeb0c082fc40e1ee1fa',
+                'format': 'npy',
+                'mediatype': 'application/octet-stream',
+            },
+            'matrix': 'technosphere_matrix',
+            'row dict': 'product_dict',
+            'row from label': 'input',
+            'row to label': 'row',
+            'col dict': 'activity_dict',
+            'col from label': 'output',
+            'col to label': 'col',
+            'type': 'technosphere'
+        }, {
+            'profile': 'data-resource',
+            'samples': {
+                'dtype': 'int64',
+                'filepath': 'bar.1.samples.npy',
+                'md5': '1d1de948043b8e205e1d6390f67d6ee5',
+                'shape': [3, 4],
+                'format': 'npy',
+                'mediatype': 'application/octet-stream',
+            },
+            'indices': {
+                'filepath': 'bar.1.indices.npy',
+                'md5': '82fed4a68bafab13a03bb99e5044c227',
+                'format': 'npy',
+                'mediatype': 'application/octet-stream',
+            },
+            'matrix': 'biosphere_matrix',
+            'row dict': 'biosphere_dict',
+            'row from label': 'input',
+            'row to label': 'row',
+            'col dict': 'activity_dict',
+            'col from label': 'output',
+            'col to label': 'col',
+            'type': 'biosphere'
+        }, {
+            'profile': 'data-resource',
+            'samples': {
+                'dtype': 'int64',
+                'filepath': 'bar.2.samples.npy',
+                'md5': '1d1de948043b8e205e1d6390f67d6ee5',
+                'shape': [3, 4],
+                'format': 'npy',
+                'mediatype': 'application/octet-stream',
+            },
+            'indices': {
+                'filepath': 'bar.2.indices.npy',
+                'md5': '5a55dded5bf1e878b457a2756aa11f00',
+                'format': 'npy',
+                'mediatype': 'application/octet-stream',
+            },
+            'matrix': 'characterization_matrix',
+            'row dict': 'biosphere_dict',
+            'row from label': 'flow',
+            'row to label': 'row',
+            'type': 'cf'
+        }, {
+            'profile': 'data-resource',
+            'samples': {
+                'dtype': 'int64',
+                'filepath': 'bar.3.samples.npy',
+                'md5': 'd5675c309d783b381c52178edc70a787',
+                'shape': [4, 4],
                 "format": "npy",
                 "mediatype": "application/octet-stream"
             },
             'names': {
-                'filepath': 'bar.0.names.json',
-                'md5': '79be56d273f4ae0adfdb829928558e6a',
+                'filepath': 'bar.3.names.json',
+                'md5': '6f6b330fdba7cd530cb377e26f8ec1e5',
                 "format": "json",
                 "mediatype": "application/json"
             },
@@ -185,14 +170,14 @@ def test_basic_parameter_packaging():
             'profile': 'data-resource',
             'samples': {
                 'dtype': 'int64',
-                'filepath': 'bar.1.samples.npy',
-                'md5': '65bf1e51e87170e5ce6fb65f7f1a56e2',
-                'shape': [3, 5],
+                'filepath': 'bar.4.samples.npy',
+                'md5': '1d1de948043b8e205e1d6390f67d6ee5',
+                'shape': [3, 4],
                 "format": "npy",
                 "mediatype": "application/octet-stream"
             },
             'names': {
-                'filepath': 'bar.1.names.json',
+                'filepath': 'bar.4.names.json',
                 'md5': 'cbad242046cd8f057f1cb4827805439e',
                 "format": "json",
                 "mediatype": "application/json"
@@ -202,14 +187,34 @@ def test_basic_parameter_packaging():
     assert json.load(open(dirpath / 'datapackage.json')) == expected
 
     # Test without optional fields
-    create_parameter_presamples_package([(s1, n1), (s2, n2)])
+    create_presamples_package(inputs, [(s1, n1), (s2, n2)])
+    create_presamples_package(matrix_data=inputs)
+    create_presamples_package(inputs)
+    create_presamples_package(parameters=[(s1, n1), (s2, n2)])
 
 @bw2test
 def test_parameter_shape_mismatch():
     s1 = np.arange(20).reshape((5, 4))
     n1 = list('ABC')
     with pytest.raises(ValueError):
-        create_parameter_presamples_package([(s1, n1)])
+        create_presamples_package([(s1, n1)])
+
+@bw2test
+def test_incosistent_mc_numbers():
+    mapping.add('ABCDEF')
+    t1 = [('A', 'A', 0), ('A', 'B', 1), ('B', 'C', 3)]
+    t2 = np.arange(12).reshape((3, 4))
+    s1 = np.arange(16).reshape((4, 4))
+    n1 = list('ABCD')
+    create_presamples_package(
+        [(t2, t1, 'technosphere')], [(s1, n1)], name='foo', id_='bar'
+    )
+    s1 = np.arange(20).reshape((4, 5))
+    n1 = list('ABCDE')
+    with pytest.raises(ValueError):
+        create_presamples_package(
+            [(t2, t1, 'technosphere')], [(s1, n1)], name='foo', id_='bar'
+        )
 
 @bw2test
 def test_custom_metadata():
@@ -232,7 +237,7 @@ def test_custom_metadata():
         ('f3', np.uint32),
         ('f4', np.uint32),
     ]
-    id_, dirpath = create_matrix_presamples_package(
+    id_, dirpath = create_presamples_package(
         [(a, b, 'foo', dtype, frmt, metadata)],
         name='foo', id_='custom'
     )
@@ -254,18 +259,20 @@ def test_custom_metadata():
         'name': 'foo',
         'profile': 'data-package',
         'resources': [{
-            'format': 'npy',
-            'mediatype': 'application/octet-stream',
             'profile': 'data-resource',
             'samples': {
                 'dtype': 'int64',
                 'filepath': 'custom.0.samples.npy',
                 'md5': '1d1de948043b8e205e1d6390f67d6ee5',
-                'shape': [3, 4]
+                'shape': [3, 4],
+                'format': 'npy',
+                'mediatype': 'application/octet-stream',
             },
             'indices': {
                 'filepath': 'custom.0.indices.npy',
-                'md5': '6fb3a44ccfb42d193c859fe3e45821b3'
+                'md5': '6fb3a44ccfb42d193c859fe3e45821b3',
+                'format': 'npy',
+                'mediatype': 'application/octet-stream',
             },
             'matrix': 'some_matrix',
             'row dict': 'some_dict',
@@ -299,7 +306,7 @@ def test_custom_metadata_error():
         ('f3', np.uint32),
         ('f4', np.uint32),
     ]
-    create_matrix_presamples_package(
+    create_presamples_package(
         [(a, b, 'foo', dtype, frmt, metadata)]
     )
     # Missing `row to label`
@@ -312,7 +319,7 @@ def test_custom_metadata_error():
         'matrix': 'some_matrix'
     }
     with pytest.raises(ValueError):
-        create_matrix_presamples_package(
+        create_presamples_package(
             [(a, b, 'foo', dtype, frmt, metadata)]
         )
     # No cols is OK
@@ -322,7 +329,7 @@ def test_custom_metadata_error():
         'row dict': 'some_dict',
         'matrix': 'some_matrix'
     }
-    create_matrix_presamples_package(
+    create_presamples_package(
         [(a, b, 'foo', dtype, frmt, metadata)]
     )
     metadata = {
@@ -335,7 +342,7 @@ def test_custom_metadata_error():
     }
     # Missing `col to label`
     with pytest.raises(ValueError):
-        create_matrix_presamples_package(
+        create_presamples_package(
             [(a, b, 'foo', dtype, frmt, metadata)]
         )
     metadata = {
@@ -346,7 +353,7 @@ def test_custom_metadata_error():
     }
     # Missing `f5` field in indices
     with pytest.raises(ValueError):
-        create_matrix_presamples_package(
+        create_presamples_package(
             [(a, b, 'foo', dtype, frmt, metadata)]
         )
 
@@ -355,7 +362,7 @@ def test_missing_formatter():
     a = np.arange(12).reshape((3, 4))
     b = [(1, 1), (1, 2), (2, 3)]
     with pytest.raises(KeyError):
-        create_matrix_presamples_package([(a, b, 'foo')])
+        create_presamples_package([(a, b, 'foo')])
 
 @bw2test
 def test_incomplete_custom_metadata():
@@ -372,19 +379,19 @@ def test_incomplete_custom_metadata():
         ('f1', np.uint32),
         ('f2', np.uint32),
     ]
-    create_matrix_presamples_package(
+    create_presamples_package(
         [(a, b, 'foo', dtype, frmt, metadata)]
     )
     with pytest.raises(ValueError):
-        create_matrix_presamples_package(
+        create_presamples_package(
             [(a, b, 'foo', None, frmt, metadata)]
         )
     with pytest.raises(ValueError):
-        create_matrix_presamples_package(
+        create_presamples_package(
             [(a, b, 'foo', dtype, None, metadata)]
         )
     with pytest.raises(ValueError):
-        create_matrix_presamples_package(
+        create_presamples_package(
             [(a, b, 'foo', dtype, frmt, None)]
         )
 
@@ -394,12 +401,12 @@ def test_overwrite():
     t1 = [('A', 'A', 0), ('A', 'B', 1), ('B', 'C', 3)]
     t2 = np.arange(12).reshape((3, 4))
     inputs = [(t2, t1, 'technosphere')]
-    create_matrix_presamples_package(inputs, name='foo', id_='bar')
+    create_presamples_package(inputs, name='foo', id_='bar')
     with pytest.raises(ValueError):
-        create_matrix_presamples_package(
+        create_presamples_package(
             inputs, name='foo', id_='bar'
         )
-    create_matrix_presamples_package(inputs, name='foo', id_='bar', overwrite=True)
+    create_presamples_package(inputs, name='foo', id_='bar', overwrite=True)
 
 @bw2test
 def test_shape_mismatch():
@@ -416,11 +423,11 @@ def test_shape_mismatch():
         ('f1', np.uint32),
         ('f2', np.uint32),
     ]
-    create_matrix_presamples_package(
+    create_presamples_package(
         [(a, b, 'foo', dtype, frmt, metadata)]
     )
     a = np.arange(20).reshape((5, 4))
     with pytest.raises(ValueError):
-        create_matrix_presamples_package(
+        create_presamples_package(
             [(a, b, 'foo', dtype, frmt, metadata)]
         )

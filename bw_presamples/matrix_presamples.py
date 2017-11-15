@@ -191,7 +191,7 @@ class MatrixPresamples(object):
         samples = IrregularPresamplesArray([
             (dirpath / el['samples']['filepath'], el['samples']['shape'])
             for el in group
-        ])
+        ], seed)
 
         SKIP = ('indices', 'samples', 'profile', 'format', 'mediatype')
         result = {k: v for k, v in group[0].items() if k not in SKIP}

@@ -93,7 +93,10 @@ class MatrixPresamples(object):
         self.data = []
         for dirpath in (dirpaths or []):
             self.validate_dirpath(Path(dirpath))
-            self.data.append(self.load_data(Path(dirpath), seed))
+            # Even empty presamples have name and id
+            section = self.load_data(Path(dirpath), seed)
+            if section['resources']:
+                self.data.append(section)
 
         self.empty = not bool(self.data)
 
@@ -166,6 +169,9 @@ class MatrixPresamples(object):
 
     @staticmethod
     def consolidate(dirpath, seed, group):
+        """Add together indices and samples in the same presamples directory if they have the same type.
+
+        Consolidating is not necessary for the functionality of this class, but it does make it easier to do things like sensitivity analysis afterwards."""
         # Check that metadata is the same
         assert len({el['matrix'] for el in group}) == 1, "Conflicting matrices"
         assert len({
@@ -194,14 +200,20 @@ class MatrixPresamples(object):
 
     @nonempty
     def index_arrays(self, lca):
+        """Add row and column values to the indices.
+
+        As this function can be called multiple times, we check for each element if it has already been called, and whether the required mapping dictionary is present."""
         for obj in self.data:
             for elem in obj['resources']:
                 # Allow for iterative indexing, starting with inventory
                 if elem.get('indexed'):
+                    # Already indexed
                     continue
                 elif not hasattr(lca, elem['row dict']):
+                    # This dictionary not yet built
                     continue
                 elif "col dict" in elem and not hasattr(lca, elem['col dict']):
+                    # This dictionary not yet built
                     continue
 
                 _(

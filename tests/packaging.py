@@ -9,14 +9,6 @@ import os
 import pytest
 
 
-TYPE_DICTIONARY = {
-    "unknown": -1,
-    "production": 0,
-    "technosphere": 1,
-    "biosphere": 2,
-    "substitution": 3,
-}
-
 @bw2test
 def test_basic_packaging():
     mapping.add('ABCDEF')
@@ -98,10 +90,10 @@ def test_basic_packaging():
                 'mediatype': 'application/octet-stream',
             },
             'matrix': 'technosphere_matrix',
-            'row dict': 'product_dict',
+            'row dict': '_product_dict',
             'row from label': 'input',
             'row to label': 'row',
-            'col dict': 'activity_dict',
+            'col dict': '_activity_dict',
             'col from label': 'output',
             'col to label': 'col',
             'type': 'technosphere'
@@ -122,10 +114,10 @@ def test_basic_packaging():
                 'mediatype': 'application/octet-stream',
             },
             'matrix': 'biosphere_matrix',
-            'row dict': 'biosphere_dict',
+            'row dict': '_biosphere_dict',
             'row from label': 'input',
             'row to label': 'row',
-            'col dict': 'activity_dict',
+            'col dict': '_activity_dict',
             'col from label': 'output',
             'col to label': 'col',
             'type': 'biosphere'
@@ -146,7 +138,7 @@ def test_basic_packaging():
                 'mediatype': 'application/octet-stream',
             },
             'matrix': 'characterization_matrix',
-            'row dict': 'biosphere_dict',
+            'row dict': '_biosphere_dict',
             'row from label': 'flow',
             'row to label': 'row',
             'type': 'cf'

@@ -31,10 +31,10 @@ def format_technosphere_presamples(indices):
         {
             'row from label': 'input',
             'row to label': 'row',
-            'row dict': 'product_dict',
+            'row dict': '_product_dict',
             'col from label': 'output',
             'col to label': 'col',
-            'col dict': 'activity_dict',
+            'col dict': '_activity_dict',
             'matrix': 'technosphere_matrix'
         }
 
@@ -42,10 +42,10 @@ def format_technosphere_presamples(indices):
     metadata = {
         'row from label': 'input',
         'row to label': 'row',
-        'row dict': 'product_dict',
+        'row dict': '_product_dict',
         'col from label': 'output',
         'col to label': 'col',
-        'col dict': 'activity_dict',
+        'col dict': '_activity_dict',
         'matrix': 'technosphere_matrix'
     }
     dtype = [
@@ -76,10 +76,10 @@ def format_biosphere_presamples(indices):
         {
             'row from label': 'input',
             'row to label': 'row',
-            'row dict': 'biosphere_dict',
+            'row dict': '_biosphere_dict',
             'col from label': 'output',
             'col to label': 'col',
-            'col dict': 'activity_dict',
+            'col dict': '_activity_dict',
             'matrix': 'biosphere_matrix'
         }
 
@@ -87,10 +87,10 @@ def format_biosphere_presamples(indices):
     metadata = {
         'row from label': 'input',
         'row to label': 'row',
-        'row dict': 'biosphere_dict',
+        'row dict': '_biosphere_dict',
         'col from label': 'output',
         'col to label': 'col',
-        'col dict': 'activity_dict',
+        'col dict': '_activity_dict',
         'matrix': 'biosphere_matrix'
     }
     dtype = [
@@ -119,7 +119,7 @@ def format_cf_presamples(indices):
         {
             'row from label': 'flow',
             'row to label': 'row',
-            'row dict': 'biosphere_dict',
+            'row dict': '_biosphere_dict',
             'matrix': 'characterization_matrix'
         }
 
@@ -127,7 +127,7 @@ def format_cf_presamples(indices):
     metadata =         {
         'row from label': 'flow',
         'row to label': 'row',
-        'row dict': 'biosphere_dict',
+        'row dict': '_biosphere_dict',
         'matrix': 'characterization_matrix'
     }
     dtype = [

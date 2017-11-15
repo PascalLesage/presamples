@@ -268,6 +268,31 @@ def test_seed_functions():
     third = [sampler.sample().sum() for _ in range(100)]
     assert first != third
 
-def test_consolidate():
-    # Many use cases and errors
+
+@pytest.fixture
+def mp():
+    class Mock(MatrixPresamples):
+        def __init__(self):
+            pass
+
+    return Mock()
+
+def test_consolidate_mismatched_matrices(package, mp):
+    group = [{'matrix': 'a'}, {'matrix': 'b'}]
+    with pytest.raises(AssertionError):
+        mp.consolidate(package, None, group)
+
+def test_consolidate_conficting_row_labels(package, mp):
+    pass
+
+def test_consolidate_conflicting_col_labels(package, mp):
+    pass
+
+def test_consolidate_conflicting_indices(package, mp):
+    pass
+
+def test_consolidate(package, mp):
+    pass
+
+def test_consolidate_multiple_groups():
     pass

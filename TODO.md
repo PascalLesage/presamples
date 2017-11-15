@@ -11,6 +11,11 @@
 * From parameterized inventories
 * From generic outside model
 
+# Packaging
+
+* `split_inventory_presamples`
+* Lines 241, 251, 294, 298 aren't covered
+
 # Campaigns
 
 * Decide on data store
@@ -23,3 +28,4 @@
 * Test parameterized inventory generation and use
 * Test campaigns
 * Tests with actual LCA and Monte Carlo LCA object (https://bitbucket.org/cmutel/brightway2-calc/branch/presamples)
+* Test `split_inventory_presamples`

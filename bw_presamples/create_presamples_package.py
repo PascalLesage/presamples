@@ -96,7 +96,7 @@ def create_presamples_package(inventory_elements=None, inventory_elements_sample
     # Generate id_ 
     if id_ is None:
         id_ = uuid.uuid4().hex
-    if name in None:
+    if name is None:
         name = id_
     
     # Create presamples directory

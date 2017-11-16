@@ -22,6 +22,10 @@
 * Multiple registries?
 * API for campaign object
 
+# General Sensitivity Analysis
+
+* Generate raw input for GSA 
+
 # Tests
 
 * Finish matrix presamples consolidation tests

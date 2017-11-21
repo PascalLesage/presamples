@@ -9,7 +9,11 @@ __all__ = [
 	'convert_parameter_set_dict_to_presample_package',
 	'inputs_sum_to_fixed_amount_sample',
 	'kronecker_delta_selector',
-	'Campaign'
+	'Campaign',
+	'load_campaign_from_registry',
+	'list_campaigns',
+	'create_set_of_presamples_packages_for_agg_data',
+	'list_agg_presamples_in_lca'
 ]
 
 
@@ -27,5 +31,13 @@ from .utils import (
 	inputs_sum_to_fixed_amount_sample,
 	kronecker_delta_selector,
 	)
-from .campaigns import Campaign
+from .campaigns import (
+	Campaign, 
+	load_campaign_from_registry,
+	list_campaigns
+	)
 	
+from .presamples_for_single_indicator_agg_acts import(
+	create_set_of_presamples_packages_for_agg_data,
+	list_agg_presamples_in_lca,
+	)

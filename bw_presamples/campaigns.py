@@ -36,6 +36,28 @@ def create_empty_campaign_registry(registry_name='default', overwrite=False):
 		json.dump(registry, f)
 	return registry_fp
 
+def load_campaign_from_registry(campaign_name, registry_name='default'):
+	"""Returns a campaign object based on a campaign name in a specific registry"""
+	registry_base_dir = os.path.join(projects.dir, r'presamples/_registries')
+	registry_fp = os.path.join(registry_base_dir, registry_name+'.json')
+	assert os.path.isfile(registry_fp), "Registry {} does not exist.".format(registry_name)
+	with open(registry_fp) as f:
+	    registry = json.load(f)
+	assert campaign_name in registry, "The campaign {} is not registered in campaign registry {}.".format(campaign_name, registry_name)
+
+	return Campaign(name='campaign_name',\
+					description=registry[campaign_name]['description'],\
+					inherits_from=registry[campaign_name]['inherits_from'],\
+					presamples=registry[campaign_name]['presamples'])
+
+def list_campaigns(registry_name='default'):
+	registry_base_dir = os.path.join(projects.dir, r'presamples/_registries')
+	registry_fp = os.path.join(registry_base_dir, registry_name+'.json')
+	assert os.path.isfile(registry_fp), "Registry {} does not exist.".format(registry_name)
+	with open(registry_fp) as f:
+	    registry = json.load(f)
+	return [campaign_name for campaign_name in registry.keys()]
+
 class Campaign():
 	'''Used to describe a campaign, whose main property is an ordered list of presamples.'''
 	def __init__(self, name=None, description="", inherits_from=[], presamples=[]):
@@ -63,14 +85,8 @@ class Campaign():
 		presamples_fps = []
 		registry_base_dir = os.path.join(projects.dir, r'presamples/_registries')
 		for t in inherits_from:
-			registry_name = t[0]
-			campaign_name = t[1]
-			registry_fp = os.path.join(registry_base_dir, registry_name+'.json')
-			assert os.path.isfile(registry_fp), "Registry {} named in ``inherits_from`` does not exist.".format(registry_name)
-			with open(registry_fp) as f:
-			    registry = json.load(f)
-			assert campaign_name in registry, "The campaign {} is not registered in campaign registry {}.".format(campaign_name, registry_name)
-			presamples_fps.extend(registry[campaign_name]['presamples'])
+			campaign = load_campaign_from_registry(t)
+			presamples_fps.extend(campaign['presamples'])
 		return presamples_fps
 
 	def add_new_presamples(self, presamples, location='end'):

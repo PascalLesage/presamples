@@ -44,7 +44,6 @@ def load_campaign_from_registry(campaign_name, registry_name='default'):
 	with open(registry_fp) as f:
 	    registry = json.load(f)
 	assert campaign_name in registry, "The campaign {} is not registered in campaign registry {}.".format(campaign_name, registry_name)
-
 	return Campaign(name='campaign_name',\
 					description=registry[campaign_name]['description'],\
 					inherits_from=registry[campaign_name]['inherits_from'],\
@@ -73,21 +72,24 @@ class Campaign():
 		self.name = name
 		self.description = description
 		self.inherits_from = inherits_from
-		self.ordered_presamples_fps = self.load_parent_presamples(inherits_from=inherits_from)
+		self.ordered_presamples_fps = self.load_parent_presamples()
 		if presamples:
 			self.add_new_presamples(presamples, location='end')
 
-	def load_parent_presamples(self, inherits_from):
+	def load_parent_presamples(self):
 		'''Add presamples from registered campaigns listed in the ``inherits_from`` argument in the order that they are listed.
 		'''
-		assert isinstance(inherits_from, list), "The `inherits_from` argument should be a list of (registry name, campaign name) tuples"
-		assert all([isinstance(t, tuple) for t in inherits_from]), "The `inherits_from` contains elements that are not tuples"
-		presamples_fps = []
-		registry_base_dir = os.path.join(projects.dir, r'presamples/_registries')
-		for t in inherits_from:
-			campaign = load_campaign_from_registry(t)
-			presamples_fps.extend(campaign['presamples'])
-		return presamples_fps
+		if len(self.inherits_from)==0:
+			return []
+		else:
+			assert isinstance(self.inherits_from, list), "The `inherits_from` argument should be a list of (registry name, campaign name) tuples"
+			assert all([isinstance(t, (tuple, list)) for t in self.inherits_from]), "The `inherits_from` contains elements that are not tuples"
+			presamples_fps = []
+			registry_base_dir = os.path.join(projects.dir, r'presamples/_registries')
+			for t in self.inherits_from:
+				campaign = load_campaign_from_registry(t[1], t[0])
+				presamples_fps.extend(campaign.ordered_presamples_fps)
+			return presamples_fps
 
 	def add_new_presamples(self, presamples, location='end'):
 		self.validate_presamples(presamples)

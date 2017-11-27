@@ -9,6 +9,7 @@ import numpy as np
 from numpy.random import RandomState
 import os
 import wrapt
+from bw2calc.utils import TYPE_DICTIONARY
 
 
 @wrapt.decorator
@@ -296,9 +297,13 @@ class Presamples(object):
             ])
             params = np.hstack([x['params'] for x in selection])
             return (
-                MB.select_technosphere_array(params),
+                MB.select_technosphere_array(params), #actual params
                 MB.select_biosphere_array(params),
-                MB.get_technosphere_inputs_mask(params),
+                np.hstack((
+                    np.where(params['type'] == TYPE_DICTIONARY["production"])[0],
+                    np.where(params['type'] == TYPE_DICTIONARY["technosphere"])[0],
+            )),
+                #MB.get_technosphere_inputs_mask(params), #tech_mask
                 MB.get_biosphere_inputs_mask(params),
                 samples,
             )

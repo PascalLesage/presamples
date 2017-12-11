@@ -113,7 +113,7 @@ def inputs_sum_to_fixed_amount_sample(params, expected_sum='total_static', hold_
         if fixed_indices:
             non_fixed_indices = list(set([*range(len(params))]) - set(fixed_indices))        
             for i in range(iterations):
-                scaling = expected_sum-samples_arr[fixed_indices, i].sum()/samples_arr[non_fixed_indices, i].sum()
+                scaling = (expected_sum-samples_arr[fixed_indices, i].sum())/samples_arr[non_fixed_indices, i].sum()
                 samples_arr[non_fixed_indices, i] = scaling * samples_arr[non_fixed_indices, i]
         else:
             hold_certain_values_constant = False # Distinction no longer relevant

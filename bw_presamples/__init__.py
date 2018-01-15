@@ -1,8 +1,5 @@
-# -*- coding: utf-8 -*-
-
 __all__ = [
     'create_presamples_package',
-    'Presamples',
     'get_exchange',
     'convert_exchange_to_param',
 	'get_technosphere_input_params_with_shared_unit',
@@ -14,6 +11,10 @@ __all__ = [
 	'list_campaigns',
 	'create_set_of_presamples_packages_for_agg_data',
 	'list_agg_presamples_in_lca'
+    'FORMATTERS',
+    'IrregularPresamplesArray',
+    'MatrixPresamples',
+	'Campaign'
 ]
 
 
@@ -23,7 +24,6 @@ from .create_presamples_package import (
 	create_presamples_package, 
 	convert_parameter_set_dict_to_presample_package
 	)
-from .presamples_loading import Presamples
 from .utils import (
 	get_exchange,
 	convert_exchange_to_param,
@@ -35,9 +35,11 @@ from .campaigns import (
 	Campaign, 
 	load_campaign_from_registry,
 	list_campaigns
-	)
-	
+	)	
 from .presamples_for_single_indicator_agg_acts import(
 	create_set_of_presamples_packages_for_agg_data,
 	list_agg_presamples_in_lca,
 	)
+from .array import IrregularPresamplesArray
+from .packaging import create_presamples_package, FORMATTERS
+from .matrix_presamples import MatrixPresamples

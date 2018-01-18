@@ -56,7 +56,7 @@ class Presamples(object):
         - Characterization factors  that can be inserted in LCA matrices during calculations.
         - Exogenous parameters.
 
-    Presampled arrays are provided as a list of directory paths. Each directory contains a datapackage file: 
+    Presampled arrays are provided as a list of directory paths. Each directory contains a datapackage file:
 
     * ``datapackage.json``: A JSON file following the `datapackage standard <http://frictionlessdata.io/guides/data-package/>`__ that indicates the provenance of the data. The specific content of the datapackage will depend on what the presamples contains.
     All datapackage.json files should minimally have the following information:
@@ -93,7 +93,7 @@ class Presamples(object):
           ]
         }
 
-    The presamples directory will then contain the following two files: 
+    The presamples directory will then contain the following two files:
     * ``{uuid}.inventory_elements_samples.npy``: Array of samples values in `npy format <https://docs.scipy.org/doc/numpy-dev/neps/npy-format.html>`__.
     * ``{uuid}.inventory_elements.npy``: A Numpy `record array <https://docs.scipy.org/doc/numpy/reference/generated/numpy.recarray.html>`__ in ``npy`` format with the following columns:
         * ``input``: uint32
@@ -105,7 +105,7 @@ class Presamples(object):
     ``type`` is an integer in ``bw2data.utils.TYPE_DICTIONARY`` that indicates whether the modified exchange is an consumer, producer, or emission.
 
     If the presamples contains characterization factors, the ``resources`` list will contain the following two dictionaries:
-    
+
     .. code-block:: json
             {
               "name": "cfs_samples",
@@ -128,16 +128,16 @@ class Presamples(object):
           ]
         }
 
-    The presamples directory will then contain the following two files: 
+    The presamples directory will then contain the following two files:
     * ``{uuid}.cfs_samples.npy``: Array of samples values in `npy format <https://docs.scipy.org/doc/numpy-dev/neps/npy-format.html>`__.
     * ``{uuid}.cfs.npy``: A Numpy `record array <https://docs.scipy.org/doc/numpy/reference/generated/numpy.recarray.html>`__ in ``npy`` format with the following columns:
         * ``flow``: uint32
         * ``row``: uint32
 
     If the presamples contains exogenous parameters, which can be used in e.g. sensitivity analyses, the ``resources`` list will contain the following two dictionaries:
-    
+
     .. code-block:: json
-    
+
         {
             "name": "parameters_samples",
             "path": "{uuid}.parameters_samples.npy",
@@ -146,7 +146,7 @@ class Presamples(object):
             "mediatype": "application/octet-stream",
             "hash": md5 hash,
             "dtype": dtype,
-            "shape": [rows, columns]            
+            "shape": [rows, columns]
         }, {
             "name": "parameters",
             "path": "{uuid}.parameters.json",
@@ -155,7 +155,7 @@ class Presamples(object):
             "mediatype": "application/json",
             "hash": md5 hash,
         }
-        
+
     The metadata is loaded and concatenated. Input and output values for LCA matrix elements are mapped to the correct row and column indices.
 
     The samples arrays are not loaded into memory, but memory mapped to reduce resource consumption. As such, they are not concatenated.
@@ -193,7 +193,7 @@ class Presamples(object):
         metadata = json.load(
             open(os.path.join(dirpath, "datapackage.json")),
             encoding="utf-8"
-        )        
+        )
         stored_data_types = metadata['content']
         if 'inventory_elements' in stored_data_types:
             assert any("inventory_elements_samples.npy" in x for x in files),\
@@ -217,20 +217,20 @@ class Presamples(object):
             open(os.path.join(dirpath, "datapackage.json")),
             encoding="utf-8"
         )
-        
+
         returned = []
-        
+
         stored_data_types = metadata['content']
 
         if 'inventory_elements' in stored_data_types:
-            samples_md = [x for x in metadata['resources'] if x['name'] == 'inventory_elements_samples'][0]            
-            samples_fp = os.path.abspath(os.path.join(dirpath, samples_md['path']))            
+            samples_md = [x for x in metadata['resources'] if x['name'] == 'inventory_elements_samples'][0]
+            samples_fp = os.path.abspath(os.path.join(dirpath, samples_md['path']))
             assert md5(samples_fp) == samples_md['hash']
 
-            elements_md = [x for x in metadata['resources'] if x['name'] == 'inventory_elements'][0]    
+            elements_md = [x for x in metadata['resources'] if x['name'] == 'inventory_elements'][0]
             elements_fp = os.path.abspath(os.path.join(dirpath, elements_md['path']))
             assert md5(elements_fp) == elements_md['hash']
-            
+
             returned.append(
                 {
                 'stored_data_type': 'inventory_elements',
@@ -243,14 +243,14 @@ class Presamples(object):
                 )
 
         if 'cfs' in stored_data_types:
-            samples_md = [x for x in metadata['resources'] if x['name'] == 'cfs_samples'][0]            
-            samples_fp = os.path.abspath(os.path.join(dirpath, samples_md['path']))            
+            samples_md = [x for x in metadata['resources'] if x['name'] == 'cfs_samples'][0]
+            samples_fp = os.path.abspath(os.path.join(dirpath, samples_md['path']))
             assert md5(samples_fp) == samples_md['hash']
 
-            cfs_md = [x for x in metadata['resources'] if x['name'] == 'cfs'][0]    
+            cfs_md = [x for x in metadata['resources'] if x['name'] == 'cfs'][0]
             cfs_fp = os.path.abspath(os.path.join(dirpath, cfs_md['path']))
             assert md5(cfs_fp) == cfs_md['hash']
-            
+
             returned.append(
                 {
                 'stored_data_type': 'cfs',
@@ -263,14 +263,14 @@ class Presamples(object):
                 )
 
         if 'parameters' in stored_data_types:
-            samples_md = [x for x in metadata['resources'] if x['name'] == 'parameters_samples'][0]            
-            samples_fp = os.path.abspath(os.path.join(dirpath, samples_md['path']))            
+            samples_md = [x for x in metadata['resources'] if x['name'] == 'parameters_samples'][0]
+            samples_fp = os.path.abspath(os.path.join(dirpath, samples_md['path']))
             assert md5(samples_fp) == samples_md['hash']
 
-            parameters_md = [x for x in metadata['resources'] if x['name'] == 'parameters'][0]    
+            parameters_md = [x for x in metadata['resources'] if x['name'] == 'parameters'][0]
             parameters_fp = os.path.abspath(os.path.join(dirpath, parameters_md['path']))
             assert md5(parameters_fp) == parameters_md['hash']
-            
+
             with open(parameters_fp, 'r') as f:
                 parameters = json.load(f)
 
@@ -284,7 +284,7 @@ class Presamples(object):
                     }
                 }
                 )
-        
+
         return returned
 
     @staticmethod
@@ -331,7 +331,7 @@ class Presamples(object):
             _(self.tech_params['output'], self.tech_params['col'], activity_dict)
         except:
             pass
-        try:   
+        try:
             _(self.bio_params['input'], self.bio_params['row'], flow_dict)
             _(self.bio_params['output'], self.bio_params['col'], product_dict)
         except:

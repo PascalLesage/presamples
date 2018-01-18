@@ -26,7 +26,7 @@ def get_exchange(param):
         candidates_for_exc = [exc for exc in act.production() if exc.input == param[0]]
     else:
         print("Exchange type for {} not well defined: no such exchange type {}".format(param, param[2]))
-        return None        
+        return None
     if len(candidates_for_exc) == 0:
         print("Exchange {} not found".format(exc_approx_id))
         return None
@@ -57,21 +57,21 @@ def sum_amounts_of_exchanges(list_exchanges):
     TODO: Could be refined to convert units (e.g. MJ to kWh to sum heat and electricity)
     """
     assert isinstance(list_exchanges, list), "list_exchanges should be a list"
-    assert len(set([exc['unit'] for exc in list_exchanges]))==1, "Exchanges do not all have the same unit" 
+    assert len(set([exc['unit'] for exc in list_exchanges]))==1, "Exchanges do not all have the same unit"
     total = 0
     for exc in list_exchanges:
         total += exc['amount']
     return total
 
 def get_rough_samples(exchange_list, iterations):
-    """Helper function to generate samples for set of exchanges. 
+    """Helper function to generate samples for set of exchanges.
     Rough samples are postprocessed according to different rules in other functions"""
     samples_arr = np.empty([len(exchange_list), iterations])
     # Populate array and positions_df
     for i, exc in enumerate(exchange_list):
         samples_arr[i, :] = exc.random_sample(iterations)
     return samples_arr
-	
+
 
 def inputs_sum_to_fixed_amount_sample(params, expected_sum='total_static', hold_certain_values_constant=True, iterations=1000):
     """Return a sample array where a set of technosphere exchanges sum to a predetermined amount.
@@ -84,9 +84,9 @@ def inputs_sum_to_fixed_amount_sample(params, expected_sum='total_static', hold_
     * ``hold_certain_values_constant``: If True, exchanges with no uncertainty (uncertainty_type in (0, 1)) are not rescaled
     * ``iterations``: Number of iterations to generate
 
-    Note: there is no way for now to unambiguously identify an exchange. If there is ambiguity, the 
+    Note: there is no way for now to unambiguously identify an exchange. If there is ambiguity, the
     function will not return anything.
-    """    
+    """
     # Ensure technosphere inputs all refer to the same activity
     assert len(set([param[1] for param in params]))==1, "All inputs should be for the same activity"
     # Ensure all params are for technosphere inputs
@@ -102,7 +102,7 @@ def inputs_sum_to_fixed_amount_sample(params, expected_sum='total_static', hold_
         expected_sum = sum_amounts_of_exchanges(exc_list)
 
     # Get rough samples
-    samples_arr = get_rough_samples(exc_list, iterations)    
+    samples_arr = get_rough_samples(exc_list, iterations)
 
     if hold_certain_values_constant == True:
         # Create collector for exchanges with no uncertainty:
@@ -111,7 +111,7 @@ def inputs_sum_to_fixed_amount_sample(params, expected_sum='total_static', hold_
             if not hasattr(exc, 'uncertainty') or exc.uncertainty['uncertainty type'] in [0, 1]:
                 fixed_indices.append(params.index(param))
         if fixed_indices:
-            non_fixed_indices = list(set([*range(len(params))]) - set(fixed_indices))        
+            non_fixed_indices = list(set([*range(len(params))]) - set(fixed_indices))
             for i in range(iterations):
                 scaling = expected_sum-samples_arr[fixed_indices, i].sum()/samples_arr[non_fixed_indices, i].sum()
                 samples_arr[non_fixed_indices, i] = scaling * samples_arr[non_fixed_indices, i]
@@ -122,37 +122,37 @@ def inputs_sum_to_fixed_amount_sample(params, expected_sum='total_static', hold_
             scaling = expected_sum/samples_arr[:, i].sum()
             samples_arr[:, i] = scaling * samples_arr[:, i]
     return samples_arr
-		
-	
+
+
 def kronecker_delta_selector(params, negative=False, use_amounts=True, iterations=1000, also_return_random_var=False):
     """Return a sample array where only one exchange amount is not 0, based on the relative probability of occurence of exchanges
-    
+
     Input arguments:
     * ``params``: The parameters representing the exchanges that will be set to 0 or another value for each iteration
     * ``Negative``: If True, the non-zero amounts are negative
     * ``Use amounts``: If True, the non-zero amounts are set to the initial exchange amount. If False, the amounts are 1 or -1
     * ``Iterations``: Number of iterations
-    * ``also_return_random_var``: The criteria used to determine whether an exchange amount is 0 or not uses a random sampling between 0 and 1. 
+    * ``also_return_random_var``: The criteria used to determine whether an exchange amount is 0 or not uses a random sampling between 0 and 1.
         If this value is True, the sampled values for this variable are also returned. This can be useful for
         sensitivity or contribution to variance analyses
-    Note: there is no way for now to unambiguously identify an exchange from params. If there is ambiguity, the 
+    Note: there is no way for now to unambiguously identify an exchange from params. If there is ambiguity, the
     function will not return anything.
-    Note: The function only makes sense if functionaly equivalent exchanges are randomly selected. This entails that 
+    Note: The function only makes sense if functionaly equivalent exchanges are randomly selected. This entails that
     they should all be of the same type (e.g. all technosphere inputs, all emissions, etc.) If they are not,
     the function will not return anything.
     """
     # ensure all exchanges are of the same type
     assert [param[2] for param in params].count(params[0][2]) == len(params), "All exchanges must be of the same type"
-    
+
     exc_list = [get_exchange(param) for param in params]
     # Ensure exc_list does not contain any None
     if any([exc is None for exc in exc_list]):
         print("Could not find all exchanges, no sample generated")
         return None
-    
+
     # Get rough samples
-    samples_arr = get_rough_samples(exc_list, iterations)    
-    
+    samples_arr = get_rough_samples(exc_list, iterations)
+
     # Norm samples so that they will be between 0 and 1
     normed = samples_arr/samples_arr.sum(axis=0)
     # Cummulative sum for each iteration
@@ -170,7 +170,7 @@ def kronecker_delta_selector(params, negative=False, use_amounts=True, iteration
     # Change sign as necessary:
     if negative:
         probs = np.absolute(probs) * -1
-    
+
     if not use_amounts:
         if also_return_random_var:
             return probs, rand
@@ -181,5 +181,4 @@ def kronecker_delta_selector(params, negative=False, use_amounts=True, iteration
         if also_return_random_var:
             return np.dot(np.diag(scaling), probs), rand
         else:
-            return np.dot(np.diag(scaling), probs)  
-        
+            return np.dot(np.diag(scaling), probs)

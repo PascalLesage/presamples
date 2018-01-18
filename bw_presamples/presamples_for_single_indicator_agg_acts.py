@@ -16,7 +16,7 @@ def create_set_of_presamples_packages_for_agg_data(database,
                                                    overwrite=False):
     """Create presamples packages for dependently sampled aggregated indicator scores arrays
     See [database_wide_monte_carlo](https://github.com/PascalLesage/database_wide_monte_carlo)
-    
+
     Arguments:
     * ``database``: database with aggregated datasets. Each dataset should contain one biosphere exchange of type "unit impact" for the method of interest.
     * ``method``: tuple for the LCIA method for which the presample is created.

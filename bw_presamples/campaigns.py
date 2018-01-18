@@ -50,7 +50,7 @@ class Campaign(ModelBase):
     def _shift_presamples_at_index(self, index):
         """Shift the order of all presamples >= ``index`` up by one."""
         CampaignOrdering.update(order = CampaignOrdering.order + 1).where(
-            CampaignOrdering.campaign == self, 
+            CampaignOrdering.campaign == self,
             CampaignOrdering.order > index - 1
         ).execute()
 
@@ -62,10 +62,10 @@ class Campaign(ModelBase):
     def add_local_presamples(self, dirpath, index=None, copy=True):
         """Add presamples directory at ``dirpath``.
 
-        ``index`` is an optional index in the order of presamples. 
+        ``index`` is an optional index in the order of presamples.
         Existing presamples will be shifted if necessary.
 
-        If true, ``copy`` will cause the directory to be copied to the 
+        If true, ``copy`` will cause the directory to be copied to the
         project directory."""
         assert os.path.isdir(dirpath)
         # TODO: Validate files correct
@@ -89,17 +89,17 @@ class Campaign(ModelBase):
         CampaignOrdering.create(
             campaign=self,
             resource=resource,
-            order=index    
+            order=index
         )
 
     def add_child(self, name, description=None):
-        """Add child campaign, including all presamples. 
+        """Add child campaign, including all presamples.
 
         Returns new ``Campaign`` object."""
         with db.atomic() as transaction:
             campaign = Campaign.create(
-                name=name, 
-                description=description, 
+                name=name,
+                description=description,
                 parent=self
             )
             for pr in PresampleResource.select().where(

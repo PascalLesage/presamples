@@ -1,19 +1,13 @@
-from bw2data import projects, config
-from bw2data.sqlite import create_database
-from peewee import (
-    BooleanField,
-    DateTimeField,
-    ForeignKeyField,
-    IntegerField,
-    Model,
-    TextField,
-)
-import os
 import datetime
+import os
+import shutil
 import uuid
 from pathlib import Path
-import shutil
 
+from bw2data import config, projects
+from bw2data.sqlite import create_database
+from peewee import (DateTimeField, ForeignKeyField, IntegerField, Model,
+                    TextField, fn)
 
 presamples_dir = Path(projects.request_directory("presamples"))
 
@@ -146,7 +140,7 @@ class CampaignOrdering(ModelBase):
 
 def init_campaigns():
     db = create_database(
-        Path(projects.dir / "campaigns.db"),
+        os.path.join(projects.dir, "campaigns.db"),
         [Campaign, PresampleResource, CampaignOrdering]
     )
     config.sqlite3_databases.append((

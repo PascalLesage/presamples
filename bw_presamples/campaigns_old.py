@@ -17,9 +17,9 @@ campaign: dict
 
 ''' A dictionary with information on registered ``campaigns``.
 	Keys are unique campaign names.
-	campaigns are themselves dictionaries with the following information: 
+	campaigns are themselves dictionaries with the following information:
 	* ``description``: optional, markdown text description
-	* ``presamples``: list, ordered list of presamples filepaths 
+	* ``presamples``: list, ordered list of presamples filepaths
 	* ``inherits_from``: ordered list of (registry, campaign) tuples on which the given campaign was built.
 '''
 def create_empty_campaign_registry(registry_name='default', overwrite=False):
@@ -60,10 +60,10 @@ def list_campaigns(registry_name='default'):
 class Campaign():
 	'''Used to describe a campaign, whose main property is an ordered list of presamples.'''
 	def __init__(self, name=None, description="", inherits_from=[], presamples=[]):
-		'''Create a new campaign instance, which is simply a dictionary. Typical usage is to send a campaign to the campaign registry. 
+		'''Create a new campaign instance, which is simply a dictionary. Typical usage is to send a campaign to the campaign registry.
 		Args:
-		* ``name``: Unique name to refer to the campaign. If ``None``, the name is set to a random UUID.  
-		* ``description``: Optional markdown description of campaign content and context  
+		* ``name``: Unique name to refer to the campaign. If ``None``, the name is set to a random UUID.
+		* ``description``: Optional markdown description of campaign content and context
 		* ``inherits_from``: Used if the campaign builds on an existing campaign. The key:values of the ``inherits_from`` dict respectively refer to registries and lists of campaigns that are registered in the registry. If a registry is missing, or if a campaign is missing from the registry, then the creation of the ``campaign`` will fail.
 		* ``presamples``: Used to pass presamples directly to the ``campaign``. Should be a collection of presamples filepaths.
 		'''
@@ -96,7 +96,7 @@ class Campaign():
 		current_presamples = self.ordered_presamples_fps or []
 		LOCATION_ERROR_TEXT = "Valid location arguments are 'beginning', 'end' or tuples with the format ('before', _id) or ('after', _id)."
 		NO_REFERENCE_FOR_LOCATION = "Cannot place presamples {} {}: {} not found in presamples list"
-		
+
 		def insert_l1_in_l2_at_index(base_list, list_to_insert, index_for_insertion):
 			new_list = []
 			for i_before in range(index_for_insertion):
@@ -144,7 +144,7 @@ class Campaign():
 
 
 	def add_campaign_to_registry(self, registry_name='default', overwrite=False, return_registry=False):
-		'''Add campaign dictionary to specified registry. 
+		'''Add campaign dictionary to specified registry.
 		If registry does not exist, a new one is created.
 		If campaign with same name already exists, it is overwritten only if ``overwrite`` is True
 		'''

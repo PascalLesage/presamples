@@ -6,7 +6,7 @@ import os
 from bw2io.utils import activity_hash
 from bw2calc import LCA
 from .create_presamples_package import create_presamples_package
-from .campaigns import load_campaign_from_registry
+# from .campaigns import load_campaign_from_registry
 
 
 def create_set_of_presamples_packages_for_agg_data(database,

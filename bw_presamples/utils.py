@@ -1,4 +1,5 @@
 import numpy as np
+from bw2calc import MonteCarloLCA
 
 
 def convert_parameter_dict_to_presamples(parameters):
@@ -16,6 +17,14 @@ def convert_parameter_dict_to_presamples(parameters):
             "Hetergeneous array shapes ({}) not allowed".format(shapes)
         )
     return names, np.vstack([parameters[key].reshape((1, -1)) for key in names])
+
+
+def create_matrix_presamples_from_database(database_name, iterations=1000, parallel=False):
+    pass
+
+
+def create_matrix_presamples_from_method(database_name, iterations=1000, parallel=False):
+    pass
 
 
 # """ Set of functions that generate presample arrays from inventory parameters

@@ -1,10 +1,13 @@
 __all__ = [
     'Campaign',
-    'PresampleResource',
+    'convert_parameter_dict_to_presamples',
+    'create_matrix_presamples_from_database',
+    'create_matrix_presamples_from_method',
     'create_presamples_package',
     'FORMATTERS',
     'IrregularPresamplesArray',
     'MatrixPresamples',
+    'PresampleResource',
 
     # Models - to be updated to the new presamples code
     # 'get_exchange',
@@ -37,6 +40,8 @@ from .utils import (
     # inputs_sum_to_fixed_amount_sample,
     # kronecker_delta_selector,
     convert_parameter_dict_to_presamples,
+    create_matrix_presamples_from_database,
+    create_matrix_presamples_from_method,
 )
 # from .create_presamples_package import (
 #     create_presamples_package,

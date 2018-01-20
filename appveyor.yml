@@ -1,0 +1,43 @@
+skip_commits:
+  message: /^Merge pull request /
+
+environment:
+  PYTHONIOENCODING: "UTF-8"
+
+  matrix:
+    - PYTHON_VERSION: "2.7"
+      PYTHON_ARCH: "32"
+      CONDA_PY: "27"
+      CONDA_INSTALL_LOCN: "C:\\Miniconda"
+
+    - PYTHON_VERSION: "2.7"
+      PYTHON_ARCH: "64"
+      CONDA_PY: "27"
+      CONDA_INSTALL_LOCN: "C:\\Miniconda-x64"
+
+    - PYTHON_VERSION: "3.5"
+      PYTHON_ARCH: "64"
+      CONDA_PY: "35"
+      CONDA_INSTALL_LOCN: "C:\\Miniconda35-x64"
+
+    - PYTHON_VERSION: "3.6"
+      PYTHON_ARCH: "32"
+      CONDA_PY: "36"
+      CONDA_INSTALL_LOCN: "C:\\Miniconda36"
+
+    - PYTHON_VERSION: "3.6"
+      PYTHON_ARCH: "64"
+      CONDA_PY: "36"
+      CONDA_INSTALL_LOCN: "C:\\Miniconda36-x64"
+
+install:
+    # Use the pre-installed Miniconda for the desired arch
+    - cmd: call %CONDA_INSTALL_LOCN%\Scripts\activate.bat
+    - cmd: conda update -y -q conda
+    - cmd: conda config --add channels conda-forge cmutel haasad
+    - cmd: conda install -y -q numpy scipy bw2data bw2calc stats_arrays peewee wrapt pytest
+
+build: false
+
+test_script:
+  - "pytest"

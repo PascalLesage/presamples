@@ -24,15 +24,17 @@ class Mock(MagicMock):
 
 
 MOCK_MODULES = [
+  "bw2calc",
   "bw2calc.indexing",
   "bw2calc.matrices",
   "bw2calc.utils",
   "bw2data",
-  "bw2data.backends.peewee.proxies",
   "bw2data.filesystem",
+  "bw2data.sqlite",
   "bw2data.utils",
   "numpy",
   "numpy.random",
+  "peewee",
   "wrapt",
 ]
 sys.modules.update((mod_name, Mock()) for mod_name in MOCK_MODULES)

@@ -191,31 +191,11 @@ def get_presample_directory(id_, overwrite=False):
     return dirpath
 
 
-def create_presamples_package(matrix_data=None, parameters=None, name=None,
+def create_presamples_package(matrix_presamples=None, parameter_presamples=None, name=None,
         id_=None, overwrite=False):
-    """Create a new subdirectory in the ``project`` folder that stores presampled values for matrix data and named parameters.
+    """Create a new subdirectory in the ``project`` folder that stores presampled values for matrix data and/or named parameters.
 
-    Matrix data has sampled data and metadata specifying where and into which matrix new values should be inserted. Named ``parameters`` are not directly inserted into matrices, but can be used to generate matrix presamples, or as inputs to sensitivity analysis.
-
-    ``matrix_data`` is a list of ``(samples, indices, matrix label)``. ``samples`` should be a Numpy array; ``indices`` is an iterable with row and (usually) column indices - the exact format depends on the matrix to be constructed; and ``matrix label`` is a string giving the name of the matrix to be modified in the LCA class.
-
-    TODO: Move the following section to docs
-
-    Matrices outside the three with built-in functions (technosphere, biosphere, cf) can be accomodated in two ways. First, you can write a custom formatter function, based on existing formatters like ``format_biosphere_presamples``, and add this formatter to the ``FORMATTERS`` register:
-
-    .. code-block:: python
-
-        from bw_presamples import FORMATTERS
-
-        def my_formatter(indices):
-            # do something with the indices
-            return some_data
-
-        FORMATTERS['my matrix type'] = my_formatter
-
-    You can also specify the metadata needed to process indices manually. To accomodate In addition, the following arguments can be specified in order, dtype=None, row_formatter=None, metadata=None)
-
-    ``parameters`` is a list of ``(samples, names)``. ``samples`` should be a Numpy array; ``names`` is a python list of strings.
+    ``matrix_presamples`` is a list of :ref:`matrix-presamples`; parameter_presamples`` is a list of :ref:`parameter-presamples`. Both are allowed, but at least one type of presamples must be given. The documentation gives more details on these input arguments.
 
     Both matrix and parameter data should have the same number of possible values (i.e same number of Monte Carlo iterations).
 
@@ -228,6 +208,7 @@ def create_presamples_package(matrix_data=None, parameters=None, name=None,
 
     """
     id_ = id_ or uuid.uuid4().hex
+    name = name or id_
     dirpath = get_presample_directory(id_, overwrite)
     num_iterations = None
     datapackage = {
@@ -237,11 +218,11 @@ def create_presamples_package(matrix_data=None, parameters=None, name=None,
         "resources": []
     }
 
-    if not matrix_data and not parameters:
-        raise ValueError("Must specify at least one of `matrix_data` and `parameters`")
+    if not matrix_presamples and not parameter_presamples:
+        raise ValueError("Must specify at least one of `matrix_presamples` and `parameter_presamples`")
 
     index = 0
-    for index, row in enumerate(matrix_data or []):
+    for index, row in enumerate(matrix_presamples or []):
         samples, indices, kind, *other = row
         samples = to_2d(to_array(samples))
 
@@ -284,7 +265,7 @@ def create_presamples_package(matrix_data=None, parameters=None, name=None,
         datapackage['resources'].append(result)
 
     offset = index + (1 if index else 0)
-    for index, row in enumerate(parameters or []):
+    for index, row in enumerate(parameter_presamples or []):
         samples, names = row
         samples = to_2d(to_array(samples))
 

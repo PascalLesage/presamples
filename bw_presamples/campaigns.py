@@ -44,6 +44,10 @@ class Campaign(ModelBase):
             .order_by(PresampleResource.order.asc())
         )
 
+    def __iter__(self):
+        for resource in self.resources():
+            yield resource.as_loadable()
+
     def _order_value(self):
         return getattr(self, "_order_field")
 
@@ -128,6 +132,15 @@ class PresampleResource(ModelBase):
     def metadata(self):
         # TODO: Load metadata from datapackage
         return None
+
+    def as_loadable(self):
+        """Return resource location to be loaded by ``MatrixPresamples``.
+
+        Currently only support local resources; more types could be added later."""
+        if self.kind == "local":
+            return self.resource
+        else:
+            raise ValueError("This presample resource cant be loaded")
 
 
 class CampaignOrdering(ModelBase):

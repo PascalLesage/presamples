@@ -100,6 +100,10 @@ class MatrixPresamples(object):
 
         self.empty = not bool(self.data)
 
+    def __str__(self):
+        # TODO
+        return ""
+
     @staticmethod
     def validate_dirpath(dirpath):
         """Check that a ``dirpath`` has a valid `datapackage.json` file and data files with matching hashes."""
@@ -233,14 +237,15 @@ class MatrixPresamples(object):
     def update_matrices(self, lca):
         for obj in self.data:
             for elem in obj['resources']:
-                sample = elem['samples'].sample()
-                if elem['type'] == 'technosphere':
-                    MB.fix_supply_use(elem['indices'], sample)
                 try:
                     matrix = getattr(lca, elem['matrix'])
                 except AttributeError:
                     # This LCA doesn't have this matrix
                     continue
+
+                sample = elem['samples'].sample()
+                if elem['type'] == 'technosphere':
+                    MB.fix_supply_use(elem['indices'], sample)
                 if 'col dict' in elem:
                     matrix[
                         elem['indices'][elem['row to label']],

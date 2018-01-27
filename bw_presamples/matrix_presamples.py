@@ -1,5 +1,5 @@
 from .array import IrregularPresamplesArray
-from bw2calc.indexing import index_with_arrays as _
+from bw2calc.indexing import index_with_arrays
 from bw2calc.matrices import TechnosphereBiosphereMatrixBuilder as MB
 from bw2calc.utils import md5
 from pathlib import Path
@@ -216,13 +216,13 @@ class MatrixPresamples(object):
                     # This dictionary not yet built
                     continue
 
-                _(
+                index_with_arrays(
                     elem['indices'][elem['row from label']],
                     elem['indices'][elem['row to label']],
                     getattr(lca, elem['row dict'])
                 )
                 if "col dict" in elem:
-                    _(
+                    index_with_arrays(
                         elem['indices'][elem['col from label']],
                         elem['indices'][elem['col to label']],
                         getattr(lca, elem['col dict'])

@@ -192,8 +192,8 @@ def get_presample_directory(id_, overwrite=False):
 
 
 def create_presamples_package(matrix_presamples=None, parameter_presamples=None, name=None,
-        id_=None, overwrite=False):
-    """Create a new subdirectory in the ``project`` folder that stores presampled values for matrix data and/or named parameters.
+        id_=None, overwrite=False, dirpath=None):
+    """Create and populate a new presamples directory that stores presampled values for matrix data and/or named parameters.
 
     ``matrix_presamples`` is a list of :ref:`matrix-presamples`; parameter_presamples`` is a list of :ref:`parameter-presamples`. Both are allowed, but at least one type of presamples must be given. The documentation gives more details on these input arguments.
 
@@ -203,13 +203,21 @@ def create_presamples_package(matrix_presamples=None, parameter_presamples=None,
     * ``name``: A human-readable name for these samples.
     * ``id_``: Unique id for this collection of presamples. Optional, generated automatically if not set.
     * ``overwrite``: If True, replace an existing presamples package with the same ``_id`` if it exists. Default ``False``
+    * ``dirpath``: An optional directory path where presamples can be created. Default is to create a subdirectory in the ``project`` folder.
 
     Returns ``id_`` and the absolute path of the created directory.
 
     """
     id_ = id_ or uuid.uuid4().hex
     name = name or id_
-    dirpath = get_presample_directory(id_, overwrite)
+
+    if dirpath is not None:
+        assert os.path.isdir(dirpath), "`dirpath` must be a directory"
+        assert os.access(dirpath, os.W_OK), "`dirpath` must be a writable directory"
+        dirpath = os.path.abspath(dirpath)
+    else:
+        dirpath = get_presample_directory(id_, overwrite)
+
     num_iterations = None
     datapackage = {
         "name": str(name),

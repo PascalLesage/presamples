@@ -180,8 +180,11 @@ def format_matrix_presamples(indices, kind, dtype=None, row_formatter=None, meta
         return array, metadata
 
 
-def get_presample_directory(id_, overwrite=False):
-    dirpath = Path(projects.request_directory('presamples')) / id_
+def get_presample_directory(id_, overwrite=False, dirpath=None):
+    if dirpath is None:
+        dirpath = Path(projects.request_directory('presamples')) / id_
+    else:
+        dirpath = Path(dirpath) / id_
     if os.path.isdir(dirpath):
         if not overwrite:
             raise ValueError("The presampled directory {} already exists".format(dirpath))
@@ -215,8 +218,7 @@ def create_presamples_package(matrix_presamples=None, parameter_presamples=None,
         assert os.path.isdir(dirpath), "`dirpath` must be a directory"
         assert os.access(dirpath, os.W_OK), "`dirpath` must be a writable directory"
         dirpath = os.path.abspath(dirpath)
-    else:
-        dirpath = get_presample_directory(id_, overwrite)
+    dirpath = get_presample_directory(id_, overwrite, dirpath=dirpath)
 
     num_iterations = None
     datapackage = {

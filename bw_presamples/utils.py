@@ -1,5 +1,4 @@
 import numpy as np
-from bw2calc import MonteCarloLCA
 
 
 def convert_parameter_dict_to_presamples(parameters):

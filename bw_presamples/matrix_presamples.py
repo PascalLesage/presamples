@@ -234,13 +234,16 @@ class MatrixPresamples(object):
                 elem['indexed'] = True
 
     @nonempty
-    def update_matrices(self, lca):
+    def update_matrices(self, lca, matrices=None):
         for obj in self.data:
             for elem in obj['resources']:
                 try:
                     matrix = getattr(lca, elem['matrix'])
                 except AttributeError:
                     # This LCA doesn't have this matrix
+                    continue
+
+                if matrices is not None and elem['matrix'] not in matrices:
                     continue
 
                 sample = elem['samples'].sample()

@@ -18,14 +18,11 @@
 
 # Campaigns
 
-* Decide on data store
-* Multiple registries?
-* API for campaign object
+* API and usr stories for generating presamples and presample resources (packages?)
 
 # Tests
 
 * Finish matrix presamples consolidation tests
 * Test parameterized inventory generation and use
-* Test campaigns
-* Tests with actual LCA and Monte Carlo LCA object (https://bitbucket.org/cmutel/brightway2-calc/branch/presamples)
+* Complete campaign tests
 * Test `split_inventory_presamples`

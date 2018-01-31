@@ -58,3 +58,9 @@ class ModelBase:
             return Exchange(qs.get())._data
         else:
             raise ValueError("Can't understand this exchange identifier: {}".format(obj))
+
+    def write_presamples_package(self):
+        pass
+
+    def write_presamples_resource(self):
+        pass

@@ -8,6 +8,7 @@ __all__ = [
     'IrregularPresamplesArray',
     'MatrixPresamples',
     'PresampleResource',
+    'split_inventory_presamples',
 
     # Models - to be updated to the new presamples code
     # 'get_exchange',
@@ -26,7 +27,11 @@ __version__ = (0, 0, 'dev')
 
 from .campaigns import Campaign, PresampleResource
 from .array import IrregularPresamplesArray
-from .packaging import create_presamples_package, FORMATTERS
+from .packaging import (
+    create_presamples_package,
+    FORMATTERS,
+    split_inventory_presamples,
+)
 from .matrix_presamples import MatrixPresamples
 
 # from .presamples_for_single_indicator_agg_acts import(

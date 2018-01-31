@@ -7,6 +7,7 @@ import json
 import numpy as np
 import os
 import pytest
+import tempfile
 
 
 def update_hashes_from_given(given, expected):
@@ -197,11 +198,61 @@ def test_basic_packaging():
     create_presamples_package(parameter_presamples=[(s1, n1), (s2, n2)])
 
 @bw2test
-def test_parameter_shape_mismatch():
+def test_basic_packaging_custom_directory():
+    mapping.add('ABCDEF')
+    t1 = [('A', 'A', 0), ('A', 'B', 1), ('B', 'C', 3)]
+    t2 = np.arange(12).reshape((3, 4))
+    inputs = [(t2, t1, 'technosphere')]
+
+    with tempfile.TemporaryDirectory() as dirpath:
+        assert len(list(os.listdir(dirpath))) == 0
+        _, nd = create_presamples_package(
+            inputs, name='foo', id_='bar', dirpath=dirpath
+        )
+        assert len(list(os.listdir(dirpath))) == 1
+        assert len(list(os.listdir(nd))) == 3
+
+@bw2test
+def test_matrix_presamples_inconsistent_shape():
+    mapping.add('ABCDEF')
+    t1 = [('A', 'A', 0), ('A', 'B', 1), ('B', 'C', 3)]
+    t2 = np.arange(12).reshape((3, 4))
+    t3 = [('A', 'A', 0), ('A', 'B', 1)]
+    t4 = np.arange(12).reshape((2, 6))
+    inputs = [
+        (t2, t1, 'technosphere'),
+        (t4, t3, 'biosphere'),
+    ]
+    with pytest.raises(ValueError):
+        create_presamples_package(inputs)
+
+@bw2test
+def test_parameter_presamples_inconsistent_shape():
+    s1 = np.arange(16).reshape((4, 4))
+    s2 = np.arange(12).reshape((2, 6))
+    n1 = list('ABCD')
+    n2 = list('DE')
+    with pytest.raises(ValueError):
+        create_presamples_package(parameter_presamples=[(s1, n1), (s2, n2)])
+
+@bw2test
+def test_matrix_shape_mismatch():
     s1 = np.arange(20).reshape((5, 4))
     n1 = list('ABC')
     with pytest.raises(ValueError):
         create_presamples_package([(s1, n1)])
+
+@bw2test
+def test_parameters_shape_mismatch():
+    s1 = np.arange(16).reshape((4, 4))
+    n1 = list('ABCDE')
+    with pytest.raises(ValueError):
+        create_presamples_package(parameter_presamples=[(s1, n1)])
+
+@bw2test
+def test_no_data_provided():
+    with pytest.raises(ValueError):
+        create_presamples_package(name='foo')
 
 @bw2test
 def test_incosistent_mc_numbers():
@@ -437,3 +488,25 @@ def test_shape_mismatch():
         create_presamples_package(
             [(a, b, 'foo', dtype, frmt, metadata)]
         )
+
+def test_split_inventory_presamples():
+    a = np.arange(20).reshape((4, 5))
+    b = [
+        (1, 2, 'technosphere'),
+        (3, 4, 'biosphere'),
+        (5, 6, 'random'),
+        (7, 8, 'production'),
+    ]
+    (w, x), (y, z) = split_inventory_presamples(a, b)
+    assert np.allclose(np.arange(5, 10), w)
+    assert np.allclose(np.arange(20).reshape((4, 5))[(0, 2, 3), :], y)
+    assert x == [(3, 4)]
+    assert z == [(1, 2, 'technosphere'), (5, 6, 'random'), (7, 8, 'production')]
+
+def tests_split_inventory_presamples_error():
+    with pytest.raises(AssertionError):
+        split_inventory_presamples(None, [])
+    a = np.arange(20).reshape((4, 5))
+    b = list(range(5))
+    with pytest.raises(AssertionError):
+        split_inventory_presamples(a, b)

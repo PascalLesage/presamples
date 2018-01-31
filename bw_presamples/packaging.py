@@ -18,7 +18,22 @@ to_2d = lambda x: np.reshape(x, (1, -1)) if len(x.shape) == 1 else x
 
 
 def split_inventory_presamples(samples, indices):
-    pass
+    """Split technosphere and biosphere presamples.
+
+    ``samples`` is a Numpy array with rows of exchanges and columns of Monte Carlo iterations. ``indices`` is a list of ``[(input key, output key, type)]``, where ``type`` is like "biosphere" or "technosphere". Everything which isn't type ``biosphere`` will be added to the technosphere presamples.
+
+    Returns ``((biosphere samples, biosphere indices), (technosphere samples, technosphere indices))``.
+
+    """
+    assert isinstance(samples, np.ndarray)
+    assert samples.shape[0] == len(indices), "Shape mismatch"
+
+    mask = np.array([o[2] == 'biosphere' for o in indices])
+
+    return (
+        (samples[mask, :], [o[:2] for o in indices if o[2] == "biosphere"]),
+        (samples[~mask, :], [o for o in indices if o[2] != "biosphere"]),
+    )
 
 
 def format_technosphere_presamples(indices):

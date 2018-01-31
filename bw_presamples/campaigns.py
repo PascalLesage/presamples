@@ -73,6 +73,14 @@ class Campaign(ModelBase):
             CampaignOrdering.campaign == self
         ).scalar()
 
+    def replace_presample_resource(self, new, old, propagate=False):
+        # TODO
+        pass
+
+    def add_presample_resource(self, obj, index=None):
+        # TODO
+        pass
+
     def add_local_presamples(self, dirpath, index=None, copy=True):
         """Add presamples directory at ``dirpath``.
 

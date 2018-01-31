@@ -162,7 +162,7 @@ class MatrixPresamples(object):
             'resources': []
         }
         fltr = lambda x: x['type']
-        resources = metadata["resources"]
+        resources = [obj for obj in metadata["resources"] if obj.get('matrix')]
         resources.sort(key=fltr)
 
         for key, group in itertools.groupby(resources, fltr):

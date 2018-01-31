@@ -1,8 +1,9 @@
+from pathlib import Path
 import datetime
+import json
 import os
 import shutil
 import uuid
-from pathlib import Path
 
 from bw2data import config, projects
 from bw2data.sqlite import create_database
@@ -35,21 +36,30 @@ class Campaign(ModelBase):
         self.modified = datetime.datetime.now()
         return super().save(*args, **kwargs)
 
+    @property
     def resources(self):
         return (
             PresampleResource
             .select()
             .join(CampaignOrdering)
             .where(CampaignOrdering.campaign == self)
-            .order_by(PresampleResource.order.asc())
+            .order_by(CampaignOrdering.order.asc())
         )
+
+    def __str__(self):
+        if self.parent:
+            return "Campaign {n} with parent {p} and {r} resources".format(
+            n=self.name, p=self.parent.name, r=self.resources.count())
+        else:
+            return "Campaign {n} with no parent and {r} resources".format(
+            n=self.name, r=self.resources.count())
 
     def __iter__(self):
         for resource in self.resources():
             yield resource.as_loadable()
 
     def _order_value(self):
-        return getattr(self, "_order_field")
+        return getattr(self, getattr(self, "_order_field"))
 
     def _shift_presamples_at_index(self, index):
         """Shift the order of all presamples >= ``index`` up by one."""
@@ -97,9 +107,11 @@ class Campaign(ModelBase):
         )
 
     def add_child(self, name, description=None):
-        """Add child campaign, including all presamples.
+        """Add new child campaign, including all presamples.
 
-        Returns new ``Campaign`` object."""
+        Returns created ``Campaign`` object."""
+        if Campaign.select().where(Campaign.name == name).count():
+            raise ValueError("This campaign already exists")
         with db.atomic() as transaction:
             campaign = Campaign.create(
                 name=name,
@@ -117,16 +129,52 @@ class Campaign(ModelBase):
 
     @property
     def children(self):
-        return Campaign.select().where(Campaign.parent == self)
+        return Campaign.select().where(Campaign.parent == self).order_by(Campaign.name)
 
-    # TODO: Ancestors, descendents
+    @property
+    def descendants(self):
+        """Return iterator of descendants, ordered by depth and then name. Convert to a list to get length."""
+        # Recursive queries not supported in peewee
+        # Note that quoting is SQLite specific (Postgres uses %s)
+        for obj_id in Campaign.raw('''
+            WITH RECURSIVE descendants (name, level, id) AS (
+                VALUES(?, 0, ?)
+                UNION ALL
+                SELECT campaign.name, descendants.level + 1, campaign.id
+                  FROM campaign
+                  JOIN descendants ON campaign.parent_id = descendants.id
+                 ORDER BY 2, 1
+              )
+            SELECT id FROM descendants WHERE id != ?;
+        ''', self.name, self.id, self.id).tuples():
+            yield Campaign.get(id=obj_id)
+
+    @property
+    def ancestors(self):
+        """Return iterator of ancestors, ordered by distance from this campaign."""
+        # Recursive queries not supported in peewee
+        # Note that quoting is SQLite specific (Postgres uses %s)
+        if not self.parent_id:
+            raise StopIteration
+        for obj_id in Campaign.raw('''
+            WITH RECURSIVE ancestors (level, id) AS (
+                VALUES(0, ?)
+                UNION ALL
+                SELECT ancestors.level + 1, campaign.parent_id
+                  FROM campaign
+                  JOIN ancestors ON campaign.id = ancestors.id
+                  WHERE campaign.parent_id IS NOT NULL
+              )
+            SELECT id FROM ancestors;
+        ''', self.parent_id).tuples():
+            yield Campaign.get(id=obj_id)
 
 
 class PresampleResource(ModelBase):
     name = TextField(null=True)
     description = TextField(null=True)
     kind = TextField(default="local")
-    resource = TextField()  # localpath for files
+    resource = TextField()  # local path for directories
 
     @property
     def metadata(self):

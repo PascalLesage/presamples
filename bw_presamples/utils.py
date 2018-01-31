@@ -35,34 +35,7 @@ def create_matrix_presamples_from_method(database_name, iterations=1000, paralle
 # from stats_arrays import uncertainty_choices, UncertaintyBase
 # import numpy as np
 
-# def get_exchange(param):
-#     """ Temporary function that returns an exchange based on input and output keys and type.
-#     Will not return anything if there is ambiguity.
-#     Eventually needs to be replaced with something more robust
-#     Param defined as tuple of input activity, output activity, string label for exchange type (one of technosphere, biosphere or production)
-#     """
-#     try:
-#         act = get_activity(param[1])
-#     except:
-#         print("Output for exchange {} not found".format(param))
-#         return None
-#     if param[2] == 'technosphere':
-#         candidates_for_exc = [exc for exc in act.technosphere() if exc.input == param[0]]
-#     elif param[2] == 'biosphere':
-#         candidates_for_exc = [exc for exc in act.biosphere() if exc.input == param[0]]
-#     elif param[2] == 'production':
-#         candidates_for_exc = [exc for exc in act.production() if exc.input == param[0]]
-#     else:
-#         print("Exchange type for {} not well defined: no such exchange type {}".format(param, param[2]))
-#         return None
-#     if len(candidates_for_exc) == 0:
-#         print("Exchange {} not found".format(exc_approx_id))
-#         return None
-#     elif len(candidates_for_exc) > 1:
-#         print("Exchange {} ambiguous (more than one exchange found)".format(exc_approx_id))
-#         return None
-#     else: # If the exchange is found:
-#         return candidates_for_exc[0]
+
 
 # def convert_exchange_to_param(exc):
 #     """Transforms a bw2data.backends.peewee.proxies.Exchange into a param (input['key'], output['key'], type)"""
@@ -90,67 +63,6 @@ def create_matrix_presamples_from_method(database_name, iterations=1000, paralle
 #     for exc in list_exchanges:
 #         total += exc['amount']
 #     return total
-
-# def get_rough_samples(exchange_list, iterations):
-#     """Helper function to generate samples for set of exchanges.
-#     Rough samples are postprocessed according to different rules in other functions"""
-#     samples_arr = np.empty([len(exchange_list), iterations])
-#     # Populate array and positions_df
-#     for i, exc in enumerate(exchange_list):
-#         samples_arr[i, :] = exc.random_sample(iterations)
-#     return samples_arr
-
-
-# def inputs_sum_to_fixed_amount_sample(params, expected_sum='total_static', hold_certain_values_constant=True, iterations=1000):
-#     """Return a sample array where a set of technosphere exchanges sum to a predetermined amount.
-#     Useful only in cases where all exchanges are either input or output.
-#     The fixed sum is ensured by a post hoc rescaling of sampled values, for each iteration
-
-#     Input arguments:
-#     * ``params``: The parameters representing the technosphere exchanges that need to be rescaled
-#     * ``expected_sum``: The amount all exchanges should add to when rescaling
-#     * ``hold_certain_values_constant``: If True, exchanges with no uncertainty (uncertainty_type in (0, 1)) are not rescaled
-#     * ``iterations``: Number of iterations to generate
-
-#     Note: there is no way for now to unambiguously identify an exchange. If there is ambiguity, the
-#     function will not return anything.
-#     """
-#     # Ensure technosphere inputs all refer to the same activity
-#     assert len(set([param[1] for param in params]))==1, "All inputs should be for the same activity"
-#     # Ensure all params are for technosphere inputs
-#     assert all([param[2]=='technosphere' for param in params]), "All params should refer to technosphere inputs"
-#     # Get exchange proxy objects:
-#     exc_list = [get_exchange(param) for param in params]
-#     # Ensure exc_list does not contain any None
-#     if any([exc is None for exc in exc_list]):
-#         print("Could not find all exchanges, no sample generated")
-#         return None
-#     # Get expected sum
-#     if expected_sum == 'total_static':
-#         expected_sum = sum_amounts_of_exchanges(exc_list)
-
-#     # Get rough samples
-#     samples_arr = get_rough_samples(exc_list, iterations)
-
-#     if hold_certain_values_constant == True:
-#         # Create collector for exchanges with no uncertainty:
-#         fixed_indices = []
-#         for param, exc in zip(params, exc_list):
-#             if not hasattr(exc, 'uncertainty') or exc.uncertainty['uncertainty type'] in [0, 1]:
-#                 fixed_indices.append(params.index(param))
-#         if fixed_indices:
-#             non_fixed_indices = list(set([*range(len(params))]) - set(fixed_indices))
-#             for i in range(iterations):
-#                 scaling = expected_sum-samples_arr[fixed_indices, i].sum()/samples_arr[non_fixed_indices, i].sum()
-#                 samples_arr[non_fixed_indices, i] = scaling * samples_arr[non_fixed_indices, i]
-#         else:
-#             hold_certain_values_constant = False # Distinction no longer relevant
-#     if hold_certain_values_constant == False:
-#         for i in range(iterations):
-#             scaling = expected_sum/samples_arr[:, i].sum()
-#             samples_arr[:, i] = scaling * samples_arr[:, i]
-#     return samples_arr
-
 
 # def kronecker_delta_selector(params, negative=False, use_amounts=True, iterations=1000, also_return_random_var=False):
 #     """Return a sample array where only one exchange amount is not 0, based on the relative probability of occurence of exchanges

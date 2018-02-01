@@ -1,10 +1,8 @@
-from bw2data.tests import bw2test
 from bw_presamples.models import FixedSum
 import numpy as np
 import pytest
 
 
-@bw2test
 def test_fixed_sum_basic():
     fs =  FixedSum([
         {'uncertainty type': 0, 'amount': 4.2},
@@ -16,7 +14,6 @@ def test_fixed_sum_basic():
     assert np.allclose(np.ones((10,)) * 4.2, fs.array[0, :])
     assert np.unique(fs.array[1:, :]).shape == (20,)
 
-@bw2test
 def test_fixed_sum_filling():
     fs =  FixedSum([
         {'amount': 4.2},
@@ -27,7 +24,6 @@ def test_fixed_sum_filling():
     for row in fs.data:
         assert row['loc'] == row['amount']
 
-@bw2test
 def test_fixed_sum_rescale_fixed():
     fs =  FixedSum([
         {'uncertainty type': 0, 'amount': 4.2},
@@ -39,7 +35,6 @@ def test_fixed_sum_rescale_fixed():
     assert not np.allclose(np.ones((10,)) * 4.2, fs.array[0, :])
     assert np.unique(fs.array[:, :]).shape == (30,)
 
-@bw2test
 def test_fixed_sum_error():
     with pytest.raises(ValueError):
         FixedSum([
@@ -48,7 +43,6 @@ def test_fixed_sum_error():
             {'uncertainty type': 4, 'amount': 2.8, 'minimum': 2, 'maximum': 3.6}
         ], rescale_fixed=False, expected_sum=2, iterations=10)
 
-@bw2test
 def test_fixed_sum_expected_sum():
     fs =  FixedSum([
         {'uncertainty type': 0, 'amount': 4.2},
@@ -59,7 +53,6 @@ def test_fixed_sum_expected_sum():
     assert np.allclose(np.ones((10,)) * 5, fs.array.sum(axis=0))
     assert np.unique(fs.array[:, :]).shape == (30,)
 
-@bw2test
 def test_fixed_sum_expected_sum_negative():
     fs =  FixedSum([
         {'uncertainty type': 0, 'amount': 4.2},

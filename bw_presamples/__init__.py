@@ -1,8 +1,6 @@
 __all__ = [
     'Campaign',
     'convert_parameter_dict_to_presamples',
-    'create_matrix_presamples_from_database',
-    'create_matrix_presamples_from_method',
     'create_presamples_package',
     'FORMATTERS',
     'IrregularPresamplesArray',
@@ -45,8 +43,6 @@ from .utils import (
     # inputs_sum_to_fixed_amount_sample,
     # kronecker_delta_selector,
     convert_parameter_dict_to_presamples,
-    create_matrix_presamples_from_database,
-    create_matrix_presamples_from_method,
 )
 # from .create_presamples_package import (
 #     create_presamples_package,

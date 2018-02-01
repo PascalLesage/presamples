@@ -21,7 +21,13 @@
 * Test parameterized inventory generation and use
 * Complete campaign tests
 
-* Model to generate presamples for a whole database
-* Model to generate presamples for an LCIA method
+# Models
+
+* Model to generate presamples for a whole database (check processed array md5?)
+* Model to generate presamples for an LCIA method (check processed array md5?)
+* Tests on finding exchanges
+
+# Packaging
+
 * Adjust CF presamples package to include method that generated them, if available
 * Adjust LCA class to filter presamples based LCIA method (need to think about best way)

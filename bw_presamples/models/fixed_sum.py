@@ -1,6 +1,6 @@
-import numpy as np
-from stats_arrays import uncertainty_choices
 from .base import ModelBase
+from stats_arrays import uncertainty_choices
+import numpy as np
 
 
 class FixedSum(ModelBase):

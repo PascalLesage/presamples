@@ -19,8 +19,9 @@ class KroneckerDelta(SelectedExchangesBase):
     Currently, this class doesn't ensure that all inputs come from the same activity, or that the provided exchanges have any special type. However, all exchanges should have the same type, because presample array all have the same matrix type.
 
     """
-    def __init__(self, exchanges, normalize=True, iterations=1000, equal_choice=False):
+    def __init__(self, exchanges, matrix_label="technosphere", normalize=True, iterations=1000, equal_choice=False):
         self.data = self.find_exchanges(exchanges)
+        self.matrix_label = matrix_label
         self.iterations = iterations
         self.normalize = normalize
         self.equal_choice = equal_choice

@@ -248,7 +248,10 @@ def create_presamples_package(matrix_presamples=None, parameter_presamples=None,
 
     index = 0
     for index, row in enumerate(matrix_presamples or []):
-        samples, indices, kind, *other = row
+        if hasattr(row, "matrix_presamples"):
+            samples, indices, kind, *other = row.matrix_presamples()
+        else:
+            samples, indices, kind, *other = row
         samples = to_2d(to_array(samples))
 
         if num_iterations is None:
@@ -291,7 +294,10 @@ def create_presamples_package(matrix_presamples=None, parameter_presamples=None,
 
     offset = index + (1 if index else 0)
     for index, row in enumerate(parameter_presamples or []):
-        samples, names = row
+        if hasattr(row, "parameter_presamples"):
+            samples, names = row.parameter_presamples()
+        else:
+            samples, names = row
         samples = to_2d(to_array(samples))
 
         if num_iterations is None:

@@ -19,13 +19,14 @@ class FixedSum(SelectedExchangesBase):
     Currently, this class doesn't ensure that all inputs come from the same activity, or that the provided exchanges have any special type. However, all exchanges should have the same type, because presample array all have the same matrix type.
 
     """
-    def __init__(self, exchanges, expected_sum=None, iterations=1000, rescale_fixed=False):
+    def __init__(self, exchanges, matrix_label="technosphere", expected_sum=None, iterations=1000, rescale_fixed=False):
         if not rescale_fixed and expected_sum:
             raise ValueError("Please choose either `rescale_fixed` or `expected_sum`")
 
         self.data = self.find_exchanges(exchanges)
         for obj in self.data:
             self.fill_uncertainty(obj)
+        self.matrix_label = matrix_label
         self.iterations = iterations
         self.expected = expected_sum or sum(o['amount'] for o in self.data)
         if rescale_fixed:

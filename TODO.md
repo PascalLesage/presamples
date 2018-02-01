@@ -20,3 +20,8 @@
 * Finish matrix presamples consolidation tests
 * Test parameterized inventory generation and use
 * Complete campaign tests
+
+* Model to generate presamples for a whole database
+* Model to generate presamples for an LCIA method
+* Adjust CF presamples package to include method that generated them, if available
+* Adjust LCA class to filter presamples based LCIA method (need to think about best way)

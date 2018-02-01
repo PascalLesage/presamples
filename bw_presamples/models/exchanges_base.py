@@ -2,8 +2,8 @@ from bw2data.backends.peewee.proxies import Exchange
 from bw2data.backends.peewee.schema import ExchangeDataset
 
 
-class ModelBase:
-    """Base for all presample models. Provides common methods."""
+class SelectedExchangesBase:
+    """Base class for presample models which take a selection of exchanges."""
     def find_exchanges(self, data):
         """Find exchanges and return in a common format. ``data`` is a list of objects used to find exchanges.
 

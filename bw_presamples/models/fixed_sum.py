@@ -1,12 +1,12 @@
-from .base import ModelBase
+from .exchanges_base import SelectedExchangesBase
 from stats_arrays import uncertainty_choices
 import numpy as np
 
 
-class FixedSum(ModelBase):
+class FixedSum(SelectedExchangesBase):
     """Model where all exchanges sum to a certain amount.
 
-    See documentation on ``ModelBase`` for how to specify ``exchanges``.
+    See documentation on ``SelectedExchangesBase`` for how to specify ``exchanges``.
 
     ``expected_sum`` should only be used of the sum is different than the current sum of the ``amount`` values.
 

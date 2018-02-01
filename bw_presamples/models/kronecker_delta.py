@@ -1,12 +1,12 @@
-from .base import ModelBase
+from .exchanges_base import SelectedExchangesBase
 from stats_arrays import uncertainty_choices
 import numpy as np
 
 
-class KroneckerDelta(ModelBase):
+class KroneckerDelta(SelectedExchangesBase):
     """A model that choose only one input from multiple possibilities at each iteration. All other possible inputs are set to zero. See `Kronecker delta functions <https://en.wikipedia.org/wiki/Kronecker_delta>`__.
 
-    See documentation on ``ModelBase`` for how to specify ``exchanges``.
+    See documentation on ``SelectedExchangesBase`` for how to specify ``exchanges``.
 
     If ``normalize`` is true, then the amount of the selected input is set to one (or minus one if megative). Otherwise, it is set the the original ``amount`` value.
 

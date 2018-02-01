@@ -42,7 +42,7 @@ def split_inventory_presamples(samples, indices):
 def format_technosphere_presamples(indices):
     """Format technosphere presamples into an array.
 
-    Input data has the form ``[(input id, output id, type)]``. Both the input and output ids should **not** be mapped already; the ``type`` may be mapped or not.
+    Input data has the form ``[(input id, output id, type)]``. Both the input and output ids can be mapped already, but normally aren't; the ``type`` may be mapped or not.
 
     Returns an array with columns ``[('input', np.uint32), ('output', np.uint32), ('row', MAX_SIGNED_32BIT_INT), ('col', MAX_SIGNED_32BIT_INT), ('type', np.uint8)]``, and the following metadata::
 
@@ -75,8 +75,8 @@ def format_technosphere_presamples(indices):
     ]
     def func(row):
         return (
-            mapping[row[0]],
-            mapping[row[1]],
+            mapping.get(row[0], row[0]),
+            mapping.get(row[1], row[1]),
             MAX_SIGNED_32BIT_INT,
             MAX_SIGNED_32BIT_INT,
             TYPE_DICTIONARY.get(row[2], row[2])
@@ -119,8 +119,8 @@ def format_biosphere_presamples(indices):
     ]
     def func(row):
         return (
-            mapping[row[0]],
-            mapping[row[1]],
+            mapping.get(row[0], row[0]),
+            mapping.get(row[1], row[0]),
             MAX_SIGNED_32BIT_INT,
             MAX_SIGNED_32BIT_INT,
         )
@@ -152,7 +152,7 @@ def format_cf_presamples(indices):
         ('flow', np.uint32),
         ('row', np.uint32),
     ]
-    func = lambda row: (mapping[row], MAX_SIGNED_32BIT_INT)
+    func = lambda row: (mapping.get(row, row), MAX_SIGNED_32BIT_INT)
     return format_matrix_presamples(indices, 'cf', dtype, func, metadata)
 
 

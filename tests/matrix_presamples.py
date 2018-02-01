@@ -1,6 +1,3 @@
-from bw2data import mapping
-from bw2data.tests import bw2test
-from bw_presamples import *
 from pathlib import Path
 from scipy.sparse import dok_matrix
 import json
@@ -8,6 +5,13 @@ import numpy as np
 import os
 import pytest
 import tempfile
+
+from bw_presamples import *
+try:
+    from bw2data import mapping
+    from bw2data.tests import bw2test
+except ImportError:
+    bw2test = None
 
 
 class MockLCA:
@@ -20,6 +24,7 @@ class MockLCA:
         self.col_dict = {x: 3 * x for x in range(5)}
 
 
+@pytest.mark.skipif(not bw2test, reason="Brightway2 not installed")
 @pytest.fixture
 @bw2test
 def package():
@@ -46,6 +51,7 @@ def package():
     )
     return dirpath
 
+@pytest.mark.skipif(not bw2test, reason="Brightway2 not installed")
 def test_init(package):
     mp = MatrixPresamples([package])
     assert not mp.empty
@@ -62,6 +68,7 @@ def test_init(package):
     assert isinstance(resources['samples'], IrregularPresamplesArray)
     assert isinstance(resources['indices'], np.ndarray)
 
+@pytest.mark.skipif(not bw2test, reason="Brightway2 not installed")
 def test_update_matrices(package):
     mp = MatrixPresamples([package])
     lca = MockLCA()
@@ -71,6 +78,7 @@ def test_update_matrices(package):
     assert lca.matrix[2, 3] == 100
     assert lca.matrix.sum() == 300
 
+@pytest.mark.skipif(not bw2test, reason="Brightway2 not installed")
 def test_update_matrices_missing_matrix(package):
     class WrongLCA:
         def __init__(self):
@@ -86,6 +94,7 @@ def test_update_matrices_missing_matrix(package):
     mp.update_matrices(lca)
     assert not lca.wrong.sum()
 
+@pytest.mark.skipif(not bw2test, reason="Brightway2 not installed")
 @bw2test
 def test_update_matrices_technosphere():
     mapping.add('ABCDEF')
@@ -115,6 +124,7 @@ def test_update_matrices_technosphere():
     assert lca.technosphere_matrix[1, 2] == 12
     assert lca.technosphere_matrix.sum() == 10 - 11 + 12
 
+@pytest.mark.skipif(not bw2test, reason="Brightway2 not installed")
 def test_update_matrices_one_dimensional():
     mapping.add('ABCDEF')
     for x, y in enumerate('ABCDEF'):
@@ -142,6 +152,7 @@ def test_update_matrices_one_dimensional():
     assert lca.characterization_matrix[3, 3] == 12
     assert lca.characterization_matrix.sum() == 10 + 11 + 12
 
+@pytest.mark.skipif(not bw2test, reason="Brightway2 not installed")
 def test_index_arrays(package):
     mp = MatrixPresamples([package])
     lca = MockLCA()
@@ -151,6 +162,7 @@ def test_index_arrays(package):
     assert mp.data[0]['resources'][0]['indices'].tolist() == expected
     assert mp.data[0]['resources'][0]['indexed']
 
+@pytest.mark.skipif(not bw2test, reason="Brightway2 not installed")
 def test_index_arrays_already_indexed(package):
     mp = MatrixPresamples([package])
     lca = MockLCA()
@@ -166,6 +178,7 @@ def test_index_arrays_already_indexed(package):
     mp.index_arrays(lca)
     assert mp.data[0]['resources'][0]['indices'].tolist() == expected
 
+@pytest.mark.skipif(not bw2test, reason="Brightway2 not installed")
 def test_index_arrays_missing_row_dict(package):
     mp = MatrixPresamples([package])
     lca = MockLCA()
@@ -174,6 +187,7 @@ def test_index_arrays_missing_row_dict(package):
     assert mp.data[0]['resources'][0]['indices'].tolist() == expected
     mp.index_arrays(lca)
 
+@pytest.mark.skipif(not bw2test, reason="Brightway2 not installed")
 def test_index_arrays_missing_col_dict(package):
     mp = MatrixPresamples([package])
     lca = MockLCA()
@@ -182,6 +196,7 @@ def test_index_arrays_missing_col_dict(package):
     assert mp.data[0]['resources'][0]['indices'].tolist() == expected
     mp.index_arrays(lca)
 
+@pytest.mark.skipif(not bw2test, reason="Brightway2 not installed")
 def test_functionality_with_empty():
     dirpath = Path(tempfile.mkdtemp())
     datapackage = {
@@ -197,11 +212,13 @@ def test_functionality_with_empty():
     mp.index_arrays(None)
     mp.update_matrices(None)
 
+@pytest.mark.skipif(not bw2test, reason="Brightway2 not installed")
 def test_validate_dirpath_missing_datapackage(package):
     os.unlink(package / "datapackage.json")
     with pytest.raises(AssertionError):
         MatrixPresamples([package])
 
+@pytest.mark.skipif(not bw2test, reason="Brightway2 not installed")
 def test_validate_dirpath_missing_samples(package):
     for fp in os.listdir(package):
         if "samples.npy" in fp:
@@ -209,6 +226,7 @@ def test_validate_dirpath_missing_samples(package):
     with pytest.raises(AssertionError):
         MatrixPresamples([package])
 
+@pytest.mark.skipif(not bw2test, reason="Brightway2 not installed")
 def test_validate_dirpath_altered_samples(package):
     for fp in os.listdir(package):
         if "samples.npy" in fp:
@@ -217,6 +235,7 @@ def test_validate_dirpath_altered_samples(package):
     with pytest.raises(AssertionError):
         MatrixPresamples([package])
 
+@pytest.mark.skipif(not bw2test, reason="Brightway2 not installed")
 def test_validate_dirpath_missing_indices(package):
     for fp in os.listdir(package):
         if "indices.npy" in fp:
@@ -224,6 +243,7 @@ def test_validate_dirpath_missing_indices(package):
     with pytest.raises(AssertionError):
         MatrixPresamples([package])
 
+@pytest.mark.skipif(not bw2test, reason="Brightway2 not installed")
 def test_validate_dirpath_altered_indices(package):
     for fp in os.listdir(package):
         if "indices.npy" in fp:
@@ -232,6 +252,7 @@ def test_validate_dirpath_altered_indices(package):
     with pytest.raises(AssertionError):
         MatrixPresamples([package])
 
+@pytest.mark.skipif(not bw2test, reason="Brightway2 not installed")
 @bw2test
 def test_seed_functions():
     a = np.arange(12).reshape((3, 4))
@@ -269,6 +290,7 @@ def test_seed_functions():
     assert first != third
 
 
+@pytest.mark.skipif(not bw2test, reason="Brightway2 not installed")
 @pytest.fixture
 def mp():
     class Mock(MatrixPresamples):
@@ -277,22 +299,28 @@ def mp():
 
     return Mock()
 
+@pytest.mark.skipif(not bw2test, reason="Brightway2 not installed")
 def test_consolidate_mismatched_matrices(package, mp):
     group = [{'matrix': 'a'}, {'matrix': 'b'}]
     with pytest.raises(AssertionError):
         mp.consolidate(package, None, group)
 
+@pytest.mark.skipif(not bw2test, reason="Brightway2 not installed")
 def test_consolidate_conficting_row_labels(package, mp):
     pass
 
+@pytest.mark.skipif(not bw2test, reason="Brightway2 not installed")
 def test_consolidate_conflicting_col_labels(package, mp):
     pass
 
+@pytest.mark.skipif(not bw2test, reason="Brightway2 not installed")
 def test_consolidate_conflicting_indices(package, mp):
     pass
 
+@pytest.mark.skipif(not bw2test, reason="Brightway2 not installed")
 def test_consolidate(package, mp):
     pass
 
+@pytest.mark.skipif(not bw2test, reason="Brightway2 not installed")
 def test_consolidate_multiple_groups():
     pass

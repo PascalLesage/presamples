@@ -1,9 +1,9 @@
 from bw_presamples import *
+from pathlib import Path
 from scipy.sparse import *
 import numpy as np
 import pytest
 import tempfile
-from pathlib import Path
 
 
 @pytest.fixture

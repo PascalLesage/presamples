@@ -1,13 +1,17 @@
-from bw2data import mapping
-from bw2data.tests import bw2test
-from bw_presamples import *
-from bw_presamples.packaging import MAX_SIGNED_32BIT_INT
 from pathlib import Path
 import json
 import numpy as np
 import os
 import pytest
 import tempfile
+
+from bw_presamples import *
+from bw_presamples.packaging import MAX_SIGNED_32BIT_INT
+try:
+    from bw2data import mapping
+    from bw2data.tests import bw2test
+except ImportError:
+    bw2test = None
 
 
 def update_hashes_from_given(given, expected):
@@ -20,6 +24,7 @@ def update_hashes_from_given(given, expected):
             el2['indices']['md5'] = el1['indices']['md5']
 
 
+@pytest.mark.skipif(not bw2test, reason="Brightway2 not installed")
 @bw2test
 def test_basic_packaging():
     mapping.add('ABCDEF')
@@ -197,6 +202,7 @@ def test_basic_packaging():
     create_presamples_package(inputs)
     create_presamples_package(parameter_presamples=[(s1, n1), (s2, n2)])
 
+@pytest.mark.skipif(not bw2test, reason="Brightway2 not installed")
 @bw2test
 def test_basic_packaging_custom_directory():
     mapping.add('ABCDEF')
@@ -212,6 +218,7 @@ def test_basic_packaging_custom_directory():
         assert len(list(os.listdir(dirpath))) == 1
         assert len(list(os.listdir(nd))) == 3
 
+@pytest.mark.skipif(not bw2test, reason="Brightway2 not installed")
 @bw2test
 def test_matrix_presamples_inconsistent_shape():
     mapping.add('ABCDEF')
@@ -226,6 +233,7 @@ def test_matrix_presamples_inconsistent_shape():
     with pytest.raises(ValueError):
         create_presamples_package(inputs)
 
+@pytest.mark.skipif(not bw2test, reason="Brightway2 not installed")
 @bw2test
 def test_parameter_presamples_inconsistent_shape():
     s1 = np.arange(16).reshape((4, 4))
@@ -235,6 +243,7 @@ def test_parameter_presamples_inconsistent_shape():
     with pytest.raises(ValueError):
         create_presamples_package(parameter_presamples=[(s1, n1), (s2, n2)])
 
+@pytest.mark.skipif(not bw2test, reason="Brightway2 not installed")
 @bw2test
 def test_matrix_shape_mismatch():
     s1 = np.arange(20).reshape((5, 4))
@@ -242,6 +251,7 @@ def test_matrix_shape_mismatch():
     with pytest.raises(ValueError):
         create_presamples_package([(s1, n1)])
 
+@pytest.mark.skipif(not bw2test, reason="Brightway2 not installed")
 @bw2test
 def test_parameters_shape_mismatch():
     s1 = np.arange(16).reshape((4, 4))
@@ -249,11 +259,13 @@ def test_parameters_shape_mismatch():
     with pytest.raises(ValueError):
         create_presamples_package(parameter_presamples=[(s1, n1)])
 
+@pytest.mark.skipif(not bw2test, reason="Brightway2 not installed")
 @bw2test
 def test_no_data_provided():
     with pytest.raises(ValueError):
         create_presamples_package(name='foo')
 
+@pytest.mark.skipif(not bw2test, reason="Brightway2 not installed")
 @bw2test
 def test_incosistent_mc_numbers():
     mapping.add('ABCDEF')
@@ -271,6 +283,7 @@ def test_incosistent_mc_numbers():
             [(t2, t1, 'technosphere')], [(s1, n1)], name='foo', id_='bar'
         )
 
+@pytest.mark.skipif(not bw2test, reason="Brightway2 not installed")
 @bw2test
 def test_custom_metadata():
     mapping.add('ABCDEF')
@@ -343,6 +356,7 @@ def test_custom_metadata():
     update_hashes_from_given(given, expected)
     assert given == expected
 
+@pytest.mark.skipif(not bw2test, reason="Brightway2 not installed")
 @bw2test
 def test_custom_metadata_error():
     a = np.arange(12).reshape((3, 4))
@@ -414,6 +428,7 @@ def test_custom_metadata_error():
             [(a, b, 'foo', dtype, frmt, metadata)]
         )
 
+@pytest.mark.skipif(not bw2test, reason="Brightway2 not installed")
 @bw2test
 def test_missing_formatter():
     a = np.arange(12).reshape((3, 4))
@@ -421,6 +436,7 @@ def test_missing_formatter():
     with pytest.raises(KeyError):
         create_presamples_package([(a, b, 'foo')])
 
+@pytest.mark.skipif(not bw2test, reason="Brightway2 not installed")
 @bw2test
 def test_incomplete_custom_metadata():
     a = np.arange(12).reshape((3, 4))
@@ -452,6 +468,7 @@ def test_incomplete_custom_metadata():
             [(a, b, 'foo', dtype, frmt, None)]
         )
 
+@pytest.mark.skipif(not bw2test, reason="Brightway2 not installed")
 @bw2test
 def test_overwrite():
     mapping.add('ABCDEF')
@@ -465,6 +482,7 @@ def test_overwrite():
         )
     create_presamples_package(inputs, name='foo', id_='bar', overwrite=True)
 
+@pytest.mark.skipif(not bw2test, reason="Brightway2 not installed")
 @bw2test
 def test_shape_mismatch():
     a = np.arange(12).reshape((3, 4))

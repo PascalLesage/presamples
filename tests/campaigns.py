@@ -1,16 +1,22 @@
-from bw2data.tests import bw2test
-from bw_presamples.campaigns import *
 import copy
 import datetime
+import pytest
 import time
 
+from bw_presamples.campaigns import *
+try:
+    from bw2data.tests import bw2test
+except ImportError:
+    bw2test = None
 
+@pytest.mark.skipif(not bw2test, reason="Brightway2 not installed")
 @bw2test
 def test_setup():
     assert Campaign.select().count() == 0
     assert PresampleResource.select().count() == 0
     assert CampaignOrdering.select().count() == 0
 
+@pytest.mark.skipif(not bw2test, reason="Brightway2 not installed")
 @bw2test
 def test_campaign_ordering():
     c1 = Campaign.create(name="a")
@@ -18,6 +24,7 @@ def test_campaign_ordering():
     assert c1 < c2
     assert sorted([c2, c1]) == [c1, c2]
 
+@pytest.mark.skipif(not bw2test, reason="Brightway2 not installed")
 @bw2test
 def test_campaign_representation():
     c = Campaign.create(
@@ -29,6 +36,7 @@ def test_campaign_representation():
     c2 = Campaign.create(name='baz', parent=c)
     assert str(c2) == 'Campaign baz with parent foo and 0 resources'
 
+@pytest.mark.skipif(not bw2test, reason="Brightway2 not installed")
 @bw2test
 def test_campaign_modified_autopopulate_autoupdate():
     c = Campaign.create(name='foo')
@@ -38,6 +46,7 @@ def test_campaign_modified_autopopulate_autoupdate():
     c.save()
     assert dt < c.modified
 
+@pytest.mark.skipif(not bw2test, reason="Brightway2 not installed")
 @bw2test
 def test_campaign_lineage():
     c1 = Campaign.create(name='a')

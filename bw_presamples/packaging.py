@@ -22,18 +22,21 @@ def split_inventory_presamples(samples, indices):
 
     ``samples`` is a Numpy array with rows of exchanges and columns of Monte Carlo iterations. ``indices`` is a list of ``[(input key, output key, type)]``, where ``type`` is like "biosphere" or "technosphere". Everything which isn't type ``biosphere`` will be added to the technosphere presamples.
 
-    Returns ``((biosphere samples, biosphere indices), (technosphere samples, technosphere indices))``.
+    Returns ((biosphere samples, biosphere indices, label), (technosphere samples, technosphere indices, label)).
+
+    # TODO: But only if they both exist
 
     """
     assert isinstance(samples, np.ndarray)
     assert samples.shape[0] == len(indices), "Shape mismatch"
 
     mask = np.array([o[2] == 'biosphere' for o in indices])
+    no_empty = lambda lst: [o for o in lst if o[1]]
 
-    return (
-        (samples[mask, :], [o[:2] for o in indices if o[2] == "biosphere"]),
-        (samples[~mask, :], [o for o in indices if o[2] != "biosphere"]),
-    )
+    return no_empty([
+        (samples[mask, :], [o[:2] for o in indices if o[2] == "biosphere"], "biosphere"),
+        (samples[~mask, :], [o for o in indices if o[2] != "biosphere"], "technosphere"),
+    ])
 
 
 def format_technosphere_presamples(indices):
@@ -247,11 +250,18 @@ def create_presamples_package(matrix_presamples=None, parameter_presamples=None,
         raise ValueError("Must specify at least one of `matrix_presamples` and `parameter_presamples`")
 
     index = 0
-    for index, row in enumerate(matrix_presamples or []):
-        if hasattr(row, "matrix_presamples"):
-            samples, indices, kind, *other = row.matrix_presamples()
-        else:
-            samples, indices, kind, *other = row
+
+    def elems(lst, label):
+        """Yield elements from ``lst``. If an element is a model instance, iterate over its components."""
+        for elem in lst:
+            if hasattr(elem, label):
+                for obj in getattr(elem, label):
+                    yield obj
+            else:
+                yield elem
+
+    for index, row in enumerate(elems(matrix_presamples or [], "matrix_presamples")):
+        samples, indices, kind, *other = row
         samples = to_2d(to_array(samples))
 
         if num_iterations is None:
@@ -293,11 +303,8 @@ def create_presamples_package(matrix_presamples=None, parameter_presamples=None,
         datapackage['resources'].append(result)
 
     offset = index + (1 if index else 0)
-    for index, row in enumerate(parameter_presamples or []):
-        if hasattr(row, "parameter_presamples"):
-            samples, names = row.parameter_presamples()
-        else:
-            samples, names = row
+    for index, row in enumerate(elems(parameter_presamples or [], "parameter_presamples")):
+        samples, names = row
         samples = to_2d(to_array(samples))
 
         if num_iterations is None:

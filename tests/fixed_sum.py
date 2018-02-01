@@ -10,9 +10,9 @@ def test_fixed_sum_basic():
         {'uncertainty type': 4, 'amount': 2.8, 'minimum': 2, 'maximum': 3.6}
     ], iterations=10)
     fs.run()
-    assert np.allclose(np.ones((10,)) * 10, fs.array.sum(axis=0))
-    assert np.allclose(np.ones((10,)) * 4.2, fs.array[0, :])
-    assert np.unique(fs.array[1:, :]).shape == (20,)
+    assert np.allclose(np.ones((10,)) * 10, fs.matrix_array.sum(axis=0))
+    assert np.allclose(np.ones((10,)) * 4.2, fs.matrix_array[0, :])
+    assert np.unique(fs.matrix_array[1:, :]).shape == (20,)
 
 def test_fixed_sum_filling():
     fs =  FixedSum([
@@ -31,9 +31,9 @@ def test_fixed_sum_rescale_fixed():
         {'uncertainty type': 4, 'amount': 2.8, 'minimum': 2, 'maximum': 3.6}
     ], rescale_fixed=True, iterations=10)
     fs.run()
-    assert np.allclose(np.ones((10,)) * 10, fs.array.sum(axis=0))
-    assert not np.allclose(np.ones((10,)) * 4.2, fs.array[0, :])
-    assert np.unique(fs.array[:, :]).shape == (30,)
+    assert np.allclose(np.ones((10,)) * 10, fs.matrix_array.sum(axis=0))
+    assert not np.allclose(np.ones((10,)) * 4.2, fs.matrix_array[0, :])
+    assert np.unique(fs.matrix_array[:, :]).shape == (30,)
 
 def test_fixed_sum_error():
     with pytest.raises(ValueError):
@@ -50,8 +50,8 @@ def test_fixed_sum_expected_sum():
         {'uncertainty type': 4, 'amount': 2.8, 'minimum': 2, 'maximum': 3.6}
     ], rescale_fixed=True, expected_sum=5, iterations=10)
     fs.run()
-    assert np.allclose(np.ones((10,)) * 5, fs.array.sum(axis=0))
-    assert np.unique(fs.array[:, :]).shape == (30,)
+    assert np.allclose(np.ones((10,)) * 5, fs.matrix_array.sum(axis=0))
+    assert np.unique(fs.matrix_array[:, :]).shape == (30,)
 
 def test_fixed_sum_expected_sum_negative():
     fs =  FixedSum([
@@ -60,5 +60,5 @@ def test_fixed_sum_expected_sum_negative():
         {'uncertainty type': 4, 'amount': 2.8, 'minimum': 2, 'maximum': 3.6}
     ], rescale_fixed=True, expected_sum=-5, iterations=10)
     fs.run()
-    assert np.allclose(np.ones((10,)) * -5, fs.array.sum(axis=0))
-    assert np.unique(fs.array[:, :]).shape == (30,)
+    assert np.allclose(np.ones((10,)) * -5, fs.matrix_array.sum(axis=0))
+    assert np.unique(fs.matrix_array[:, :]).shape == (30,)

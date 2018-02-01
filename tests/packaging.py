@@ -497,11 +497,26 @@ def test_split_inventory_presamples():
         (5, 6, 'random'),
         (7, 8, 'production'),
     ]
-    (w, x), (y, z) = split_inventory_presamples(a, b)
-    assert np.allclose(np.arange(5, 10), w)
-    assert np.allclose(np.arange(20).reshape((4, 5))[(0, 2, 3), :], y)
-    assert x == [(3, 4)]
-    assert z == [(1, 2, 'technosphere'), (5, 6, 'random'), (7, 8, 'production')]
+    (u, v, w), (x, y, z) = split_inventory_presamples(a, b)
+    assert np.allclose(np.arange(5, 10), u)
+    assert np.allclose(np.arange(20).reshape((4, 5))[(0, 2, 3), :], x)
+    assert v == [(3, 4)]
+    assert y == [(1, 2, 'technosphere'), (5, 6, 'random'), (7, 8, 'production')]
+    assert w == 'biosphere'
+    assert z == 'technosphere'
+
+def test_split_inventory_presamples_drop_empty():
+    a = np.arange(15).reshape((3, 5))
+    b = [
+        (1, 2, 'technosphere'),
+        (5, 6, 'random'),
+        (7, 8, 'production'),
+    ]
+    lst = split_inventory_presamples(a, b)
+    assert len(lst) == 1
+    (x, y, z) = lst[0]
+    assert y == [(1, 2, 'technosphere'), (5, 6, 'random'), (7, 8, 'production')]
+    assert z == 'technosphere'
 
 def tests_split_inventory_presamples_error():
     with pytest.raises(AssertionError):

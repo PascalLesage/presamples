@@ -1,12 +1,11 @@
+from ..packaging import split_inventory_presamples
+from .model_base import ModelBase
 from bw2data.backends.peewee.proxies import Exchange
 from bw2data.backends.peewee.schema import ExchangeDataset
-from .model_base import ModelBase
 
 
-class SelectedExchangesBase(ModelBase):
-    """Base class for presample models which take a selection of exchanges."""
-    matrix_label = "technosphere" # Default, can be changed
-
+class InventoryBaseModel(ModelBase):
+    """Base class for presample models which take a selection of inventory exchanges."""
     def find_exchanges(self, data):
         """Find exchanges and return in a common format. ``data`` is a list of objects used to find exchanges.
 
@@ -62,11 +61,9 @@ class SelectedExchangesBase(ModelBase):
         else:
             raise ValueError("Can't understand this exchange identifier: {}".format(obj))
 
-    @property
-    def indices(self):
-        if self.matrix_label == "technosphere":
-            return [(o['input'], o['output'], o['type']) for o in self.data]
-        elif self.matrix_label == "cf":
-            raise NotImplementedError("This model is not defined for LCIA CFs")
-        else:
-            return [(o['input'], o['output']) for o in self.data]
+    def matrix_presamples(self):
+        if not hasattr(self, "matrix_array"):
+            raise ValueError("Must run model first")
+
+        reformat = lambda lst: [(o['input'], o['output'], o['type']) for o in lst]
+        return split_inventory_presamples(self.matrix_array, reformat(self.data))

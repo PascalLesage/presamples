@@ -5,12 +5,17 @@ import os
 import shutil
 import uuid
 
-from bw2data import config, projects
-from bw2data.sqlite import create_database
+try:
+    from bw2data import config, projects
+    from bw2data.sqlite import create_database
+    presamples_dir = Path(projects.request_directory("presamples"))
+except ImportError:
+    from .fallbacks import create_database
+    projects = None
+    presamples_dir = os.getcwd()
+
 from peewee import (DateTimeField, ForeignKeyField, IntegerField, Model,
                     TextField, fn)
-
-presamples_dir = Path(projects.request_directory("presamples"))
 
 
 class ModelBase(Model):
@@ -219,4 +224,15 @@ def init_campaigns():
     ))
     return db
 
-db = init_campaigns()
+
+def init_campaigns_fallback():
+    return create_database(
+        os.path.join(presamples_dir, "campaigns.db"),
+        [Campaign, PresampleResource, CampaignOrdering]
+    )
+
+if projects:
+    db = init_campaigns()
+else:
+    db = init_campaigns_fallback()
+

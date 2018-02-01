@@ -1,6 +1,3 @@
-from bw2data import projects, mapping
-from bw2data.filesystem import md5
-from bw2data.utils import TYPE_DICTIONARY
 from copy import deepcopy
 from pathlib import Path
 import json
@@ -9,6 +6,21 @@ import os
 import shutil
 import uuid
 
+from bw2calc.utils import md5
+
+try:
+    from bw2data.utils import TYPE_DICTIONARY
+    from bw2data import projects, mapping
+except ImportError:
+    TYPE_DICTIONARY = {
+        "unknown": -1,
+        "production": 0,
+        "technosphere": 1,
+        "biosphere": 2,
+        "substitution": 3,
+    }
+    projects = None
+    mapping = {}
 
 # Max signed 32 bit integer, compatible with Windows
 MAX_SIGNED_32BIT_INT = 2147483647
@@ -200,7 +212,10 @@ def format_matrix_presamples(indices, kind, dtype=None, row_formatter=None, meta
 
 def get_presample_directory(id_, overwrite=False, dirpath=None):
     if dirpath is None:
-        dirpath = Path(projects.request_directory('presamples')) / id_
+        if projects:
+            dirpath = Path(projects.request_directory('presamples')) / id_
+        else:
+            dirpath = Path(os.getcwd()) / id_
     else:
         dirpath = Path(dirpath) / id_
     if os.path.isdir(dirpath):

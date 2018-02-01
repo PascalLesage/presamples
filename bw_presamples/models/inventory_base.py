@@ -1,7 +1,10 @@
 from ..packaging import split_inventory_presamples
 from .model_base import ModelBase
-from bw2data.backends.peewee.proxies import Exchange
-from bw2data.backends.peewee.schema import ExchangeDataset
+try:
+    from bw2data.backends.peewee.proxies import Exchange
+    from bw2data.backends.peewee.schema import ExchangeDataset
+except ImportError:
+    Exchange = ExchangeDataset = None
 
 
 class InventoryBaseModel(ModelBase):
@@ -15,6 +18,8 @@ class InventoryBaseModel(ModelBase):
         * ``(input key, output key)``. Will raise a ``ValueError`` if multiple exchanges match.
         * ``(input key, output key, type)``. Type is an exchange type as a string, e.g. technosphere. Will raise a ``ValueError`` if multiple exchanges match.
         * ``bw2data.backends.peewee.proxies.Exchange`` object.
+
+        If Brightway2 is not installed, only dictionaries can be used.
 
         ``data`` can have mixed types.
 
@@ -33,6 +38,8 @@ class InventoryBaseModel(ModelBase):
     def _finder(self, obj):
         if isinstance(obj, dict):
             return obj
+        elif not Exchange:
+            raise ImportError("Brightway2 not installed")
         elif isinstance(obj, Exchange):
             return obj._data
         elif isinstance(obj, (list, tuple)) and len(obj) == 2:

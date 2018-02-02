@@ -101,8 +101,8 @@ class MatrixPresamples(object):
         self.empty = not bool(self.data)
 
     def __str__(self):
-        # TODO
-        return ""
+        return "MatrixPresamples with {} resources".format(
+            len(self.data))
 
     @staticmethod
     def validate_dirpath(dirpath):

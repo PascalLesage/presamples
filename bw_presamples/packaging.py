@@ -34,9 +34,7 @@ def split_inventory_presamples(samples, indices):
 
     ``samples`` is a Numpy array with rows of exchanges and columns of Monte Carlo iterations. ``indices`` is a list of ``[(input key, output key, type)]``, where ``type`` is like "biosphere" or "technosphere". Everything which isn't type ``biosphere`` will be added to the technosphere presamples.
 
-    Returns ((biosphere samples, biosphere indices, label), (technosphere samples, technosphere indices, label)).
-
-    # TODO: But only if they both exist
+    Returns a list of ((biosphere samples, biosphere indices, label), (technosphere samples, technosphere indices, label)) - but will skip either element if there are no samples.
 
     """
     assert isinstance(samples, np.ndarray)

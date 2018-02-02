@@ -8,12 +8,18 @@ import tempfile
 
 @pytest.fixture
 def arrays():
-    dirpath = Path(tempfile.mkdtemp())
-    a = np.random.random(size=(5, 5))
-    b = np.arange(10).reshape((2, 5))
-    np.save(dirpath / "a.npy", a, allow_pickle=False)
-    np.save(dirpath / "b.npy", b, allow_pickle=False)
-    return dirpath, a, b
+    with tempfile.TemporaryDirectory() as d:
+        dirpath = Path(d)
+        a = np.random.random(size=(5, 5))
+        b = np.arange(10).reshape((2, 5))
+        np.save(dirpath / "a.npy", a, allow_pickle=False)
+        np.save(dirpath / "b.npy", b, allow_pickle=False)
+        yield dirpath, a, b
+
+@pytest.fixture
+def dirpath():
+    with tempfile.TemporaryDirectory() as d:
+        yield Path(d)
 
 def test_seed(arrays):
     dirpath, a, b = arrays
@@ -60,8 +66,7 @@ def test_reproducible_sampling(arrays):
         f, s = first.sample(), second.sample()
         assert np.allclose(f, s)
 
-def test_reproducible_sampling_heterogeneous():
-    dirpath = Path(tempfile.mkdtemp())
+def test_reproducible_sampling_heterogeneous(dirpath):
     a = np.random.random(size=(500, 50))
     b = np.arange(100).reshape((25, 4))
     np.save(dirpath / "a.npy", a, allow_pickle=False)
@@ -76,11 +81,25 @@ def test_reproducible_sampling_heterogeneous():
         f, s = first.sample(), second.sample()
         assert np.allclose(f, s)
 
-def test_reproducible_sampling_single_column():
-    dirpath = Path(tempfile.mkdtemp())
+def test_reproducible_sampling_single_column(dirpath):
     a = np.random.random(size=(500, 1))
     np.save(dirpath / "a.npy", a, allow_pickle=False)
     ipa = IrregularPresamplesArray([(dirpath / "a.npy", (500, 1))])
     for _ in range(100):
         assert ipa.sample().shape == (500,)
         assert np.allclose(ipa.sample(), a.ravel())
+
+def test_sequential_seed(dirpath):
+    a = np.ones((5, 5))
+    for i in range(5):
+        a[:, i] *= i
+    np.save(dirpath / "a.npy", a, allow_pickle=False)
+    ipa = IrregularPresamplesArray(
+        [(dirpath / "a.npy", (5, 5))], "sequential"
+    )
+    assert ipa.seed_value == None
+    assert ipa.count == 0
+    for i in range(5):
+        assert ipa.count == i
+        assert np.allclose(ipa.sample(), np.ones(5) * i)
+        assert ipa.count == i + 1

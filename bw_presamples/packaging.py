@@ -42,12 +42,19 @@ def split_inventory_presamples(samples, indices):
     assert isinstance(samples, np.ndarray)
     assert samples.shape[0] == len(indices), "Shape mismatch"
 
-    mask = np.array([o[2] == 'biosphere' for o in indices])
+    mask = np.array([o[2] in (2, 'biosphere') for o in indices])
     no_empty = lambda lst: [o for o in lst if o[1]]
 
     return no_empty([
-        (samples[mask, :], [o[:2] for o in indices if o[2] == "biosphere"], "biosphere"),
-        (samples[~mask, :], [o for o in indices if o[2] != "biosphere"], "technosphere"),
+        (
+            samples[mask, :],
+            [o[:2] for o in indices if o[2] in (2, "biosphere")],
+            "biosphere"
+        ), (
+            samples[~mask, :],
+            [o for o in indices if o[2] not in (2, "biosphere")],
+            "technosphere"
+        ),
     ])
 
 

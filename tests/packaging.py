@@ -529,3 +529,19 @@ def tests_split_inventory_presamples_error():
     b = list(range(5))
     with pytest.raises(AssertionError):
         split_inventory_presamples(a, b)
+
+def test_split_inventory_presamples_integer_types():
+    a = np.arange(20).reshape((4, 5))
+    b = [
+        (1, 2, 1),
+        (3, 4, 2),
+        (5, 6, 7),
+        (7, 8, 0),
+    ]
+    (u, v, w), (x, y, z) = split_inventory_presamples(a, b)
+    assert np.allclose(np.arange(5, 10), u)
+    assert np.allclose(np.arange(20).reshape((4, 5))[(0, 2, 3), :], x)
+    assert v == [(3, 4)]
+    assert y == [(1, 2, 1), (5, 6, 7), (7, 8, 0)]
+    assert w == 'biosphere'
+    assert z == 'technosphere'

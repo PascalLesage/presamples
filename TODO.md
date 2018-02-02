@@ -17,7 +17,7 @@
 
 # Tests
 
-* Finish matrix presamples consolidation tests
+* Finish matrix presamples consolidation tests (in matrix_presamples)
 * Test parameterized inventory generation and use
 * Complete campaign tests
 

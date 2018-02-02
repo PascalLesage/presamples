@@ -7,17 +7,6 @@ __all__ = [
     'MatrixPresamples',
     'PresampleResource',
     'split_inventory_presamples',
-
-    # Models - to be updated to the new presamples code
-    # 'get_exchange',
-    # 'convert_exchange_to_param',
-    # 'get_technosphere_input_params_with_shared_unit',
-    # 'inputs_sum_to_fixed_amount_sample',
-    # 'kronecker_delta_selector',
-
-    # Aggregated data utils to be updated
-    # 'create_set_of_presamples_packages_for_agg_data',
-    # 'list_agg_presamples_in_lca',
 ]
 
 
@@ -32,19 +21,6 @@ from .packaging import (
 )
 from .matrix_presamples import MatrixPresamples
 
-# from .presamples_for_single_indicator_agg_acts import(
-#     create_set_of_presamples_packages_for_agg_data,
-#     list_agg_presamples_in_lca,
-#     )
 from .utils import (
-    # get_exchange,
-    # convert_exchange_to_param,
-    # get_technosphere_input_params_with_shared_unit,
-    # inputs_sum_to_fixed_amount_sample,
-    # kronecker_delta_selector,
     convert_parameter_dict_to_presamples,
 )
-# from .create_presamples_package import (
-#     create_presamples_package,
-#     convert_parameter_set_dict_to_presample_package
-#     )

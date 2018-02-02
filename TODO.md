@@ -44,3 +44,8 @@
 # Bw2calc
 
 * Tests for multi-column presamples (single-column already done)
+* Get changes to PVLCA from Pascal's fork re: storing variable values
+
+# Bw2data
+
+* Load parameters as dictionary or ParameterSet

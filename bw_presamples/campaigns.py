@@ -184,7 +184,7 @@ class Campaign(ModelBase):
 
 
 class PresampleResource(ModelBase):
-    name = TextField(null=True)
+    name = TextField(unique=True, index=True)
     description = TextField(null=True)
     kind = TextField(default="local")
     resource = TextField()  # local path for directories

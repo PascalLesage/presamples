@@ -29,7 +29,6 @@
 
 * Model to generate presamples for a whole database (check processed array md5?)
 * Model to generate presamples for an LCIA method (check processed array md5?)
-* Tests on finding exchanges
 
 # Packaging
 

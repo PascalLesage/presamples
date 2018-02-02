@@ -45,10 +45,10 @@ class InventoryBaseModel(ModelBase):
         elif isinstance(obj, (list, tuple)) and len(obj) == 2:
             (input_db, input_code), (output_db, output_code) = obj
             qs = ExchangeDataset.select().where(
-                input_code=input_code,
-                input_database=input_db,
-                output_code=output_code,
-                output_database=output_db
+                ExchangeDataset.input_code==input_code,
+                ExchangeDataset.input_database==input_db,
+                ExchangeDataset.output_code==output_code,
+                ExchangeDataset.output_database==output_db
             )
             if qs.count() != 1:
                 raise ValueError("Can't find one exchange for inputs: {}".format(obj))
@@ -56,11 +56,11 @@ class InventoryBaseModel(ModelBase):
         elif isinstance(obj, (list, tuple)) and len(obj) == 3:
             (input_db, input_code), (output_db, output_code), kind = obj
             qs = ExchangeDataset.select().where(
-                input_code=input_code,
-                input_database=input_db,
-                output_code=output_code,
-                output_database=output_db,
-                type=kind
+                ExchangeDataset.input_code==input_code,
+                ExchangeDataset.input_database==input_db,
+                ExchangeDataset.output_code==output_code,
+                ExchangeDataset.output_database==output_db,
+                ExchangeDataset.type==kind
             )
             if qs.count() != 1:
                 raise ValueError("Can't find one exchange for inputs: {}".format(obj))

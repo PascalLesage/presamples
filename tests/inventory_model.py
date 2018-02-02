@@ -5,17 +5,143 @@ from bw_presamples.models.inventory_base import InventoryBaseModel
 from bw_presamples import MatrixPresamples
 try:
     from bw2data.tests import bw2test
-    from bw2data import Database, mapping
+    from bw2data import Database
 except ImportError:
     bw2test = pytest.mark.skip
+
 
 @pytest.fixture
 @bw2test
 def db():
-    data = None
-    db = Database("test")
-    db.write(data)
-    return db
+    bio_data =  {
+        ("bio", "a"): {'exchange': [], 'type': 'biosphere'},
+        ("bio", "b"): {'exchange': [], 'type': 'biosphere'},
+    }
+    Database("bio").write(bio_data)
+
+    tech_data =  {("test", "1"): {
+        'exchanges': [{
+            'amount': 1,
+            'type': 'production',
+            'input': ("test", "1"),
+            'uncertainty type': 0
+        }, {
+            'amount': 0.1,
+            'type': 'technosphere',
+            'input': ("test", "3"),
+            'uncertainty type': 0
+        }, {
+            'amount': 7,
+            'type': 'biosphere',
+            'input': ("bio", "b"),
+            'uncertainty type': 0
+        }],
+    },
+    ("test", "2"): {
+        'exchanges': [{
+            'amount': 0.5,
+            'type': 'production',
+            'input': ("test", "2"),
+            'uncertainty type': 0
+        }, {
+            'amount': -2,
+            'type': 'technosphere',
+            'input': ("test", "1"),
+            'uncertainty type': 0
+        }, {
+            'amount': 1,
+            'type': 'biosphere',
+            'input': ("bio", "a"),
+            'uncertainty type': 0
+        }, {
+            'amount': 5,
+            'type': 'biosphere',
+            'input': ("bio", "b"),
+            'uncertainty type': 0
+        }],
+    },
+    ("test", "3"): {
+        'exchanges': [{
+            'amount': 1,
+            'type': 'production',
+            'input': ("test", "3"),
+            'uncertainty type': 0
+        }, {
+            'amount': 0.1,
+            'type': 'technosphere',
+            'input': ("test", "3"),
+            'uncertainty type': 0
+        }, {
+            'amount': 3,
+            'type': 'technosphere',
+            'input': ("test", "1"),
+            'uncertainty type': 0
+        }, {
+            'amount': 2,
+            'type': 'technosphere',
+            'input': ("test", "2"),
+            'uncertainty type': 0
+        }, {
+            'amount': 22,
+            'type': 'biosphere',
+            'input': ("bio", "a"),
+            'uncertainty type': 0
+        }],
+    }}
+
+    Database("test").write(tech_data)
+
+def test_find_exchanges_multiple_error(db):
+    im = InventoryBaseModel()
+    with pytest.raises(ValueError):
+        im.find_exchanges([(('test', '3'), ('test', '3'))])
+
+def test_find_exchanges_two_tuple(db):
+    im = InventoryBaseModel()
+    result = im.find_exchanges([
+        (('test', '2'), ('test', '3')),
+        (('bio', 'a'), ('test', '3')),
+    ])
+    expected = [
+        {'amount': 2, 'type': 'technosphere', 'input': ('test', '2'),
+         'uncertainty type': 0, 'output': ('test', '3')},
+        {'amount': 22, 'type': 'biosphere', 'input': ('bio', 'a'),
+         'uncertainty type': 0, 'output': ('test', '3')}
+    ]
+    assert result == expected
+
+def test_find_exchanges_three_tuple(db):
+    im = InventoryBaseModel()
+    result = im.find_exchanges([
+        (('test', '2'), ('test', '3'), 'technosphere'),
+        (('bio', 'a'), ('test', '3'), 'biosphere'),
+    ])
+    expected = [
+        {'amount': 2, 'type': 'technosphere', 'input': ('test', '2'),
+         'uncertainty type': 0, 'output': ('test', '3')},
+        {'amount': 22, 'type': 'biosphere', 'input': ('bio', 'a'),
+         'uncertainty type': 0, 'output': ('test', '3')}
+    ]
+    assert result == expected
+
+def test_find_exchanges_exchange_object(db):
+    a = Database("test").get("3")
+    exchanges = []
+    for exc in a.technosphere():
+        if exc.input.key == ('test', '2'):
+            exchanges.append(exc)
+    for exc in a.biosphere():
+        if exc.input.key == ('bio', 'a'):
+            exchanges.append(exc)
+    im = InventoryBaseModel()
+    result = im.find_exchanges(exchanges)
+    expected = [
+        {'amount': 2, 'type': 'technosphere', 'input': ('test', '2'),
+         'uncertainty type': 0, 'output': ('test', '3')},
+        {'amount': 22, 'type': 'biosphere', 'input': ('bio', 'a'),
+         'uncertainty type': 0, 'output': ('test', '3')}
+    ]
+    assert result == expected
 
 @bw2test
 def test_presample_creation():

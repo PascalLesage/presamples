@@ -14,6 +14,10 @@
 # Campaigns
 
 * API and user stories for generating presamples and presample resources (packages?)
+* Campaign.replace_presample_package,
+* Campaign.add_presample_packages
+* Campaign.add_local_presamples: Validate files, figure out if getting name and description from metadata is sensible
+* PresamplePackage.metadata
 
 # Tests
 
@@ -31,3 +35,12 @@
 
 * Adjust CF presamples package to include method that generated them, if available
 * Adjust LCA class to filter presamples based LCIA method (need to think about best way)
+* Adjust docstring for split_inventory_presamples
+
+# Matrix presamples
+
+* __str__ method
+
+# Bw2calc
+
+* Tests for multi-column presamples (single-column already done)

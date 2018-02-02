@@ -1,12 +1,12 @@
 from ..packaging import create_presamples_package
-from ..campaigns import PresampleResource
+from ..campaigns import PresamplePackage
 from pathlib import Path
 
 
 class ModelBase:
     """Base class that provides convenience methods for creating presample packages.
 
-    Can be passed directly to ``create_presamples_package``. Can also directly create a presample package or a ``PresampleResource``.
+    Can be passed directly to ``create_presamples_package``. Can also directly create a presample package or a ``PresamplePackage``.
 
    If a subclass will create matrix presamples, then the following must be create or defined:
 
@@ -19,11 +19,13 @@ class ModelBase:
         * ``self.names``: List of parameter names
 
    """
+    @property
     def matrix_presamples(self):
-        raise NotImplementedError
+        return []
 
+    @property
     def parameter_presamples(self):
-        raise NotImplementedError
+        return []
 
     def create_presample_package(self, name=None, id_=None, dirpath=None):
         """Create a presamples package. Input arguments are the same as in ``create_presamples_package``."""
@@ -31,15 +33,15 @@ class ModelBase:
             'name': name,
             'id_': id_,
             'dirpath': dirpath,
-            'matrix_presamples': self,
-            'parameter_presamples': self,
+            'matrix_presamples': [self],
+            'parameter_presamples': [self],
         }
         return create_presamples_package(**kwargs)
 
-    def create_presample_resource(self, name, description=None, id_=None, dirpath=None):
-        _, dirpath = self.create_presamples_package(name=name, id_=id_, dirpath=dirpath)
-        return PresampleResource.create(
+    def create_stored_presample_package(self, name, description=None, id_=None, dirpath=None):
+        _, dirpath = self.create_presample_package(name=name, id_=id_, dirpath=dirpath)
+        return PresamplePackage.create(
             name=name,
             description=description,
-            resource=dirpath
+            path=dirpath
         )

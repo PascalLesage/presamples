@@ -12,7 +12,7 @@ except ImportError:
 @bw2test
 def test_setup():
     assert Campaign.select().count() == 0
-    assert PresampleResource.select().count() == 0
+    assert PresamplePackage.select().count() == 0
     assert CampaignOrdering.select().count() == 0
 
 @bw2test
@@ -28,10 +28,10 @@ def test_campaign_representation():
         name='foo',
         description='bar',
     )
-    assert str(c) == 'Campaign foo with no parent and 0 resources'
+    assert str(c) == 'Campaign foo with no parent and 0 packages'
     assert repr(c) == str(c)
     c2 = Campaign.create(name='baz', parent=c)
-    assert str(c2) == 'Campaign baz with parent foo and 0 resources'
+    assert str(c2) == 'Campaign baz with parent foo and 0 packages'
 
 @bw2test
 def test_campaign_modified_autopopulate_autoupdate():

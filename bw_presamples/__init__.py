@@ -5,14 +5,14 @@ __all__ = [
     'FORMATTERS',
     'IrregularPresamplesArray',
     'MatrixPresamples',
-    'PresampleResource',
+    'PresamplePackage',
     'split_inventory_presamples',
 ]
 
 
 __version__ = (0, 0, 'dev')
 
-from .campaigns import Campaign, PresampleResource
+from .campaigns import Campaign, PresamplePackage
 from .array import IrregularPresamplesArray
 from .packaging import (
     create_presamples_package,

@@ -44,7 +44,7 @@ class Campaign(ModelBase):
     @property
     def packages(self):
         return (
-            PresamplePackage
+            PresampleResource
             .select()
             .join(CampaignOrdering)
             .where(CampaignOrdering.campaign == self)
@@ -108,7 +108,7 @@ class Campaign(ModelBase):
             name = os.path.split(dirpath)[-1]
             dirpath = path
 
-        package = PresamplePackage.create(
+        package = PresampleResource.create(
             name=name,
             kind='local',
             path=os.path.abspath(dirpath)
@@ -131,9 +131,9 @@ class Campaign(ModelBase):
                 description=description,
                 parent=self
             )
-            for pr in PresamplePackage.select().where(
-                    PresamplePackage.campaign == self):
-                PresamplePackage.create(
+            for pr in PresampleResource.select().where(
+                    PresampleResource.campaign == self):
+                PresampleResource.create(
                     campaign=campaign,
                     path=pr.path,
                     order=pr.order
@@ -183,7 +183,7 @@ class Campaign(ModelBase):
             yield Campaign.get(id=obj_id)
 
 
-class PresamplePackage(ModelBase):
+class PresampleResource(ModelBase):
     name = TextField(unique=True, index=True)
     description = TextField(null=True)
     path = TextField()  # Anything that can be used by PyFilesystem
@@ -202,19 +202,19 @@ class CampaignOrdering(ModelBase):
     _order_field = "order"
 
     campaign = ForeignKeyField(Campaign)
-    package = ForeignKeyField(PresamplePackage)
+    package = ForeignKeyField(PresampleResource)
     order = IntegerField()
 
 
 def init_campaigns():
     db = create_database(
         os.path.join(projects.dir, "campaigns.db"),
-        [Campaign, PresamplePackage, CampaignOrdering]
+        [Campaign, PresampleResource, CampaignOrdering]
     )
     config.sqlite3_databases.append((
         "campaigns.db",
         db,
-        [Campaign, PresamplePackage, CampaignOrdering]
+        [Campaign, PresampleResource, CampaignOrdering]
     ))
     return db
 
@@ -222,7 +222,7 @@ def init_campaigns():
 def init_campaigns_fallback():
     return create_database(
         os.path.join(presamples_dir, "campaigns.db"),
-        [Campaign, PresamplePackage, CampaignOrdering]
+        [Campaign, PresampleResource, CampaignOrdering]
     )
 
 if projects:

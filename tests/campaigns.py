@@ -12,7 +12,7 @@ except ImportError:
 @bw2test
 def test_setup():
     assert Campaign.select().count() == 0
-    assert PresamplePackage.select().count() == 0
+    assert PresampleResource.select().count() == 0
     assert CampaignOrdering.select().count() == 0
 
 @bw2test

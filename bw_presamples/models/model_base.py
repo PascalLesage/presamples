@@ -1,12 +1,12 @@
 from ..packaging import create_presamples_package
-from ..campaigns import PresamplePackage
+from ..campaigns import PresampleResource
 from pathlib import Path
 
 
 class ModelBase:
     """Base class that provides convenience methods for creating presample packages.
 
-    Can be passed directly to ``create_presamples_package``. Can also directly create a presample package or a ``PresamplePackage``.
+    Can be passed directly to ``create_presamples_package``. Can also directly create a presample package or a ``PresampleResource``.
 
    If a subclass will create matrix presamples, then the following must be create or defined:
 
@@ -40,7 +40,7 @@ class ModelBase:
 
     def create_stored_presample_package(self, name, description=None, id_=None, dirpath=None):
         _, dirpath = self.create_presample_package(name=name, id_=id_, dirpath=dirpath)
-        return PresamplePackage.create(
+        return PresampleResource.create(
             name=name,
             description=description,
             path=dirpath

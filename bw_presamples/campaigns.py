@@ -16,6 +16,7 @@ except ImportError:
 
 from peewee import (DateTimeField, ForeignKeyField, IntegerField, Model,
                     TextField, fn)
+from .presamples_base import PresamplesPackage
 
 
 class ModelBase(Model):
@@ -191,7 +192,7 @@ class PresampleResource(ModelBase):
     @property
     def metadata(self):
         # TODO: Load metadata from datapackage
-        return None
+        return PresamplesPackage(self.as_loadable()).metadata
 
     def as_loadable(self):
         """Maybe need to do something here with PyFilesystem."""

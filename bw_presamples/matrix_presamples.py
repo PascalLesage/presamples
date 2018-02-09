@@ -1,4 +1,5 @@
 from .array import IrregularPresamplesArray
+from .presamples_base import PresamplesPackageBase
 from bw2calc.indexing import index_with_arrays
 from bw2calc.matrices import TechnosphereBiosphereMatrixBuilder as MB
 from bw2calc.utils import md5
@@ -19,46 +20,8 @@ def nonempty(wrapped, instance, args, kwargs):
         return wrapped(*args, **kwargs)
 
 
-class MatrixPresamples(object):
+class MatrixPresamples(PresamplesPackageBase):
     """Efficiently map presampled arrays and insert their values into LCA matrices.
-
-    Presampled arrays are provided as a list of directory paths. Each directory contains a datapackage file:
-
-    * ``datapackage.json``: A JSON file following the `datapackage standard <http://frictionlessdata.io/guides/data-package/>`__ that indicates the provenance of the data. The specific content of the datapackage will depend on what the presamples contains.
-    All datapackage.json files should minimally have the following information:
-
-    .. code-block:: json
-
-        {
-          "name": human readable name,
-          "id": uuid,
-          "profile": "data-package",
-          "resources": [{
-                "type": string,
-                "samples": {
-                    "filepath": "{id}.{data package index}.samples.npy",
-                    "md5": md5 hash,
-                    "shape": [rows, columns],
-                    "dtype": dtype
-                },
-                "indices": {
-                    "filepath": "{id}.{data package index}.indices.npy",
-                    "md5": md5 hash
-                },
-                "matrix": string,
-                "row from label": string,
-                "row to label": string,
-                "row dict": string,
-                "col from label": string,
-                "col to label": string,
-                "col dict": string,
-                "profile": "data-resource",
-                "format": "npy",
-                "mediatype": "application/octet-stream"
-            }]
-        }
-
-    The ``resources`` list should have at least one resource. Multiple resources of different types can be present in a single datapackage. The field ``{data package index}`` doesn't have to be consecutive integers, but should be unique for each resource. If there is only one set of samples, it can be omitted entirely.
 
     The presamples directory will contain the following two files for each resource:
 
@@ -103,24 +66,6 @@ class MatrixPresamples(object):
     def __str__(self):
         return "MatrixPresamples with {} resources".format(
             len(self.data))
-
-    @staticmethod
-    def validate_dirpath(dirpath):
-        """Check that a ``dirpath`` has a valid `datapackage.json` file and data files with matching hashes."""
-        assert os.path.isdir(dirpath)
-        files = list(os.listdir(dirpath))
-        assert "datapackage.json" in files, "{} missing a datapackage file".format(dirpath)
-        metadata = json.load(
-            open(dirpath / "datapackage.json"),
-            encoding="utf-8"
-        )
-        for resource in metadata['resources']:
-            assert os.path.isfile(dirpath / resource['samples']['filepath'])
-            assert md5(dirpath / resource['samples']['filepath']) == \
-                resource['samples']['md5']
-            assert os.path.isfile(dirpath / resource['indices']['filepath'])
-            assert md5(dirpath / resource['indices']['filepath']) == \
-                resource['indices']['md5']
 
     @classmethod
     def load_data(cls, dirpath, seed):

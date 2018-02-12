@@ -10,45 +10,38 @@ class ModelBase:
 
     If a subclass will create matrix presamples, then the following must be create or defined:
 
-        * ``self.array``: Numpy array of pre-calculated samples
-        * ``matrix_label``: Label of matrix where samples will be inserted, e.g. "technosphere"
+        * ``self.matrix_array``: Numpy array of pre-calculated samples
         * ``self.indices``: Indices in the correct data type for the matrices to be populated.
 
     If a subclass will create parameter presamples, then the following must be create or defined:
 
-        * ``self.array``: Numpy array of pre-calculated samples
+        * ``self.parameter_array``: Numpy array of pre-calculated samples
         * ``self.names``: List of parameter names
 
    """
+    @property
     def matrix_presamples(self):
-        try:
-            return (self.array, self.indices, self.matrix_label)
-        except AttributeError:
-            return None
+        return []
 
+    @property
     def parameter_presamples(self):
-        try:
-            return (self.array, self.names)
-        except AttributeError:
-            return None
+        return []
 
     def create_presample_package(self, name=None, id_=None, dirpath=None):
-        """Create a presamples package. Input arguments are the same as in ``create_presamples_package``. Automatically populates both matrix and parameter presamples as needed."""
+        """Create a presamples package. Input arguments are the same as in ``create_presamples_package``."""
         kwargs = {
             'name': name,
             'id_': id_,
-            'dirpath': dirpath
+            'dirpath': dirpath,
+            'matrix_presamples': [self],
+            'parameter_presamples': [self],
         }
-        if self.matrix_presamples():
-            kwargs['matrix_presamples'] = self.matrix_presamples()
-        if self.parameter_presamples():
-            kwargs['parameter_presamples'] = self.parameter_presamples()
         return create_presamples_package(**kwargs)
 
-    def create_presample_resource(self, name, description=None, id_=None, dirpath=None):
-        _, dirpath = self.create_presamples_package(name=name, id_=id_, dirpath=dirpath)
+    def create_stored_presample_package(self, name, description=None, id_=None, dirpath=None):
+        _, dirpath = self.create_presample_package(name=name, id_=id_, dirpath=dirpath)
         return PresampleResource.create(
             name=name,
             description=description,
-            resource=dirpath
+            path=dirpath
         )

@@ -1,6 +1,3 @@
-from bw2data import projects, mapping
-from bw2data.filesystem import md5
-from bw2data.utils import TYPE_DICTIONARY
 from copy import deepcopy
 from pathlib import Path
 import json
@@ -9,6 +6,21 @@ import os
 import shutil
 import uuid
 
+from bw2calc.utils import md5
+
+try:
+    from bw2data.utils import TYPE_DICTIONARY
+    from bw2data import projects, mapping
+except ImportError:
+    TYPE_DICTIONARY = {
+        "unknown": -1,
+        "production": 0,
+        "technosphere": 1,
+        "biosphere": 2,
+        "substitution": 3,
+    }
+    projects = None
+    mapping = {}
 
 # Max signed 32 bit integer, compatible with Windows
 MAX_SIGNED_32BIT_INT = 2147483647
@@ -22,24 +34,32 @@ def split_inventory_presamples(samples, indices):
 
     ``samples`` is a Numpy array with rows of exchanges and columns of Monte Carlo iterations. ``indices`` is a list of ``[(input key, output key, type)]``, where ``type`` is like "biosphere" or "technosphere". Everything which isn't type ``biosphere`` will be added to the technosphere presamples.
 
-    Returns ``((biosphere samples, biosphere indices), (technosphere samples, technosphere indices))``.
+    Returns a list of ((biosphere samples, biosphere indices, label), (technosphere samples, technosphere indices, label)) - but will skip either element if there are no samples.
 
     """
     assert isinstance(samples, np.ndarray)
     assert samples.shape[0] == len(indices), "Shape mismatch"
 
-    mask = np.array([o[2] == 'biosphere' for o in indices])
+    mask = np.array([o[2] in (2, 'biosphere') for o in indices])
+    no_empty = lambda lst: [o for o in lst if o[1]]
 
-    return (
-        (samples[mask, :], [o[:2] for o in indices if o[2] == "biosphere"]),
-        (samples[~mask, :], [o for o in indices if o[2] != "biosphere"]),
-    )
+    return no_empty([
+        (
+            samples[mask, :],
+            [o[:2] for o in indices if o[2] in (2, "biosphere")],
+            "biosphere"
+        ), (
+            samples[~mask, :],
+            [o for o in indices if o[2] not in (2, "biosphere")],
+            "technosphere"
+        ),
+    ])
 
 
 def format_technosphere_presamples(indices):
     """Format technosphere presamples into an array.
 
-    Input data has the form ``[(input id, output id, type)]``. Both the input and output ids should **not** be mapped already; the ``type`` may be mapped or not.
+    Input data has the form ``[(input id, output id, type)]``. Both the input and output ids can be mapped already, but normally aren't; the ``type`` may be mapped or not.
 
     Returns an array with columns ``[('input', np.uint32), ('output', np.uint32), ('row', MAX_SIGNED_32BIT_INT), ('col', MAX_SIGNED_32BIT_INT), ('type', np.uint8)]``, and the following metadata::
 
@@ -72,8 +92,8 @@ def format_technosphere_presamples(indices):
     ]
     def func(row):
         return (
-            mapping[row[0]],
-            mapping[row[1]],
+            mapping.get(row[0], row[0]),
+            mapping.get(row[1], row[1]),
             MAX_SIGNED_32BIT_INT,
             MAX_SIGNED_32BIT_INT,
             TYPE_DICTIONARY.get(row[2], row[2])
@@ -116,8 +136,8 @@ def format_biosphere_presamples(indices):
     ]
     def func(row):
         return (
-            mapping[row[0]],
-            mapping[row[1]],
+            mapping.get(row[0], row[0]),
+            mapping.get(row[1], row[0]),
             MAX_SIGNED_32BIT_INT,
             MAX_SIGNED_32BIT_INT,
         )
@@ -149,7 +169,7 @@ def format_cf_presamples(indices):
         ('flow', np.uint32),
         ('row', np.uint32),
     ]
-    func = lambda row: (mapping[row], MAX_SIGNED_32BIT_INT)
+    func = lambda row: (mapping.get(row, row), MAX_SIGNED_32BIT_INT)
     return format_matrix_presamples(indices, 'cf', dtype, func, metadata)
 
 
@@ -197,7 +217,10 @@ def format_matrix_presamples(indices, kind, dtype=None, row_formatter=None, meta
 
 def get_presample_directory(id_, overwrite=False, dirpath=None):
     if dirpath is None:
-        dirpath = Path(projects.request_directory('presamples')) / id_
+        if projects:
+            dirpath = Path(projects.request_directory('presamples')) / id_
+        else:
+            dirpath = Path(os.getcwd()) / id_
     else:
         dirpath = Path(dirpath) / id_
     if os.path.isdir(dirpath):
@@ -247,11 +270,18 @@ def create_presamples_package(matrix_presamples=None, parameter_presamples=None,
         raise ValueError("Must specify at least one of `matrix_presamples` and `parameter_presamples`")
 
     index = 0
-    for index, row in enumerate(matrix_presamples or []):
-        if hasattr(row, "matrix_presamples"):
-            samples, indices, kind, *other = row.matrix_presamples()
-        else:
-            samples, indices, kind, *other = row
+
+    def elems(lst, label):
+        """Yield elements from ``lst``. If an element is a model instance, iterate over its components."""
+        for elem in lst:
+            if hasattr(elem, label):
+                for obj in getattr(elem, label):
+                    yield obj
+            else:
+                yield elem
+
+    for index, row in enumerate(elems(matrix_presamples or [], "matrix_presamples")):
+        samples, indices, kind, *other = row
         samples = to_2d(to_array(samples))
 
         if num_iterations is None:
@@ -293,11 +323,8 @@ def create_presamples_package(matrix_presamples=None, parameter_presamples=None,
         datapackage['resources'].append(result)
 
     offset = index + (1 if index else 0)
-    for index, row in enumerate(parameter_presamples or []):
-        if hasattr(row, "parameter_presamples"):
-            samples, names = row.parameter_presamples()
-        else:
-            samples, names = row
+    for index, row in enumerate(elems(parameter_presamples or [], "parameter_presamples")):
+        samples, names = row
         samples = to_2d(to_array(samples))
 
         if num_iterations is None:

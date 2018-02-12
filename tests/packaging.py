@@ -1,13 +1,17 @@
-from bw2data import mapping
-from bw2data.tests import bw2test
-from bw_presamples import *
-from bw_presamples.packaging import MAX_SIGNED_32BIT_INT
 from pathlib import Path
 import json
 import numpy as np
 import os
 import pytest
 import tempfile
+
+from bw_presamples import *
+from bw_presamples.packaging import MAX_SIGNED_32BIT_INT
+try:
+    from bw2data import mapping
+    from bw2data.tests import bw2test
+except ImportError:
+    bw2test = pytest.mark.skip
 
 
 def update_hashes_from_given(given, expected):
@@ -497,11 +501,26 @@ def test_split_inventory_presamples():
         (5, 6, 'random'),
         (7, 8, 'production'),
     ]
-    (w, x), (y, z) = split_inventory_presamples(a, b)
-    assert np.allclose(np.arange(5, 10), w)
-    assert np.allclose(np.arange(20).reshape((4, 5))[(0, 2, 3), :], y)
-    assert x == [(3, 4)]
-    assert z == [(1, 2, 'technosphere'), (5, 6, 'random'), (7, 8, 'production')]
+    (u, v, w), (x, y, z) = split_inventory_presamples(a, b)
+    assert np.allclose(np.arange(5, 10), u)
+    assert np.allclose(np.arange(20).reshape((4, 5))[(0, 2, 3), :], x)
+    assert v == [(3, 4)]
+    assert y == [(1, 2, 'technosphere'), (5, 6, 'random'), (7, 8, 'production')]
+    assert w == 'biosphere'
+    assert z == 'technosphere'
+
+def test_split_inventory_presamples_drop_empty():
+    a = np.arange(15).reshape((3, 5))
+    b = [
+        (1, 2, 'technosphere'),
+        (5, 6, 'random'),
+        (7, 8, 'production'),
+    ]
+    lst = split_inventory_presamples(a, b)
+    assert len(lst) == 1
+    (x, y, z) = lst[0]
+    assert y == [(1, 2, 'technosphere'), (5, 6, 'random'), (7, 8, 'production')]
+    assert z == 'technosphere'
 
 def tests_split_inventory_presamples_error():
     with pytest.raises(AssertionError):
@@ -510,3 +529,19 @@ def tests_split_inventory_presamples_error():
     b = list(range(5))
     with pytest.raises(AssertionError):
         split_inventory_presamples(a, b)
+
+def test_split_inventory_presamples_integer_types():
+    a = np.arange(20).reshape((4, 5))
+    b = [
+        (1, 2, 1),
+        (3, 4, 2),
+        (5, 6, 7),
+        (7, 8, 0),
+    ]
+    (u, v, w), (x, y, z) = split_inventory_presamples(a, b)
+    assert np.allclose(np.arange(5, 10), u)
+    assert np.allclose(np.arange(20).reshape((4, 5))[(0, 2, 3), :], x)
+    assert v == [(3, 4)]
+    assert y == [(1, 2, 1), (5, 6, 7), (7, 8, 0)]
+    assert w == 'biosphere'
+    assert z == 'technosphere'

@@ -5,12 +5,18 @@ import os
 import shutil
 import uuid
 
-from bw2data import config, projects
-from bw2data.sqlite import create_database
+try:
+    from bw2data import config, projects
+    from bw2data.sqlite import create_database
+    presamples_dir = Path(projects.request_directory("presamples"))
+except ImportError:
+    from .fallbacks import create_database
+    projects = None
+    presamples_dir = os.getcwd()
+
 from peewee import (DateTimeField, ForeignKeyField, IntegerField, Model,
                     TextField, fn)
-
-presamples_dir = Path(projects.request_directory("presamples"))
+from .presamples_base import PresamplesPackage
 
 
 class ModelBase(Model):
@@ -37,7 +43,7 @@ class Campaign(ModelBase):
         return super().save(*args, **kwargs)
 
     @property
-    def resources(self):
+    def packages(self):
         return (
             PresampleResource
             .select()
@@ -48,15 +54,15 @@ class Campaign(ModelBase):
 
     def __str__(self):
         if self.parent:
-            return "Campaign {n} with parent {p} and {r} resources".format(
-            n=self.name, p=self.parent.name, r=self.resources.count())
+            return "Campaign {n} with parent {p} and {r} packages".format(
+            n=self.name, p=self.parent.name, r=self.packages.count())
         else:
-            return "Campaign {n} with no parent and {r} resources".format(
-            n=self.name, r=self.resources.count())
+            return "Campaign {n} with no parent and {r} packages".format(
+            n=self.name, r=self.packages.count())
 
     def __iter__(self):
-        for resource in self.resources():
-            yield resource.as_loadable()
+        for package in self.packages:
+            yield package.as_loadable()
 
     def _order_value(self):
         return getattr(self, getattr(self, "_order_field"))
@@ -73,11 +79,11 @@ class Campaign(ModelBase):
             CampaignOrdering.campaign == self
         ).scalar()
 
-    def replace_presample_resource(self, new, old, propagate=False):
+    def replace_presample_package(self, new, old, propagate=False):
         # TODO
         pass
 
-    def add_presample_resource(self, obj, index=None):
+    def add_presample_packages(self, obj, index=None):
         # TODO
         pass
 
@@ -103,14 +109,14 @@ class Campaign(ModelBase):
             name = os.path.split(dirpath)[-1]
             dirpath = path
 
-        resource = PresampleResource.create(
+        package = PresampleResource.create(
             name=name,
             kind='local',
-            resource=os.path.abspath(dirpath)
+            path=os.path.abspath(dirpath)
         )
         CampaignOrdering.create(
             campaign=self,
-            resource=resource,
+            package=package,
             order=index
         )
 
@@ -130,7 +136,7 @@ class Campaign(ModelBase):
                     PresampleResource.campaign == self):
                 PresampleResource.create(
                     campaign=campaign,
-                    resource=pr.resource,
+                    path=pr.path,
                     order=pr.order
                 )
         return campaign
@@ -179,31 +185,25 @@ class Campaign(ModelBase):
 
 
 class PresampleResource(ModelBase):
-    name = TextField(null=True)
+    name = TextField(unique=True, index=True)
     description = TextField(null=True)
-    kind = TextField(default="local")
-    resource = TextField()  # local path for directories
+    path = TextField()  # Anything that can be used by PyFilesystem
 
     @property
     def metadata(self):
         # TODO: Load metadata from datapackage
-        return None
+        return PresamplesPackage(self.as_loadable()).metadata
 
     def as_loadable(self):
-        """Return resource location to be loaded by ``MatrixPresamples``.
-
-        Currently only support local resources; more types could be added later."""
-        if self.kind == "local":
-            return self.resource
-        else:
-            raise ValueError("This presample resource cant be loaded")
+        """Maybe need to do something here with PyFilesystem."""
+        return self.path
 
 
 class CampaignOrdering(ModelBase):
     _order_field = "order"
 
     campaign = ForeignKeyField(Campaign)
-    resource = ForeignKeyField(PresampleResource)
+    package = ForeignKeyField(PresampleResource)
     order = IntegerField()
 
 
@@ -219,4 +219,15 @@ def init_campaigns():
     ))
     return db
 
-db = init_campaigns()
+
+def init_campaigns_fallback():
+    return create_database(
+        os.path.join(presamples_dir, "campaigns.db"),
+        [Campaign, PresampleResource, CampaignOrdering]
+    )
+
+if projects:
+    db = init_campaigns()
+else:
+    db = init_campaigns_fallback()
+

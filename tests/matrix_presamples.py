@@ -1,6 +1,3 @@
-from bw2data import mapping
-from bw2data.tests import bw2test
-from bw_presamples import *
 from pathlib import Path
 from scipy.sparse import dok_matrix
 import json
@@ -8,6 +5,13 @@ import numpy as np
 import os
 import pytest
 import tempfile
+
+from bw_presamples import *
+try:
+    from bw2data import mapping
+    from bw2data.tests import bw2test
+except ImportError:
+    bw2test = pytest.mark.skip
 
 
 class MockLCA:
@@ -115,6 +119,7 @@ def test_update_matrices_technosphere():
     assert lca.technosphere_matrix[1, 2] == 12
     assert lca.technosphere_matrix.sum() == 10 - 11 + 12
 
+@bw2test
 def test_update_matrices_one_dimensional():
     mapping.add('ABCDEF')
     for x, y in enumerate('ABCDEF'):

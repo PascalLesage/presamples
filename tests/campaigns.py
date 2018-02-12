@@ -1,9 +1,13 @@
-from bw2data.tests import bw2test
-from bw_presamples.campaigns import *
 import copy
 import datetime
+import pytest
 import time
 
+from bw_presamples.campaigns import *
+try:
+    from bw2data.tests import bw2test
+except ImportError:
+    bw2test = pytest.mark.skip
 
 @bw2test
 def test_setup():
@@ -24,10 +28,10 @@ def test_campaign_representation():
         name='foo',
         description='bar',
     )
-    assert str(c) == 'Campaign foo with no parent and 0 resources'
+    assert str(c) == 'Campaign foo with no parent and 0 packages'
     assert repr(c) == str(c)
     c2 = Campaign.create(name='baz', parent=c)
-    assert str(c2) == 'Campaign baz with parent foo and 0 resources'
+    assert str(c2) == 'Campaign baz with parent foo and 0 packages'
 
 @bw2test
 def test_campaign_modified_autopopulate_autoupdate():

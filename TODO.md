@@ -11,6 +11,13 @@
 * From parameterized inventories
 * From generic outside model
 
+# Parameters
+
+Need some major work here on integrating `bw2data` parameters in an easy-to-use way. We need to be able to do the following:
+
+* Load all parameters on any level. Loading parameters on a lower level will automatically load dependent parameters from the higher levels as well. However, we should also be able to pass an "exclusion list", as some values will be defined in other presamples.
+* Mangle parameter names. This is already defined in a simple way in bw2parameters (https://bitbucket.org/cmutel/brightway2-parameters/src/default/bw2parameters/mangling.py), but we need auto-generated and consistent prefixes, and the ability to mangle dependent variable names.
+
 # Campaigns
 
 * API and user stories for generating presamples and presample resources (packages?)

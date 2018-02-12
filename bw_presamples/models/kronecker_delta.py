@@ -8,7 +8,7 @@ class KroneckerDelta(SelectedExchangesBase):
 
     See documentation on ``SelectedExchangesBase`` for how to specify ``exchanges``.
 
-    If ``normalize`` is true, then the amount of the selected input is set to one (or minus one if megative). Otherwise, it is set the the original ``amount`` value.
+    If ``normalize`` is true, then the amount of the selected input is set to one (or minus one if negative). Otherwise, it is set the the original ``amount`` value.
 
     If ``equal_choice`` is true, then an input is selected with equal probability among all possible inputs. If false, then the absolute values of the amounts are used as weights.
 

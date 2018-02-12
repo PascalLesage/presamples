@@ -8,7 +8,7 @@ class ModelBase:
 
     Can be passed directly to ``create_presamples_package``. Can also directly create a presample package or a ``PresampleResource``.
 
-   If a subclass will create matrix presamples, then the following must be create or defined:
+    If a subclass will create matrix presamples, then the following must be create or defined:
 
         * ``self.array``: Numpy array of pre-calculated samples
         * ``matrix_label``: Label of matrix where samples will be inserted, e.g. "technosphere"

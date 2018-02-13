@@ -1,7 +1,6 @@
 bw2calc
 bw2data
 numpy
-peewee
+pytest
 scipy
-stats_arrays
 wrapt

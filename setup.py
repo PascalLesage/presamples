@@ -31,8 +31,13 @@ setup(
     author_email="pascal.lesage@polymtl.ca",
     license=open('LICENSE').read(),
     install_requires=[
+        'bw2calc',
+        'bw2data',
         'numpy',
+        'peewee',
         'scipy',
+        'stats_arrays',
+        'wrapt',
     ],
     url="https://brightwaylca.org/",
     long_description=open('README.md').read(),

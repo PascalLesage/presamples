@@ -104,6 +104,7 @@ def test_basic_packaging():
                 'format': 'npy',
                 'mediatype': 'application/octet-stream',
             },
+            'index': 0,
             'matrix': 'technosphere_matrix',
             'row dict': '_product_dict',
             'row from label': 'input',
@@ -128,6 +129,7 @@ def test_basic_packaging():
                 'format': 'npy',
                 'mediatype': 'application/octet-stream',
             },
+            'index': 1,
             'matrix': 'biosphere_matrix',
             'row dict': '_biosphere_dict',
             'row from label': 'input',
@@ -152,6 +154,7 @@ def test_basic_packaging():
                 'format': 'npy',
                 'mediatype': 'application/octet-stream',
             },
+            'index': 2,
             'matrix': 'characterization_matrix',
             'row dict': '_biosphere_dict',
             'row from label': 'flow',
@@ -173,6 +176,7 @@ def test_basic_packaging():
                 "format": "json",
                 "mediatype": "application/json"
             },
+            'index': 3,
             'label': 'winter',
         }, {
             'profile': 'data-resource',
@@ -190,6 +194,7 @@ def test_basic_packaging():
                 "format": "json",
                 "mediatype": "application/json"
             },
+            'index': 4,
             'label': 'summer',
         }
     ]}
@@ -321,6 +326,7 @@ def test_custom_metadata():
         'profile': 'data-package',
         'resources': [{
             'profile': 'data-resource',
+            'index': 0,
             'samples': {
                 'dtype': 'int64',
                 'filepath': 'custom.0.samples.npy',

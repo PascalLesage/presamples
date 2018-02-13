@@ -7,6 +7,7 @@ import shutil
 import uuid
 
 from bw2calc.utils import md5
+from .utils import validate_presamples_dirpath
 
 try:
     from bw2data.utils import TYPE_DICTIONARY
@@ -296,35 +297,70 @@ def create_presamples_package(matrix_presamples=None, parameter_presamples=None,
             error = "Shape mismatch between samples and indices: {}, {}, {}"
             raise ValueError(error.format(samples.shape, indices.shape, kind))
 
-        samples_fp = "{}.{}.samples.npy".format(id_, index)
-        indices_fp = "{}.{}.indices.npy".format(id_, index)
-        np.save(dirpath / samples_fp, samples, allow_pickle=False)
-        np.save(dirpath / indices_fp, indices, allow_pickle=False)
-
-        result = {
-            'type': kind,
-            'samples': {
-                'filepath': samples_fp,
-                'md5': md5(dirpath / samples_fp),
-                'shape': samples.shape,
-                'dtype': str(samples.dtype),
-                "format": "npy",
-                "mediatype": "application/octet-stream",
-            },
-            'indices': {
-                'filepath': indices_fp,
-                'md5': md5(dirpath / indices_fp),
-                "format": "npy",
-                "mediatype": "application/octet-stream",
-            },
-            "profile": "data-resource",
-        }
-        result.update(metadata)
+        result = write_matrix_presamples(samples, indices, metadata, kind, dirpath, index, id_)
         datapackage['resources'].append(result)
 
     offset = index + (1 if index else 0)
     for index, row in enumerate(elems(parameter_presamples or [], "parameter_presamples")):
         samples, names, label = row
+
+        samples = to_2d(to_array(samples))
+        if not len(names) == samples.shape[0]:
+            raise ValueError("Shape mismatch between samples and names: "
+                "{}, {}".format(samples.shape, len(names)))
+
+        if num_iterations is None:
+            num_iterations = samples.shape[1]
+        if samples.shape[1] != num_iterations:
+            raise ValueError("Inconsistent number of Monte Carlo iterations: "
+                "{} and {}".format(samples.shape[1], num_iterations))
+
+        result = write_parameter_presamples(samples, names, label, dirpath,
+                                            offset + index, id_)
+        datapackage['resources'].append(result)
+
+    with open(dirpath / "datapackage.json", "w", encoding='utf-8') as f:
+        json.dump(datapackage, f, indent=2, ensure_ascii=False)
+
+    return id_, dirpath
+
+
+def append_presamples_package(dirpath, matrix_presamples=None, parameter_presamples=None):
+    """Append new sections to a presamples package.
+
+    ``dirpath`` is the directory where the existing presamples can be found.
+
+    ``matrix_presamples`` is a list of :ref:`matrix-presamples`; parameter_presamples`` is a list of :ref:`parameter-presamples`. Both are allowed, but at least one type of presamples must be given. The documentation gives more details on these input arguments.
+
+    Both matrix and parameter data should have the same number of possible values (i.e same number of Monte Carlo iterations).
+
+    The following arguments are optional:
+
+    Returns the absolute path of the presamples directory.
+
+    """
+    dirpath = Path(dirpath)
+    validate_presamples_dirpath(dirpath)
+
+    num_iterations = None
+    datapackage = json.load(open(dirpath / "datapackage.json"))
+
+    if not matrix_presamples and not parameter_presamples:
+        raise ValueError("Must specify at least one of `matrix_presamples` and `parameter_presamples`")
+
+    offset = max(o['index'] for o in datapackage['resources']) + 1
+
+    def elems(lst, label):
+        """Yield elements from ``lst``. If an element is a model instance, iterate over its components."""
+        for elem in lst:
+            if hasattr(elem, label):
+                for obj in getattr(elem, label):
+                    yield obj
+            else:
+                yield elem
+
+    for index, row in enumerate(elems(matrix_presamples or [], "matrix_presamples")):
+        samples, indices, kind, *other = row
         samples = to_2d(to_array(samples))
 
         if num_iterations is None:
@@ -333,38 +369,88 @@ def create_presamples_package(matrix_presamples=None, parameter_presamples=None,
             raise ValueError("Inconsistent number of Monte Carlo iterations: "
                 "{} and {}".format(samples.shape[1], num_iterations))
 
-        if not len(names) == samples.shape[0]:
-            raise ValueError("Shape mismatch between samples and names: "
-                "{}, {}".format(samples.shape, len(names)))
+        indices, metadata = format_matrix_presamples(indices, kind, *other)
 
-        samples_fp = "{}.{}.samples.npy".format(id_, offset + index)
-        names_fp = "{}.{}.names.json".format(id_, offset + index)
+        if samples.shape[0] != indices.shape[0]:
+            error = "Shape mismatch between samples and indices: {}, {}, {}"
+            raise ValueError(error.format(samples.shape, indices.shape, kind))
 
-        np.save(dirpath / samples_fp, samples, allow_pickle=False)
-        with open(dirpath / names_fp, "w", encoding='utf-8') as f:
-            json.dump(names, f, ensure_ascii=False)
+        result = write_matrix_presamples(samples, indices, metadata, kind, dirpath, index + offset, id_)
+        datapackage['resources'].append(result)
 
-        result = {
-            'samples': {
-                'filepath': samples_fp,
-                'md5': md5(dirpath / samples_fp),
-                'shape': samples.shape,
-                'dtype': str(samples.dtype),
-                "format": "npy",
-                "mediatype": "application/octet-stream"
-            },
-            'names': {
-                'filepath': names_fp,
-                'md5': md5(dirpath / names_fp),
-                "format": "json",
-                "mediatype": "application/json"
-            },
-            "profile": "data-resource",
-            "label": label
-        }
+    offset += (index + 1)
+    for index, row in enumerate(elems(parameter_presamples or [], "parameter_presamples")):
+        samples, names, label = row
+
+        if num_iterations is None:
+            num_iterations = samples.shape[1]
+        if samples.shape[1] != num_iterations:
+            raise ValueError("Inconsistent number of Monte Carlo iterations: "
+                "{} and {}".format(samples.shape[1], num_iterations))
+
+        result = write_parameter_presamples(samples, names, label, dirpath,
+                                            offset + index, id_)
         datapackage['resources'].append(result)
 
     with open(dirpath / "datapackage.json", "w", encoding='utf-8') as f:
         json.dump(datapackage, f, indent=2, ensure_ascii=False)
 
     return id_, dirpath
+
+
+def write_matrix_presamples(samples, indices, metadata, kind, dirpath, index, id_):
+    samples_fp = "{}.{}.samples.npy".format(id_, index)
+    indices_fp = "{}.{}.indices.npy".format(id_, index)
+    np.save(dirpath / samples_fp, samples, allow_pickle=False)
+    np.save(dirpath / indices_fp, indices, allow_pickle=False)
+
+    result = {
+        'type': kind,
+        'samples': {
+            'filepath': samples_fp,
+            'md5': md5(dirpath / samples_fp),
+            'shape': samples.shape,
+            'dtype': str(samples.dtype),
+            "format": "npy",
+            "mediatype": "application/octet-stream",
+        },
+        'index': index,
+        'indices': {
+            'filepath': indices_fp,
+            'md5': md5(dirpath / indices_fp),
+            "format": "npy",
+            "mediatype": "application/octet-stream",
+        },
+        "profile": "data-resource",
+    }
+    result.update(metadata)
+    return result
+
+
+def write_parameter_presamples(samples, names, label, dirpath, index, id_):
+    samples_fp = "{}.{}.samples.npy".format(id_, index)
+    names_fp = "{}.{}.names.json".format(id_, index)
+
+    np.save(dirpath / samples_fp, samples, allow_pickle=False)
+    with open(dirpath / names_fp, "w", encoding='utf-8') as f:
+        json.dump(names, f, ensure_ascii=False)
+
+    return {
+        'samples': {
+            'filepath': samples_fp,
+            'md5': md5(dirpath / samples_fp),
+            'shape': samples.shape,
+            'dtype': str(samples.dtype),
+            "format": "npy",
+            "mediatype": "application/octet-stream"
+        },
+        'names': {
+            'filepath': names_fp,
+            'md5': md5(dirpath / names_fp),
+            "format": "json",
+            "mediatype": "application/json"
+        },
+        "profile": "data-resource",
+        "label": label,
+        'index': index,
+    }

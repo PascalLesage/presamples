@@ -1,34 +1,20 @@
-from bw2calc.utils import md5
+from .utils import validate_presamples_dirpath
 from pathlib import Path
 import json
 import numpy as np
-import os
 
 
 class PackageBase:
     """Base class for presample packages.
 
     Provides methods common to all presample package classes."""
-    def validate_dirpath(self, path):
-        """Check that a ``dirpath`` has a valid `datapackage.json` file and data files with matching hashes."""
-        assert os.path.isdir(path)
-        files = list(os.listdir(path))
-        assert "datapackage.json" in files, "{} missing a datapackage file".format(path)
-        metadata = json.load(
-            open(path / "datapackage.json"),
-            encoding="utf-8"
-        )
-        for resource in metadata['resources']:
-            assert os.path.isfile(path / resource['samples']['filepath'])
-            assert md5(path / resource['samples']['filepath']) == \
-                resource['samples']['md5']
-            assert os.path.isfile(path / resource['indices']['filepath'])
-            assert md5(path / resource['indices']['filepath']) == \
-                resource['indices']['md5']
-
     def __init__(self, path):
         self.path = Path(path)
         self.validate_dirpath(self.path)
+
+    def validate_dirpath(self, path):
+        """Check that a ``dirpath`` has a valid `datapackage.json` file and data files with matching hashes."""
+        validate_presamples_dirpath(path)
 
     @property
     def metadata(self):

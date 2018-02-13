@@ -15,7 +15,7 @@ before_install:
   - conda install -q -c conda-forge -c cmutel -c haasad bw2data bw2calc pytest pytest-cov numpy scipy stats_arrays peewee wrapt
   - echo $(python --version)
   - pip install python-coveralls
-  - pip install -U --no-deps https://bitbucket.org/cmutel/brightway2-calc/get/default.zip
+  - pip install -U --no-deps https://bitbucket.org/cmutel/brightway2-calc/get/presamples.zip
 install: "python setup.py develop"
 script:
   - pwd; pytest --cov=bw_presamples

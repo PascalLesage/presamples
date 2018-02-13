@@ -36,9 +36,11 @@ class ParameterPresamples(PackageBase, Mapping):
         return iter(self.data)
 
     def _load(self, obj):
+        maybe_float = lambda x: float(x) if x.shape in ((), (1,)) else x
+
         names = json.load(open(os.path.join(self.path, obj['names']['filepath'])))
         samples = np.load(os.path.join(self.path, obj['samples']['filepath']))
-        return {x: y.ravel() for x, y in zip(names, samples)}
+        return {x: maybe_float(y.ravel()) for x, y in zip(names, samples)}
 
     @property
     def name_conflicts(self):

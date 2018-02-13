@@ -21,7 +21,7 @@ class ParameterizedBrightwayModel:
     def __init__(self, group):
         self.group = group
         self.obj, self.kind = self._get_parameter_object(group)
-        self.global_params = []
+        self.global_params = {}
         self.data = {}
 
     def load_existing(self, fp, labels=None):
@@ -67,18 +67,27 @@ class ParameterizedBrightwayModel:
                     for elem in chain
                     for name in elem['names']
                 }
-                return (
-                    {o['group'] for o in chain}.difference(already),
-                    substitute_in_formulas(result, substitutions)
-                )
+                results = substitute_in_formulas(result, substitutions)
+                new = {o['group'] for o in chain
+                       if {substitutions[name]
+                           for name in o['names']}.difference(already)
+                       }
+                return new, results
 
-        data, already = {}, set()
-        groups, data = process_group(self.group, set())
+        data = {}
+        already = {key for obj in self.global_params.values() for key in obj}
+        groups, data = process_group(self.group, already)
         groups = groups.difference(set(self.global_params))
         while groups:
             new_groups, new_data = process_group(groups.pop(), already)
             groups = groups.union(new_groups).difference(set(self.global_params))
             data.update(new_data)
+
+        # Purge any individual parameters which were already defined in
+        # self.global_params. This can occur if a presample includes part of
+        # a group - we keep the "fixed" values.
+        # TODO: Make sure this behaviour is documented and explained!
+        data = {k: v for k, v in data.items() if k not in already}
 
         self.data = data
         return self.data
@@ -97,10 +106,9 @@ class ParameterizedBrightwayModel:
         """Save results to a presamples package.
 
         Will append to an existing package if ``append``; otherwise, raises an error if this package already exists."""
-        names = sorted(self.data)
         array = self._convert_amounts_to_array()
-        create_presamples_package(
-            parameter_presamples=[(samples, names, label)],
+        return create_presamples_package(
+            parameter_presamples=[(array, sorted(self.data), label)],
             name=name,
             id_=id_,
             dirpath=dirpath,
@@ -141,7 +149,7 @@ class ParameterizedBrightwayModel:
             obj['amount'] = float(obj['amount'])
 
     def _convert_amounts_to_array(self):
-        return np.vstack([to_2d(to_array(self.data['amount']))
+        return np.vstack([to_2d(to_array(self.data[key]['amount']))
                           for key in sorted(self.data)])
 
     def _get_parameter_object(self, group):

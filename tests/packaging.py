@@ -28,18 +28,18 @@ def update_hashes_from_given(given, expected):
 def test_basic_packaging():
     mapping.add('ABCDEF')
     t1 = [('A', 'A', 0), ('A', 'B', 1), ('B', 'C', 3)]
-    t2 = np.arange(12).reshape((3, 4))
+    t2 = np.arange(12, dtype=np.int64).reshape((3, 4))
     b1 = [('A', 'D'), ('A', 'E'), ('B', 'F')]
-    b2 = np.arange(12).reshape((3, 4))
+    b2 = np.arange(12, dtype=np.int64).reshape((3, 4))
     c1 = 'DEF'
-    c2 = np.arange(12).reshape((3, 4))
+    c2 = np.arange(12, dtype=np.int64).reshape((3, 4))
     inputs = [
         (t2, t1, 'technosphere'),
         (b2, b1, 'biosphere'),
         (c2, c1, 'cf'),
     ]
-    s1 = np.arange(16).reshape((4, 4))
-    s2 = np.arange(12).reshape((3, 4))
+    s1 = np.arange(16, dtype=np.int64).reshape((4, 4))
+    s2 = np.arange(12, dtype=np.int64).reshape((3, 4))
     n1 = list('ABCD')
     n2 = list('DEF')
     id_, dirpath = create_presamples_package(
@@ -56,7 +56,7 @@ def test_basic_packaging():
         'datapackage.json'
     ])
     assert sorted(os.listdir(dirpath)) == expected
-    expected = np.arange(12).reshape((3, 4))
+    expected = np.arange(12, dtype=np.int64).reshape((3, 4))
     assert np.allclose(np.load(dirpath / 'bar.0.samples.npy'), expected)
     assert np.allclose(np.load(dirpath / 'bar.1.samples.npy'), expected)
     assert np.allclose(np.load(dirpath / 'bar.2.samples.npy'), expected)
@@ -78,7 +78,7 @@ def test_basic_packaging():
         (6, MAX_SIGNED_32BIT_INT),
     ]
     assert np.load(dirpath / 'bar.2.indices.npy').tolist() ==  expected
-    expected = np.arange(16).reshape((4, 4))
+    expected = np.arange(16, dtype=np.int64).reshape((4, 4))
     assert np.allclose(np.load(dirpath / 'bar.3.samples.npy'), expected)
     expected = ['A', 'B', 'C', 'D']
     assert json.load(open(dirpath / 'bar.3.names.json')) ==  expected
@@ -278,7 +278,7 @@ def test_incosistent_mc_numbers():
 @bw2test
 def test_custom_metadata():
     mapping.add('ABCDEF')
-    a = np.arange(12).reshape((3, 4))
+    a = np.arange(12, dtype=np.int64).reshape((3, 4))
     b = [(1, 1), (1, 2), (2, 3)]
     metadata = {
         'row from label': 'f1',

@@ -54,6 +54,24 @@ class ParameterizedBrightwayModel:
         ``dependency_chain`` also gives us a list of groups to traverse **in order**; we can then proceed group by group up the chain. The only tricky bit here would be to make sure we do things in the right order, but as we are using ``dependency_chain``, we are actually treating each activity group as its own graph, and so avoid any conflicts implicitly.
 
         Adds results to ``self.data`` and ``self.substitutions``. Doesn't return anything."""
+        def process_group(group, already):
+            """Load namespaced data for this group, including dependent variables."""
+            obj, kind = self._get_parameter_object(group)
+            result = prefix_parameter_dict(obj.load(group), group + "__")[0]
+            if kind == 'project':
+                return set(), result
+            else:
+                chain = obj.dependency_chain(group)
+                substitutions = {
+                    name: elem['group'] + '__' + name
+                    for elem in chain
+                    for name in elem['names']
+                }
+                return (
+                    {o['group'] for o in chain}.difference(already),
+                    substitute_in_formulas(result, substitutions)
+                )
+
         data, already = {}, set()
         groups, data = process_group(self.group, set())
         groups = groups.difference(set(self.global_params))
@@ -64,24 +82,6 @@ class ParameterizedBrightwayModel:
 
         self.data = data
         return self.data
-
-        def process_group(group, already):
-            """"""
-            obj, kind = self._get_parameter_object(group)
-            result = prefix_parameter_dict(obj.load(group), group)[0]
-            if kind == 'project':
-                return set(), result
-            else:
-                chain = obj.dependency_chain(group)
-                substitutions = {
-                    name: elem['group'] + '__' + name
-                    for name in elem['names']
-                    for elem in chain
-                }
-                return (
-                    {o['group'] for o in chain}.difference(already),
-                    substitute_in_formulas(result, substitutions)
-                )
 
     def append_presample(self, dirpath, label):
         """Append presample to an existing presamples package.

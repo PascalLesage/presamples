@@ -5,7 +5,7 @@ import numpy as np
 import os
 
 
-class PresamplesPackageBase:
+class PackageBase:
     """Base class for presample packages.
 
     Provides methods common to all presample package classes."""
@@ -26,8 +26,28 @@ class PresamplesPackageBase:
             assert md5(path / resource['indices']['filepath']) == \
                 resource['indices']['md5']
 
+    def __init__(self, path):
+        self.path = Path(path)
+        self.validate_dirpath(self.path)
 
-class PresamplesPackage(PresamplesPackageBase):
+    @property
+    def metadata(self):
+        return json.load(open(self.path / "datapackage.json"))
+
+    @property
+    def name(self):
+        return self.metadata['name']
+
+    @property
+    def id(self):
+        return self.metadata['id']
+
+    @property
+    def resources(self):
+        return self.metadata['resources']
+
+
+class PresamplesPackage(PackageBase):
     """Base class for managing a presamples package. Packages are directories, stored either locally or on a network resource (via `PyFilesystem <https://www.pyfilesystem.org/>`__.
 
     Presampled arrays are provided as a list of directory paths. Each directory contains a metadata file, and one or more data files:
@@ -69,26 +89,6 @@ class PresamplesPackage(PresamplesPackageBase):
     The ``resources`` list should have at least one resource. Multiple resources of different types can be present in a single datapackage. The field ``{data package index}`` doesn't have to be consecutive integers, but should be unique for each resource. If there is only one set of samples, it can be omitted entirely.
 
     """
-    def __init__(self, path):
-        self.path = Path(path)
-        self.validate_dirpath(self.path)
-
-    @property
-    def metadata(self):
-        return json.load(open(self.path / "datapackage.json"))
-
-    @property
-    def name(self):
-        return self.metadata['name']
-
-    @property
-    def id(self):
-        return self.metadata['name']
-
-    @property
-    def resources(self):
-        return self.metadata['resources']
-
     @property
     def matrix_presamples(self):
         return

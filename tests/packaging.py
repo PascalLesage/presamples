@@ -43,7 +43,7 @@ def test_basic_packaging():
     n1 = list('ABCD')
     n2 = list('DEF')
     id_, dirpath = create_presamples_package(
-        inputs, [(s1, n1), (s2, n2)], name='foo', id_='bar'
+        inputs, [(s1, n1, 'winter'), (s2, n2, 'summer')], name='foo', id_='bar'
     )
     assert id_ == 'bar'
     dirpath = Path(dirpath)
@@ -173,6 +173,7 @@ def test_basic_packaging():
                 "format": "json",
                 "mediatype": "application/json"
             },
+            'label': 'winter',
         }, {
             'profile': 'data-resource',
             'samples': {
@@ -189,6 +190,7 @@ def test_basic_packaging():
                 "format": "json",
                 "mediatype": "application/json"
             },
+            'label': 'summer',
         }
     ]}
     given = json.load(open(dirpath / 'datapackage.json'))
@@ -196,10 +198,10 @@ def test_basic_packaging():
     assert given == expected
 
     # Test without optional fields
-    create_presamples_package(inputs, [(s1, n1), (s2, n2)])
+    create_presamples_package(inputs, [(s1, n1, 'f'), (s2, n2, 'g')])
     create_presamples_package(matrix_presamples=inputs)
     create_presamples_package(inputs)
-    create_presamples_package(parameter_presamples=[(s1, n1), (s2, n2)])
+    create_presamples_package(parameter_presamples=[(s1, n1, '1'), (s2, n2, '2')])
 
 @bw2test
 def test_basic_packaging_custom_directory():
@@ -266,13 +268,13 @@ def test_incosistent_mc_numbers():
     s1 = np.arange(16).reshape((4, 4))
     n1 = list('ABCD')
     create_presamples_package(
-        [(t2, t1, 'technosphere')], [(s1, n1)], name='foo', id_='bar'
+        [(t2, t1, 'technosphere')], [(s1, n1, 'some')], name='foo', id_='bar'
     )
     s1 = np.arange(20).reshape((4, 5))
     n1 = list('ABCDE')
     with pytest.raises(ValueError):
         create_presamples_package(
-            [(t2, t1, 'technosphere')], [(s1, n1)], name='foo', id_='bar'
+            [(t2, t1, 'technosphere')], [(s1, n1, 'another')], name='foo', id_='bar'
         )
 
 @bw2test

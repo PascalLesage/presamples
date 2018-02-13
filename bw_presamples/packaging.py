@@ -324,7 +324,7 @@ def create_presamples_package(matrix_presamples=None, parameter_presamples=None,
 
     offset = index + (1 if index else 0)
     for index, row in enumerate(elems(parameter_presamples or [], "parameter_presamples")):
-        samples, names = row
+        samples, names, label = row
         samples = to_2d(to_array(samples))
 
         if num_iterations is None:
@@ -360,6 +360,7 @@ def create_presamples_package(matrix_presamples=None, parameter_presamples=None,
                 "mediatype": "application/json"
             },
             "profile": "data-resource",
+            "label": label
         }
         datapackage['resources'].append(result)
 

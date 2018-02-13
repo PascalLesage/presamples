@@ -3,6 +3,7 @@ from bw2data import projects
 from bw2data.parameters import *
 from bw2parameters import prefix_parameter_dict, substitute_in_formulas
 import os
+import warnings
 
 
 class ExpiredGroup(Exception):
@@ -13,15 +14,15 @@ class ParameterizedBrightwayModel:
     def __init__(self, group):
         self.group = group
         self.obj, self.kind = self._get_parameter_object(group)
-        self.global_params = {}
+        self.global_params = []
         self.data = {}
-        self.substitutions = {}
 
-    def load_existing(self, fp):
+    def load_existing(self, fp, labels=None):
         """Add existing parameter presamples to ``self.global_params``."""
-        # Correct filepath using projects directory, if necessary
-        existing = ParameterPresamples(fp)
-        # Load data into ``global_params``
+        for key, value in ParameterPresamples(fp, labels=labels).items():
+            if key in self.global_params:
+                warnings.warn("Replacing existing parameter group: {}".format(key))
+            self.global_params[key] = value
 
     def load_parameter_data(self):
         """Load all necessary parameter data from group ``self.group``.

@@ -1,5 +1,5 @@
 from .array import IrregularPresamplesArray
-from .presamples_base import PresamplesPackageBase
+from .presamples_base import PackageBase
 from bw2calc.indexing import index_with_arrays
 from bw2calc.matrices import TechnosphereBiosphereMatrixBuilder as MB
 from bw2calc.utils import md5
@@ -20,7 +20,7 @@ def nonempty(wrapped, instance, args, kwargs):
         return wrapped(*args, **kwargs)
 
 
-class MatrixPresamples(PresamplesPackageBase):
+class MatrixPresamples(PackageBase):
     """Efficiently map presampled arrays and insert their values into LCA matrices.
 
     The presamples directory will contain the following two files for each resource:

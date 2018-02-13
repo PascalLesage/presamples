@@ -34,6 +34,11 @@ def validate_presamples_dirpath(path):
         assert os.path.isfile(path / resource['samples']['filepath'])
         assert md5(path / resource['samples']['filepath']) == \
             resource['samples']['md5']
-        assert os.path.isfile(path / resource['indices']['filepath'])
-        assert md5(path / resource['indices']['filepath']) == \
-            resource['indices']['md5']
+        if 'indices' in resource:
+            assert os.path.isfile(path / resource['indices']['filepath'])
+            assert md5(path / resource['indices']['filepath']) == \
+                resource['indices']['md5']
+        if 'names' in resource:
+            assert os.path.isfile(path / resource['names']['filepath'])
+            assert md5(path / resource['names']['filepath']) == \
+                resource['names']['md5']

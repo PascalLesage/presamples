@@ -1,4 +1,4 @@
-from .parameter_presamples import PackageBase
+from .presamples_base import PackageBase
 from collections.abc import Mapping
 import numpy as np
 import json
@@ -12,14 +12,14 @@ class NameConflicts(Exception):
 
 class ParameterPresamples(PackageBase, Mapping):
     """Read-only interface to presamples for named parameters."""
-    def __init__(self, *arg, labels=None, **kwargs):
+    def __init__(self, *args, labels=None, **kwargs):
         super().__init__(*args, **kwargs)
         included = lambda x: labels is None or x in labels
         self.data = {r['label']: self._load(r) for r in self.resources if included(r['label'])}
 
     @property
     def resources(self):
-        for o in self.metadata:
+        for o in self.metadata['resources']:
             if 'label' in o:
                 yield o
 
@@ -44,9 +44,8 @@ class ParameterPresamples(PackageBase, Mapping):
     def name_conflicts(self):
         return sum(len(o) for o in self.values()) != len({x for v in self.values() for x in v})
 
-    @property
     def flattened(self):
-        if name_conflicts:
+        if self.name_conflicts:
             raise NameConflicts
 
         return {y: z for x in self.values() for y, z in x.items()}

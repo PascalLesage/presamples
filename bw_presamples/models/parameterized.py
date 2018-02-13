@@ -1,7 +1,14 @@
 from .. import ParameterPresamples
+from ..packaging import (
+    append_presamples_package,
+    create_presamples_package,
+    to_2d,
+    to_array,
+)
 from bw2data import projects
 from bw2data.parameters import *
 from bw2parameters import prefix_parameter_dict, substitute_in_formulas
+import numpy as np
 import os
 import warnings
 
@@ -76,11 +83,28 @@ class ParameterizedBrightwayModel:
                     substitute_in_formulas(result, substitutions)
                 )
 
-    def save_presample(self, name, append=True):
+    def append_presample(self, dirpath, label):
+        """Append presample to an existing presamples package.
+
+        ``dirpath`` is the location of an existing presamples package. ``label`` is the label for this section of presamples.
+
+        Returns directory path of the modified presamples package."""
+        names = sorted(self.data)
+        array = self._convert_amounts_to_array()
+        append_presamples_package(parameter_presamples=[(samples, names, label)])
+
+    def save_presample(self, label, name=None, id_=None, dirpath=None):
         """Save results to a presamples package.
 
         Will append to an existing package if ``append``; otherwise, raises an error if this package already exists."""
-        pass
+        names = sorted(self.data)
+        array = self._convert_amounts_to_array()
+        create_presamples_package(
+            parameter_presamples=[(samples, names, label)],
+            name=name,
+            id_=id_,
+            dirpath=dirpath,
+        )
 
     def calculate_static(self, update_amounts=True):
         """Static calculation of parameter samples.
@@ -117,7 +141,8 @@ class ParameterizedBrightwayModel:
             obj['amount'] = float(obj['amount'])
 
     def _convert_amounts_to_array(self):
-        pass
+        return np.vstack([to_2d(to_array(self.data['amount']))
+                          for key in sorted(self.data)])
 
     def _get_parameter_object(self, group):
         # Check to make sure group exists

@@ -14,3 +14,4 @@ notebooks/.ipynb_checkpoints
 ~*.*
 htmlcov
 pytestdebug.log
+.pytest_cache

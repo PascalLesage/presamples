@@ -38,7 +38,7 @@ install:
     - cmd: conda config --add channels cmutel
     - cmd: conda config --add channels haasad
     - cmd: conda install -y -q numpy scipy bw2data bw2calc stats_arrays peewee wrapt pytest
-    - cmd: pip install https://bitbucket.org/cmutel/brightway2-calc/get/default.zip
+    - cmd: pip install -U --no-deps https://bitbucket.org/cmutel/brightway2-calc/get/default.zip
 
 build: false
 

@@ -34,8 +34,11 @@ install:
     # Use the pre-installed Miniconda for the desired arch
     - cmd: call %CONDA_INSTALL_LOCN%\Scripts\activate.bat
     - cmd: conda update -y -q conda
-    - cmd: conda config --add channels conda-forge cmutel haasad
+    - cmd: conda config --add channels conda-forge
+    - cmd: conda config --add channels cmutel
+    - cmd: conda config --add channels haasad
     - cmd: conda install -y -q numpy scipy bw2data bw2calc stats_arrays peewee wrapt pytest
+    - cmd: pip install https://bitbucket.org/cmutel/brightway2-calc/get/default.zip
 
 build: false
 

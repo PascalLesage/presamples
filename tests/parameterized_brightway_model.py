@@ -1,5 +1,6 @@
-import pytest
 from bw_presamples import ParameterPresamples
+import numpy as np
+import pytest
 
 try:
     from bw2data import mapping, Database
@@ -367,8 +368,6 @@ def test_load_existing_complete():
             'original': 'db2'},
     }
     assert pbm.data == expected
-    print(pbm.global_params)
-    print(pbm._flatten_global_params(pbm.global_params))
     result = pbm.calculate_static()
 
     expected = {
@@ -438,3 +437,55 @@ def test_append_package():
     assert len(pp) == 2
     assert pp['D-test'] == {'D__d1': 12}
     assert pp['project-test'] == {'project__p1': 10, 'project__p2': 10}
+
+@bw2test
+def test_calculate_stochastic():
+    Database("db").register()
+    ProjectParameter.create(
+        name="p1",
+        amount=1,
+    )
+    ProjectParameter.create(
+        name="p2",
+        amount=1,
+    )
+    parameters.recalculate()
+    pbm = ParameterizedBrightwayModel("project")
+    pbm.load_parameter_data()
+    pbm.data['project__p1']['amount'] = np.ones(10) + 100
+    pbm.data['project__p2']['amount'] = np.ones(10) + 10
+    _, dirpath_project = pbm.save_presample('project-test')
+
+    pp = ParameterPresamples(dirpath_project)
+    assert len(pp) == 1
+    assert np.allclose(pp['project-test']['project__p1'], [101]*10)
+
+    # Create rest of parameters
+    Group.create(name="E", order=[])
+    ActivityParameter.create(
+        group="E",
+        database="db",
+        code="E1",
+        name="e1",
+        formula="p1 + p2 + e2",
+        amount=4,
+    )
+    ActivityParameter.create(
+        group="E",
+        database="db",
+        code="E2",
+        name="e2",
+        amount=1,
+        data={'uncertainty type': 4, 'minimum': 1000, 'maximum': 1100}
+    )
+    parameters.recalculate()
+    pbm = ParameterizedBrightwayModel("E")
+    pbm.load_existing(dirpath_project)
+    pbm.load_parameter_data()
+    result = pbm.calculate_stochastic(10)
+
+    assert np.allclose(result['project__p1'], [101] * 10)
+    assert np.allclose(result['project__p2'], [11] * 10)
+    assert all(result['E__e2'] >= 1000)
+    assert all(result['E__e2'] <= 1100)
+    assert np.allclose(result['E__e1'], result['E__e2'] + 101 + 11)

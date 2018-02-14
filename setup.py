@@ -25,7 +25,7 @@ def package_files(directory):
 
 setup(
     name='bw-presamples',
-    version="0.0.dev",
+    version="0.0.dev0",
     packages=packages,
     author="Pascal Lesage",
     author_email="pascal.lesage@polymtl.ca",

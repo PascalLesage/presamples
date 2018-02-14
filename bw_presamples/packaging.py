@@ -270,8 +270,6 @@ def create_presamples_package(matrix_presamples=None, parameter_presamples=None,
     if not matrix_presamples and not parameter_presamples:
         raise ValueError("Must specify at least one of `matrix_presamples` and `parameter_presamples`")
 
-    index = 0
-
     def elems(lst, label):
         """Yield elements from ``lst``. If an element is a model instance, iterate over its components."""
         for elem in lst:
@@ -281,6 +279,8 @@ def create_presamples_package(matrix_presamples=None, parameter_presamples=None,
             else:
                 yield elem
 
+    # Not defined if matrix_presamples is empty
+    index = -1
     for index, row in enumerate(elems(matrix_presamples or [], "matrix_presamples")):
         samples, indices, kind, *other = row
         samples = to_2d(to_array(samples))
@@ -300,7 +300,7 @@ def create_presamples_package(matrix_presamples=None, parameter_presamples=None,
         result = write_matrix_presamples(samples, indices, metadata, kind, dirpath, index, id_)
         datapackage['resources'].append(result)
 
-    offset = index + (1 if index else 0)
+    offset = (index + 1) if index != -1 else 0
     for index, row in enumerate(elems(parameter_presamples or [], "parameter_presamples")):
         samples, names, label = row
 
@@ -359,6 +359,8 @@ def append_presamples_package(dirpath, matrix_presamples=None, parameter_presamp
             else:
                 yield elem
 
+    # Not defined if matrix_presamples is empty
+    index = -1
     for index, row in enumerate(elems(matrix_presamples or [], "matrix_presamples")):
         samples, indices, kind, *other = row
         samples = to_2d(to_array(samples))
@@ -375,10 +377,13 @@ def append_presamples_package(dirpath, matrix_presamples=None, parameter_presamp
             error = "Shape mismatch between samples and indices: {}, {}, {}"
             raise ValueError(error.format(samples.shape, indices.shape, kind))
 
-        result = write_matrix_presamples(samples, indices, metadata, kind, dirpath, index + offset, id_)
+        result = write_matrix_presamples(
+            samples, indices, metadata, kind,
+            dirpath, index + offset, datapackage['id']
+        )
         datapackage['resources'].append(result)
 
-    offset += (index + 1)
+    offset += (index + 1) if index != -1 else 0
     for index, row in enumerate(elems(parameter_presamples or [], "parameter_presamples")):
         samples, names, label = row
 
@@ -388,14 +393,16 @@ def append_presamples_package(dirpath, matrix_presamples=None, parameter_presamp
             raise ValueError("Inconsistent number of Monte Carlo iterations: "
                 "{} and {}".format(samples.shape[1], num_iterations))
 
-        result = write_parameter_presamples(samples, names, label, dirpath,
-                                            offset + index, id_)
+        result = write_parameter_presamples(
+            samples, names, label, dirpath,
+            offset + index, datapackage['id']
+        )
         datapackage['resources'].append(result)
 
     with open(dirpath / "datapackage.json", "w", encoding='utf-8') as f:
         json.dump(datapackage, f, indent=2, ensure_ascii=False)
 
-    return id_, dirpath
+    return datapackage['id'], dirpath
 
 
 def write_matrix_presamples(samples, indices, metadata, kind, dirpath, index, id_):

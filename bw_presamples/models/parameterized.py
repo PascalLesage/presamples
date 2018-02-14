@@ -98,9 +98,11 @@ class ParameterizedBrightwayModel:
         ``dirpath`` is the location of an existing presamples package. ``label`` is the label for this section of presamples.
 
         Returns directory path of the modified presamples package."""
-        names = sorted(self.data)
         array = self._convert_amounts_to_array()
-        append_presamples_package(parameter_presamples=[(samples, names, label)])
+        return append_presamples_package(
+            parameter_presamples=[(array, sorted(self.data), label)],
+            dirpath=dirpath
+        )
 
     def save_presample(self, label, name=None, id_=None, dirpath=None):
         """Save results to a presamples package.

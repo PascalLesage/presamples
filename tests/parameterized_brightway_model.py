@@ -380,3 +380,61 @@ def test_load_existing_complete():
         'db__db2': 2.0
     }
     assert result == expected
+
+@bw2test
+def test_append_package():
+    ProjectParameter.create(
+        name="p1",
+        amount=1,
+    )
+    ProjectParameter.create(
+        name="p2",
+        amount=1,
+    )
+    parameters.recalculate()
+    pbm = ParameterizedBrightwayModel("project")
+    pbm.load_parameter_data()
+    pbm.calculate_static()
+    for obj in pbm.data.values():
+        obj['amount'] = 10
+    _, dirpath = pbm.save_presample('project-test')
+    pp = ParameterPresamples(dirpath)
+    assert len(pp) == 1
+    assert pp['project-test'] == {'project__p1': 10, 'project__p2': 10}
+
+    Database("db").register()
+    Group.create(name="D", order=[])
+    DatabaseParameter.create(
+        database="db",
+        name="db1",
+        formula="2 * p1",
+        amount=2,
+    )
+    DatabaseParameter.create(
+        database="db",
+        name="db2",
+        amount=2,
+    )
+    ActivityParameter.create(
+        group="D",
+        database="db",
+        code="D1",
+        name="d1",
+        formula="p1 + db1",
+        amount=3,
+    )
+    parameters.recalculate()
+    pbm = ParameterizedBrightwayModel("D")
+    pbm.load_existing(dirpath)
+    expected = {'project-test': {'project__p1': 10, 'project__p2': 10}}
+    assert pbm.global_params == expected
+
+    pbm.load_parameter_data()
+    pbm.data = {'D__d1': pbm.data['D__d1']}
+    pbm.data['D__d1']['amount'] = 12
+    _, dp = pbm.append_presample(dirpath, 'D-test')
+    assert dp == dirpath
+    pp = ParameterPresamples(dirpath)
+    assert len(pp) == 2
+    assert pp['D-test'] == {'D__d1': 12}
+    assert pp['project-test'] == {'project__p1': 10, 'project__p2': 10}

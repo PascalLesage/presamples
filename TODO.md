@@ -8,14 +8,7 @@
 
 # Presample generation
 
-* From parameterized inventories
 * From generic outside model
-
-# Parameters
-
-Need some major work here on integrating `bw2data` parameters in an easy-to-use way. We need to be able to do the following:
-
-* Tasks are defined in parameterized model skeleton.
 
 # Campaigns
 
@@ -28,7 +21,6 @@ Need some major work here on integrating `bw2data` parameters in an easy-to-use 
 # Tests
 
 * Finish matrix presamples consolidation tests (in matrix_presamples)
-* Test parameterized inventory generation and use
 * Complete campaign tests
 
 # Models
@@ -43,9 +35,4 @@ Need some major work here on integrating `bw2data` parameters in an easy-to-use 
 
 # Bw2calc
 
-* Tests for multi-column presamples (single-column already done)
-* Get changes to PVLCA from Pascal's fork re: storing variable values
-
-# Bw2data
-
-* Load parameters as dictionary or ParameterSet
+* Covered in [separate issue tracker](https://bitbucket.org/cmutel/brightway2-calc/issues?status=new&status=open)

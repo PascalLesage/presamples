@@ -266,7 +266,7 @@ def test_no_data_provided():
         create_presamples_package(name='foo')
 
 @bw2test
-def test_incosistent_mc_numbers():
+def test_inconsistent_mc_numbers():
     mapping.add('ABCDEF')
     t1 = [('A', 'A', 0), ('A', 'B', 1), ('B', 'C', 3)]
     t2 = np.arange(12).reshape((3, 4))
@@ -740,7 +740,6 @@ def test_package_appending_parameter():
 
 @bw2test
 def test_custom_metadata():
-    mapping.add('ABCDEF')
     a = np.arange(12, dtype=np.int64).reshape((3, 4))
     b = [(1, 1), (1, 2), (2, 3)]
     metadata = {

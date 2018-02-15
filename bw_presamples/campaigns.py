@@ -7,11 +7,14 @@ import shutil
 try:
     from bw2data import config, projects
     from bw2data.sqlite import create_database
-    presamples_dir = Path(projects.request_directory("presamples"))
+    def presamples_dir():
+        """Needs to be function for tests"""
+        return Path(projects.request_directory("presamples"))
+
 except ImportError:
     from .fallbacks import create_database
     projects = None
-    presamples_dir = os.getcwd()
+    presamples_dir = os.getcwd
 
 from peewee import (DateTimeField, ForeignKeyField, IntegerField, Model,
                     TextField, fn, DoesNotExist)
@@ -21,8 +24,6 @@ from .presamples_base import PresamplesPackage
 
 class ModelBase(Model):
     _order_field = "name"
-
-    __repr__ = lambda x: str(x)
 
     def __lt__(self, other):
         # Make it possible to order our objects
@@ -53,7 +54,7 @@ class Campaign(ModelBase):
         )
 
     def __str__(self):
-        if self.parent:
+        if self.parent is not None:
             return "Campaign {n} with parent {p} and {r} packages".format(
             n=self.name, p=self.parent.name, r=self.packages.count())
         else:
@@ -61,6 +62,9 @@ class Campaign(ModelBase):
             n=self.name, r=self.packages.count())
 
     def __iter__(self):
+        """Iterate over campaign packages in order.
+
+        Returns the path of each package (needed for LCA object)."""
         for package in self.packages:
             yield package.as_loadable()
 
@@ -74,6 +78,9 @@ class Campaign(ModelBase):
         except DoesNotExist:
             return False
 
+    def __len__(self):
+        return self.packages.count()
+
     def _order_value(self):
         return getattr(self, getattr(self, "_order_field"))
 
@@ -85,6 +92,7 @@ class Campaign(ModelBase):
         ).execute()
 
     def _max_order(self):
+        """Return maximum ordering index already used, or ``None``."""
         return CampaignOrdering.select(fn.Max(CampaignOrdering.order)).where(
             CampaignOrdering.campaign == self
         ).scalar()
@@ -133,16 +141,33 @@ class Campaign(ModelBase):
         if package in self:
             raise ValueError("This presample resource is already in this campaign")
 
+        handle_none = lambda x: -1 if x is None else x
+
         if index is not None:
             self._shift_presamples_at_index(index)
         else:
-            index = self._max_order() + 1
+            index = handle_none(self._max_order()) + 1
 
         CampaignOrdering.create(
             campaign=self,
             package=package,
             order=index
         )
+
+    def drop_presample_resource(self, obj):
+        """Remove a presample resource from a campaign.
+
+        ``obj`` is an instance of ``PresampleResource``, or the name of a ``PresampleResource``.
+
+        Doesn't return anything."""
+        package = self._get_resource(obj)
+        if package not in self:
+            raise ValueError("This presample resource is not in this campaign")
+
+        CampaignOrdering.get(
+            campaign=self,
+            package=package,
+        ).delete_instance()
 
     def add_local_presamples(self, dirpath, index=None, copy=True):
         """Add presamples directory at ``dirpath``.
@@ -157,13 +182,15 @@ class Campaign(ModelBase):
         pp = PresamplesPackage(dirpath)
         id_, name = pp.id, pp.name
 
+        handle_none = lambda x: -1 if x is None else x
+
         if index is not None:
             self._shift_presamples_at_index(index)
         else:
-            index = self._max_order() + 1
+            index = handle_none(self._max_order()) + 1
 
         if copy:
-            path = presamples_dir / id_
+            path = presamples_dir() / id_
             if os.path.isdir(path):
                 raise ValueError("This package already exists in the project directory")
             shutil.copytree(dirpath, path, symlinks=True)
@@ -194,12 +221,18 @@ class Campaign(ModelBase):
                 description=description,
                 parent=self
             )
-            for pr in PresampleResource.select().where(
-                    PresampleResource.campaign == self):
-                PresampleResource.create(
+            queryset = (
+                CampaignOrdering
+                .select()
+                .join(Campaign)
+                .where(CampaignOrdering.campaign == self)
+                .order_by(CampaignOrdering.order.asc())
+            )
+            for obj in queryset:
+                CampaignOrdering.create(
                     campaign=campaign,
-                    path=pr.path,
-                    order=pr.order
+                    package=obj.package,
+                    order=obj.order
                 )
         return campaign
 
@@ -283,7 +316,7 @@ def init_campaigns():
 
 def init_campaigns_fallback():
     return create_database(
-        os.path.join(presamples_dir, "campaigns.db"),
+        os.path.join(presamples_dir(), "campaigns.db"),
         [Campaign, PresampleResource, CampaignOrdering]
     )
 

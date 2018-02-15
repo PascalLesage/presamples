@@ -17,7 +17,10 @@ class IrregularPresamplesArray(RandomState):
 
     """
     def __init__(self, filepaths, seed=None):
-        self.seed_value = (None if seed == "sequential" else seed)
+        if seed == "sequential":
+            self.sequential, self.seed_value = True, None
+        else:
+            self.sequential, self.seed_value = False, seed
         super(IrregularPresamplesArray, self).__init__(self.seed_value)
         self.count = 0
         self.data = [
@@ -27,7 +30,7 @@ class IrregularPresamplesArray(RandomState):
 
     def sample(self):
         """Draw a new sample from the pre-sample arrays"""
-        if self.seed_value is None:
+        if self.sequential:
             index = self.count
         else:
             index = self.randint(0, MAX_SIGNED_32BIT_INT)

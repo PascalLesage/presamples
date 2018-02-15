@@ -54,6 +54,15 @@ def test_sampling(arrays):
     assert ipa.sample()[:5].sum() < 5
     assert ipa.sample()[5:].tolist() in possibles
 
+def test_sampling_no_seed_different_each_time(arrays):
+    dirpath, a, b = arrays
+    ipa = IrregularPresamplesArray(
+        [(dirpath / "a.npy", (5, 5)), (dirpath / "b.npy", (2, 5))]
+    )
+    samples = [ipa.sample() for _ in range(20)]
+    count = sum([np.allclose(samples[i], samples[i + 1]) for i in range(19)])
+    assert count < 10
+
 def test_reproducible_sampling(arrays):
     dirpath, a, b = arrays
     first = IrregularPresamplesArray(

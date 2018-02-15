@@ -3,7 +3,6 @@ import datetime
 import json
 import os
 import shutil
-import uuid
 
 try:
     from bw2data import config, projects
@@ -15,7 +14,8 @@ except ImportError:
     presamples_dir = os.getcwd()
 
 from peewee import (DateTimeField, ForeignKeyField, IntegerField, Model,
-                    TextField, fn)
+                    TextField, fn, DoesNotExist)
+from .errors import MissingPresample
 from .presamples_base import PresamplesPackage
 
 
@@ -64,6 +64,16 @@ class Campaign(ModelBase):
         for package in self.packages:
             yield package.as_loadable()
 
+    def __contains__(self, obj):
+        try:
+            CampaignOrdering.get(
+                campaign=self,
+                package=self._get_resource(obj)
+            )
+            return True
+        except DoesNotExist:
+            return False
+
     def _order_value(self):
         return getattr(self, getattr(self, "_order_field"))
 
@@ -79,13 +89,60 @@ class Campaign(ModelBase):
             CampaignOrdering.campaign == self
         ).scalar()
 
-    def replace_presample_package(self, new, old, propagate=False):
-        # TODO
-        pass
+    def _get_resource(self, obj):
+        """Get a ``PresampleResource`` by class instance or name"""
+        if isinstance(obj, PresampleResource):
+            return obj
+        else:
+            return PresampleResource.get(name=obj)
 
-    def add_presample_packages(self, obj, index=None):
-        # TODO
-        pass
+    def replace_presample_package(self, new, old, propagate=False):
+        """Replace presample package in campaign.
+
+        ``new`` can be either a n instance of ``PresampleResource`` or the name of a presample resource; the same conditions apply for ``old``. ``old`` must already be added to the campaign.
+
+        ``property`` determines whether to also replace presample packages in all child campaigns. Will ignore child campaigns where ``old`` is no longer used.
+
+        Doesn't return anything."""
+        new = self._get_resource(new)
+        old = self._get_resource(old)
+        if old not in self:
+            raise MissingPresample
+
+        link = CampaignOrdering.get(campaign=self, package=old)
+        link.package = new
+        link.save()
+
+        if propagate:
+            for child in self.descendants:
+                try:
+                    child.replace_presample_package(new, old, False)
+                except MissingPresample:
+                    pass
+
+    def add_presample_resource(self, obj, index=None):
+        """Add an existing ``PresampleResource``.
+
+        ``obj`` is an instance of ``PresampleResource``, or the name of a ``PresampleResource``.
+
+        ``index`` is an optional index in the order of presamples.
+        Existing presamples will be shifted if necessary.
+
+        Doesn't return anything."""
+        package = self._get_resource(obj)
+        if package in self:
+            raise ValueError("This presample resource is already in this campaign")
+
+        if index is not None:
+            self._shift_presamples_at_index(index)
+        else:
+            index = self._max_order() + 1
+
+        CampaignOrdering.create(
+            campaign=self,
+            package=package,
+            order=index
+        )
 
     def add_local_presamples(self, dirpath, index=None, copy=True):
         """Add presamples directory at ``dirpath``.
@@ -94,19 +151,22 @@ class Campaign(ModelBase):
         Existing presamples will be shifted if necessary.
 
         If true, ``copy`` will cause the directory to be copied to the
-        project directory."""
-        assert os.path.isdir(dirpath)
-        # TODO: Validate files correct
-        # TODO: Get name and description from metadata
+        project directory.
+
+        Doesn't return anything."""
+        pp = PresamplesPackage(dirpath)
+        id_, name = pp.id, pp.name
+
         if index is not None:
             self._shift_presamples_at_index(index)
         else:
             index = self._max_order() + 1
 
         if copy:
-            path = presamples_dir / uuid.uuid4().hex
+            path = presamples_dir / id_
+            if os.path.isdir(path):
+                raise ValueError("This package already exists in the project directory")
             shutil.copytree(dirpath, path, symlinks=True)
-            name = os.path.split(dirpath)[-1]
             dirpath = path
 
         package = PresampleResource.create(
@@ -122,6 +182,8 @@ class Campaign(ModelBase):
 
     def add_child(self, name, description=None):
         """Add new child campaign, including all presamples.
+
+        The child campaign should not exist already; ``name`` is the name of the new campaign to be created.
 
         Returns created ``Campaign`` object."""
         if Campaign.select().where(Campaign.name == name).count():
@@ -191,7 +253,6 @@ class PresampleResource(ModelBase):
 
     @property
     def metadata(self):
-        # TODO: Load metadata from datapackage
         return PresamplesPackage(self.as_loadable()).metadata
 
     def as_loadable(self):

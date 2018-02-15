@@ -4,10 +4,13 @@ import pytest
 import time
 
 from bw_presamples.campaigns import *
+from bw_presamples.errors import MissingPresample
 try:
     from bw2data.tests import bw2test
 except ImportError:
     bw2test = pytest.mark.skip
+
+from peewee import DoesNotExist
 
 @bw2test
 def test_setup():
@@ -66,3 +69,65 @@ def test_campaign_lineage():
 
     assert list(c6.descendants) == []
     assert list(c1.descendants) == [c2, c3, c4, c5, c6]
+
+def test_campaign_packages_correct_in_order():
+    pass
+
+def test_campaign_iteration():
+    pass
+
+def test_campaign_contains():
+    pass
+
+def test_campaign_shift_presamples_at_index():
+    pass
+
+def test_campaign_max_order():
+    # Make sure there are some gaps in the order
+    pass
+
+def test_campaign_get_resource():
+    pass
+
+def test_campaign_get_resource_missing():
+    pass
+
+def test_campaign_replace_presample_package():
+    pass
+
+def test_campaign_replace_presample_package_index():
+    pass
+
+def test_campaign_replace_presample_package_not_in_campaign():
+    pass
+
+def test_campaign_replace_presample_package_propagate():
+    # Be sure one child doesn't have the original package
+    pass
+
+def test_campaign_add_presample_resource():
+    pass
+
+def test_campaign_add_presample_resource_index():
+    pass
+
+def test_campaign_add_presample_resource_already_exists():
+    pass
+
+def test_campaign_add_local_presamples_no_copy():
+    pass
+
+def test_campaign_add_local_presamples_no_copy_index():
+    pass
+
+def test_campaign_add_local_presamples_copy():
+    pass
+
+def test_campaign_add_local_presamples_copy_already_exists():
+    pass
+
+def test_campaign_add_child():
+    pass
+
+def test_campaign_add_child_already_exists():
+    pass

@@ -10,10 +10,6 @@
 
 * From generic outside model
 
-# Tests
-
-* Finish matrix presamples consolidation tests (in matrix_presamples)
-
 # Models
 
 * Model to generate presamples for a whole database (check processed array md5?)

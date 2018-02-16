@@ -1,4 +1,5 @@
 from .array import IrregularPresamplesArray
+from .errors import IncompatibleIndices, ConflictingLabels
 from .presamples_base import PackageBase
 from bw2calc.indexing import index_with_arrays
 from bw2calc.matrices import TechnosphereBiosphereMatrixBuilder as MB
@@ -68,7 +69,7 @@ class MatrixPresamples(PackageBase):
             len(self.data))
 
     @classmethod
-    def load_data(cls, dirpath, seed):
+    def load_data(cls, dirpath, seed=None):
         """Load data and metadata from a directory.
 
         This function will consolidate presamples with the same type. We check to make sure the relevant metadata (e.g. row and column labels) is identical when doing such consolidation.
@@ -111,31 +112,34 @@ class MatrixPresamples(PackageBase):
         resources.sort(key=fltr)
 
         for key, group in itertools.groupby(resources, fltr):
-            group = cls.consolidate(dirpath, seed, list(group))
+            group = cls.consolidate(dirpath, list(group), seed)
             results['resources'].append(group)
 
         return results
 
     @staticmethod
-    def consolidate(dirpath, seed, group):
+    def consolidate(dirpath, group, seed=None):
         """Add together indices and samples in the same presamples directory if they have the same type.
 
         Consolidating is not necessary for the functionality of this class, but it does make it easier to do things like sensitivity analysis afterwards."""
         # Check that metadata is the same
         assert len({el['matrix'] for el in group}) == 1, "Conflicting matrices"
-        assert len({
-            (el['row from label'], el['row to label'], el['row dict'])
-            for el in group
-        }) == 1, "Conflicting labels"
+        if not len({
+                    (el['row from label'], el['row to label'], el['row dict'])
+                    for el in group
+                }) == 1:
+            raise ConflictingLabels
         if any(['col dict' in o for o in group]):
-            assert len({
-                (el['col from label'], el['col to label'], el['col dict'])
-                for el in group
-            }) == 1, "Conflicting labels"
+            if not len({
+                        (el['col from label'], el['col to label'], el['col dict'])
+                        for el in group
+                    }) == 1:
+                raise ConflictingLabels
 
         indices = [np.load(dirpath / r['indices']['filepath']) for r in group]
         # Check that indices have right shape
-        assert len({o.dtype for o in indices}) == 1, "Conflicting index shapes"
+        if not len({o.dtype for o in indices}) == 1:
+            raise IncompatibleIndices
         indices = np.hstack(indices)
         samples = IrregularPresamplesArray([
             (dirpath / el['samples']['filepath'], el['samples']['shape'])

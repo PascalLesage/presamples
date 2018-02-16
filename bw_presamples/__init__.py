@@ -7,6 +7,7 @@ __all__ = [
     'IrregularPresamplesArray',
     'MatrixPresamples',
     'ParameterPresamples',
+    'PresamplesPackage',
     'PresampleResource',
     'split_inventory_presamples',
 ]
@@ -22,6 +23,7 @@ from .packaging import (
     FORMATTERS,
     split_inventory_presamples,
 )
+from .presamples_base import PresamplesPackage
 from .matrix_presamples import MatrixPresamples
 from .parameter_presamples import ParameterPresamples
 from .utils import (

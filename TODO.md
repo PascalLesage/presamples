@@ -10,14 +10,9 @@
 
 * From generic outside model
 
-# Campaigns
-
-* API and user stories for generating presamples and presample resources (packages?)
-
 # Tests
 
 * Finish matrix presamples consolidation tests (in matrix_presamples)
-* Complete campaign tests
 
 # Models
 

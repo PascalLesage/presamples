@@ -2,12 +2,18 @@ from .. import ParameterPresamples
 from ..packaging import (
     append_presamples_package,
     create_presamples_package,
+    split_inventory_presamples,
     to_2d,
     to_array,
 )
 from bw2data import projects
+from bw2data.backends.peewee.schema import ExchangeDataset
 from bw2data.parameters import *
-from bw2parameters import prefix_parameter_dict, substitute_in_formulas
+from bw2parameters import (
+    FormulaSubstitutor,
+    prefix_parameter_dict,
+    substitute_in_formulas,
+)
 import numpy as np
 import os
 import warnings
@@ -23,6 +29,7 @@ class ParameterizedBrightwayModel:
         self.obj, self.kind = self._get_parameter_object(group)
         self.global_params = {}
         self.data = {}
+        self.matrix_data = []
 
     def load_existing(self, fp, labels=None):
         """Add existing parameter presamples to ``self.global_params``."""
@@ -100,6 +107,7 @@ class ParameterizedBrightwayModel:
         Returns directory path of the modified presamples package."""
         array = self._convert_amounts_to_array()
         return append_presamples_package(
+            matrix_presamples=self.matrix_data,
             parameter_presamples=[(array, sorted(self.data), label)],
             dirpath=dirpath
         )
@@ -110,6 +118,7 @@ class ParameterizedBrightwayModel:
         Will append to an existing package if ``append``; otherwise, raises an error if this package already exists."""
         array = self._convert_amounts_to_array()
         return create_presamples_package(
+            matrix_presamples=self.matrix_data,
             parameter_presamples=[(array, sorted(self.data), label)],
             name=name,
             id_=id_,
@@ -142,6 +151,42 @@ class ParameterizedBrightwayModel:
             for key, value in self.data.items():
                 value['amount'] = result[key]
         return result
+
+    def calculate_matrix_presamples(self):
+        """Calculate matrix presamples for an activated exchanges (``ParameterizedExchange``) linked to ``self.group``.
+
+        You should have already done ``calculate_static`` or ``calculate_stochastic``.
+
+        Populates ``self.matrix_data``, and returns a dictionary of ``{exchange id: numeric value}``."""
+        assert self.data, "Must load parameter data before using this method"
+
+        substitutor = FormulaSubstitutor({v['original']: k for k, v in self.data.items()})
+
+        interpreter = ParameterSet(
+            self.data,
+            self._flatten_global_params(self.global_params)
+        ).get_interpreter(evaluate_first=False)
+        queryset = ParameterizedExchange.select().where(
+            ParameterizedExchange.group == self.group
+        )
+        results = {obj.exchange: interpreter(substitutor(obj.formula))
+                   for obj in queryset}
+
+        samples, indices = [], []
+        queryset = ExchangeDataset.select().where(
+            ExchangeDataset.id << tuple(results)
+        )
+
+        for obj in queryset:
+            samples.append(np.array(results[obj.id]).reshape(1, -1))
+            indices.append((
+                (obj.input_database, obj.input_code),
+                (obj.output_database, obj.output_code),
+                obj.type
+            ))
+
+        self.matrix_data = split_inventory_presamples(np.vstack(samples), indices)
+        return results
 
     def _convert_amounts_to_floats(self):
         """Make sure all ``amount`` values are floats and not Numpy arrays.

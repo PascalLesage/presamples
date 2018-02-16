@@ -1,9 +1,9 @@
-from bw_presamples import ParameterPresamples
+from bw_presamples import ParameterPresamples, PresamplesPackage
 import numpy as np
 import pytest
 
 try:
-    from bw2data import mapping, Database
+    from bw2data import mapping, Database, get_activity
     from bw2data.tests import bw2test
     from bw2data.parameters import (
         ActivityParameter,
@@ -489,3 +489,69 @@ def test_calculate_stochastic():
     assert all(result['E__e2'] >= 1000)
     assert all(result['E__e2'] <= 1100)
     assert np.allclose(result['E__e1'], result['E__e2'] + 101 + 11)
+
+@bw2test
+def test_calculate_matrix_presamples():
+    data = {
+        ("test-db", 'b'): {
+            'exchanges': [],
+            'type': 'emission',
+            },
+        ("test-db", 't1'): {
+            'exchanges': [{
+                'amount': 1,
+                'input': ('test-db', 't2'),
+                'type': 'technosphere',
+                'formula': 'foo + bar'},
+                {'amount': 1,
+                'input': ('test-db', 'b'),
+                'type': 'biosphere',
+                'formula': 'foo - bar + pppp'}],
+            'type': 'process',
+            },
+        ("test-db", 't2'): {
+            'exchanges': [],
+            'type': 'process',
+            },
+    }
+    Database("test-db").write(data)
+    Group.create(name="E", order=[])
+    data = [{
+        'name': 'foo',
+        'database': 'test-db',
+        'code': 't1',
+        'amount': 7,
+        'uncertainty_type': 4,
+        'minimum': 0,
+        'maximum': 14,
+    }, {
+        'name': 'bar',
+        'database': 'test-db',
+        'code': 't1',
+        'amount': 11,
+    }]
+    parameters.new_project_parameters([{'name': 'pppp', 'amount': 12}])
+    parameters.new_activity_parameters(data, 'A')
+    parameters.add_exchanges_to_group('A', get_activity(("test-db", 't1')))
+    parameters.recalculate()
+
+    pbm = ParameterizedBrightwayModel("A")
+    pbm.load_parameter_data()
+    pbm.calculate_static()
+    pbm.calculate_matrix_presamples()
+    id_, dirpath = pbm.save_presample('test-everything')
+
+    # Check for file contents
+    pp = PresamplesPackage(dirpath)
+    resources = pp.metadata['resources']
+    assert len(resources) == 3
+    assert resources[0]['type'] == 'biosphere'
+    assert resources[0]['samples']['shape'] == [1, 1]
+    assert resources[1]['type'] == 'technosphere'
+    assert resources[1]['samples']['shape'] == [1, 1]
+    assert resources[2]['label'] == 'test-everything'
+    assert resources[2]['samples']['shape'] == [3, 1]
+
+@bw2test
+def test_calculate_matrix_presamples_single_row():
+    pass

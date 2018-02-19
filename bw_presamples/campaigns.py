@@ -109,7 +109,7 @@ class Campaign(ModelBase):
 
         ``new`` can be either a n instance of ``PresampleResource`` or the name of a presample resource; the same conditions apply for ``old``. ``old`` must already be added to the campaign.
 
-        ``property`` determines whether to also replace presample packages in all child campaigns. Will ignore child campaigns where ``old`` is no longer used.
+        ``propagate`` determines whether to also replace presample packages in all child campaigns. Will ignore child campaigns where ``old`` is no longer used.
 
         Doesn't return anything."""
         new = self._get_resource(new)

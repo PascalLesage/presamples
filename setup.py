@@ -40,7 +40,7 @@ setup(
         'wrapt',
     ],
     url="https://brightwaylca.org/",
-    long_description=open('README.md').read(),
+    long_description=open('README.rst').read(),
     description='Creation and use of presampled values in Monte Carlo for Brightway LCA framework',
     classifiers=[
         'Intended Audience :: End Users/Desktop',

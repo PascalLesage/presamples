@@ -56,7 +56,7 @@ def package():
     return dirpath
 
 def test_init(package):
-    mp = MatrixPresamples([package])
+    mp = PackagesDataLoader([package])
     assert not mp.empty
     assert len(mp.data) == 1
     assert 'id' in mp.data[0]
@@ -72,7 +72,7 @@ def test_init(package):
     assert isinstance(resources['indices'], np.ndarray)
 
 def test_update_matrices(package):
-    mp = MatrixPresamples([package])
+    mp = PackagesDataLoader([package])
     lca = MockLCA()
     mp.update_matrices(lca)
     assert lca.matrix[1, 1] == 100
@@ -90,7 +90,7 @@ def test_update_matrices_skip_missing_matrix(package):
             self.row_dict = {x: 2 * x for x in range(5)}
             self.col_dict = {x: 3 * x for x in range(5)}
 
-    mp = MatrixPresamples([package])
+    mp = PackagesDataLoader([package])
     lca = WrongLCA()
     mp.update_matrices(lca)
     assert not lca.wrong.sum()
@@ -116,7 +116,7 @@ def test_update_matrices_technosphere():
             self._product_dict = self._activity_dict
 
     lca = LCA()
-    mp = MatrixPresamples([dirpath])
+    mp = PackagesDataLoader([dirpath])
     mp.index_arrays(lca)
     mp.update_matrices(lca)
     assert lca.technosphere_matrix[0, 0] == 10
@@ -144,7 +144,7 @@ def test_update_matrices_one_dimensional():
             self._biosphere_dict = {x: x-1 for x in range(1, 7)}
 
     lca = LCA()
-    mp = MatrixPresamples([dirpath])
+    mp = PackagesDataLoader([dirpath])
     mp.index_arrays(lca)
     mp.update_matrices(lca)
     assert lca.characterization_matrix[0, 0] == 10
@@ -153,7 +153,7 @@ def test_update_matrices_one_dimensional():
     assert lca.characterization_matrix.sum() == 10 + 11 + 12
 
 def test_index_arrays(package):
-    mp = MatrixPresamples([package])
+    mp = PackagesDataLoader([package])
     lca = MockLCA()
     assert 'indexed' not in mp.data[0]['resources'][0]
     mp.index_arrays(lca)
@@ -162,7 +162,7 @@ def test_index_arrays(package):
     assert mp.data[0]['resources'][0]['indexed']
 
 def test_index_arrays_already_indexed(package):
-    mp = MatrixPresamples([package])
+    mp = PackagesDataLoader([package])
     lca = MockLCA()
     assert 'indexed' not in mp.data[0]['resources'][0]
     expected = [(1, 1, 1, 1), (1, 2, 1, 2), (2, 3, 2, 3)]
@@ -177,7 +177,7 @@ def test_index_arrays_already_indexed(package):
     assert mp.data[0]['resources'][0]['indices'].tolist() == expected
 
 def test_index_arrays_missing_row_dict(package):
-    mp = MatrixPresamples([package])
+    mp = PackagesDataLoader([package])
     lca = MockLCA()
     del lca.row_dict
     expected = [(1, 1, 1, 1), (1, 2, 1, 2), (2, 3, 2, 3)]
@@ -185,7 +185,7 @@ def test_index_arrays_missing_row_dict(package):
     mp.index_arrays(lca)
 
 def test_index_arrays_missing_col_dict(package):
-    mp = MatrixPresamples([package])
+    mp = PackagesDataLoader([package])
     lca = MockLCA()
     del lca.col_dict
     expected = [(1, 1, 1, 1), (1, 2, 1, 2), (2, 3, 2, 3)]
@@ -196,12 +196,13 @@ def test_functionality_with_empty(tempdir):
     datapackage = {
         "name": "foo",
         "id": "one",
+        "seed": None,
         "profile": "data-package",
         "resources": []
     }
     with open(tempdir / "datapackage.json", "w", encoding='utf-8') as f:
         json.dump(datapackage, f)
-    mp = MatrixPresamples([tempdir])
+    mp = PackagesDataLoader([tempdir])
     assert mp.empty
     mp.index_arrays(None)
     mp.update_matrices(None)
@@ -209,14 +210,14 @@ def test_functionality_with_empty(tempdir):
 def test_validate_dirpath_missing_datapackage(package):
     os.unlink(package / "datapackage.json")
     with pytest.raises(AssertionError):
-        MatrixPresamples([package])
+        PackagesDataLoader([package])
 
 def test_validate_dirpath_missing_samples(package):
     for fp in os.listdir(package):
         if "samples.npy" in fp:
             os.unlink(package / fp)
     with pytest.raises(AssertionError):
-        MatrixPresamples([package])
+        PackagesDataLoader([package])
 
 def test_validate_dirpath_altered_samples(package):
     for fp in os.listdir(package):
@@ -224,14 +225,14 @@ def test_validate_dirpath_altered_samples(package):
             with open(package / fp, "w") as f:
                 f.write("woops")
     with pytest.raises(AssertionError):
-        MatrixPresamples([package])
+        PackagesDataLoader([package])
 
 def test_validate_dirpath_missing_indices(package):
     for fp in os.listdir(package):
         if "indices.npy" in fp:
             os.unlink(package / fp)
     with pytest.raises(AssertionError):
-        MatrixPresamples([package])
+        PackagesDataLoader([package])
 
 def test_validate_dirpath_altered_indices(package):
     for fp in os.listdir(package):
@@ -239,7 +240,7 @@ def test_validate_dirpath_altered_indices(package):
             with open(package / fp, "w") as f:
                 f.write("woops")
     with pytest.raises(AssertionError):
-        MatrixPresamples([package])
+        PackagesDataLoader([package])
 
 @bw2test
 def test_seed_functions():
@@ -264,23 +265,26 @@ def test_seed_functions():
     _, dirpath = create_presamples_package(
         [(a, b, 'mock', dtype, frmt, metadata)],
     )
-    mp = MatrixPresamples([dirpath], 987654321)
+    mp = PackagesDataLoader([dirpath], 987654321)
     sampler = mp.data[0]['resources'][0]['samples']
-    first = [sampler.sample().sum() for _ in range(100)]
-    mp = MatrixPresamples([dirpath], 987654321)
+    indexer = mp.indexers[0]
+    first = [sampler.sample(next(indexer)).sum() for _ in range(100)]
+    mp = PackagesDataLoader([dirpath], 987654321)
     sampler = mp.data[0]['resources'][0]['samples']
-    second = [sampler.sample().sum() for _ in range(100)]
+    indexer = mp.indexers[0]
+    second = [sampler.sample(next(indexer)).sum() for _ in range(100)]
     assert first == second
 
-    mp = MatrixPresamples([dirpath], 12345)
+    mp = PackagesDataLoader([dirpath], 12345)
     sampler = mp.data[0]['resources'][0]['samples']
-    third = [sampler.sample().sum() for _ in range(100)]
+    indexer = mp.indexers[0]
+    third = [sampler.sample(next(indexer)).sum() for _ in range(100)]
     assert first != third
 
 
 @pytest.fixture
 def mp():
-    class Mock(MatrixPresamples):
+    class Mock(PackagesDataLoader):
         def __init__(self):
             pass
 
@@ -294,14 +298,14 @@ def mock_ipa(monkeypatch):
             self.two = two
 
     monkeypatch.setattr(
-        'bw_presamples.matrix_presamples.IrregularPresamplesArray',
+        'bw_presamples.loader.IrregularPresamplesArray',
         FakeIPA
     )
 
 def test_consolidate_mismatched_matrices(package, mp):
     group = [{'matrix': 'a'}, {'matrix': 'b'}]
     with pytest.raises(AssertionError):
-        mp.consolidate(package, group, None)
+        mp.consolidate(package, group)
 
 def test_consolidate_conficting_row_labels(mp):
     data = [
@@ -473,7 +477,7 @@ def test_consolidate_multiple_groups(mock_ipa, tempdir):
         ], dirpath=tempdir
     )
 
-    mp = MatrixPresamples([dirpath_one, dirpath_two])
+    mp = PackagesDataLoader([dirpath_one, dirpath_two])
     expected = np.array([
         ( 1,  1,  1,  1),
         ( 1,  2,  1,  2),

@@ -234,7 +234,7 @@ def get_presample_directory(id_, overwrite=False, dirpath=None):
 
 
 def create_presamples_package(matrix_presamples=None, parameter_presamples=None, name=None,
-        id_=None, overwrite=False, dirpath=None):
+        id_=None, overwrite=False, dirpath=None, seed=None):
     """Create and populate a new presamples directory that stores presampled values for matrix data and/or named parameters.
 
     ``matrix_presamples`` is a list of :ref:`matrix-presamples`; parameter_presamples`` is a list of :ref:`parameter-presamples`. Both are allowed, but at least one type of presamples must be given. The documentation gives more details on these input arguments.
@@ -264,6 +264,7 @@ def create_presamples_package(matrix_presamples=None, parameter_presamples=None,
         "name": str(name),
         "id": id_,
         "profile": "data-package",
+        "seed": seed,
         "resources": []
     }
 

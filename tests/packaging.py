@@ -43,7 +43,8 @@ def test_basic_packaging():
     n1 = list('ABCD')
     n2 = list('DEF')
     id_, dirpath = create_presamples_package(
-        inputs, [(s1, n1, 'winter'), (s2, n2, 'summer')], name='foo', id_='bar'
+        inputs, [(s1, n1, 'winter'), (s2, n2, 'summer')], name='foo',
+        id_='bar', seed=42
     )
     assert id_ == 'bar'
     dirpath = Path(dirpath)
@@ -88,6 +89,7 @@ def test_basic_packaging():
         'id': 'bar',
         'name': 'foo',
         'profile': 'data-package',
+        'seed': 42,
         'resources': [{
             'profile': 'data-resource',
             'samples': {
@@ -317,7 +319,7 @@ def test_basic_package_appending():
     s1 = np.arange(16, dtype=np.int64).reshape((4, 4))
     n1 = list('ABCD')
     id_, dirpath = create_presamples_package(
-        inputs, [(s1, n1, 'winter')], name='foo', id_='bar'
+        inputs, [(s1, n1, 'winter')], name='foo', id_='bar', seed=216
     )
     assert id_ == 'bar'
     dirpath = Path(dirpath)
@@ -343,6 +345,7 @@ def test_basic_package_appending():
         'id': 'bar',
         'name': 'foo',
         'profile': 'data-package',
+        'seed': 216,
         'resources': [{
             'profile': 'data-resource',
             'samples': {
@@ -450,6 +453,7 @@ def test_basic_package_appending():
         'id': 'bar',
         'name': 'foo',
         'profile': 'data-package',
+        'seed': 216,
         'resources': [{
             'profile': 'data-resource',
             'samples': {
@@ -603,6 +607,7 @@ def test_package_appending_matrix():
         'id': 'bar',
         'name': 'foo',
         'profile': 'data-package',
+        'seed': None,
         'resources': [{
             'profile': 'data-resource',
             'samples': {
@@ -689,6 +694,7 @@ def test_package_appending_parameter():
         'id': 'bar',
         'name': 'foo',
         'profile': 'data-package',
+        'seed': None,
         'resources': [{
             'profile': 'data-resource',
             'samples': {
@@ -779,6 +785,7 @@ def test_custom_metadata():
         'id': 'custom',
         'name': 'foo',
         'profile': 'data-package',
+        'seed': None,
         'resources': [{
             'profile': 'data-resource',
             'index': 0,

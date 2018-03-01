@@ -2,7 +2,7 @@ import numpy as np
 import pytest
 
 from bw_presamples.models.inventory_base import InventoryBaseModel
-from bw_presamples import MatrixPresamples
+from bw_presamples import PackagesDataLoader
 try:
     from bw2data.tests import bw2test
     from bw2data import Database
@@ -158,7 +158,8 @@ def test_presample_creation():
     assert package.id == 1
     assert package.name == "test"
     assert package.description is None
-    mp = MatrixPresamples([package.path])
+    print(package.path)
+    mp = PackagesDataLoader([package.path])
     assert len(mp.data) == 1
     assert mp.data[0]['name'] == 'test'
     assert 'id' in mp.data[0]

@@ -69,7 +69,7 @@ class InventoryBaseModel(ModelBase):
             raise ValueError("Can't understand this exchange identifier: {}".format(obj))
 
     @property
-    def matrix_presamples(self):
+    def matrix_data(self):
         if not hasattr(self, "matrix_array"):
             raise ValueError("Must run model first")
 

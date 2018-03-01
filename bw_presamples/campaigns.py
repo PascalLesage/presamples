@@ -19,7 +19,7 @@ except ImportError:
 from peewee import (DateTimeField, ForeignKeyField, IntegerField, Model,
                     TextField, fn, DoesNotExist)
 from .errors import MissingPresample
-from .presamples_base import PresamplesPackage
+from .package_interface import PresamplesPackage
 
 
 class ModelBase(Model):

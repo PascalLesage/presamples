@@ -75,6 +75,9 @@ class PackagesDataLoader:
         return "PackagesDataLoader with {} resources".format(
             len(self.data))
 
+    def __len__(self):
+        return len(self.data)
+
     @classmethod
     def load_data(cls, dirpath):
         """Load data and metadata from a directory.

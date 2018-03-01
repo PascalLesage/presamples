@@ -1,4 +1,4 @@
-from .. import ParameterPresamples
+from .. import PresamplesPackage
 from ..packaging import (
     append_presamples_package,
     create_presamples_package,
@@ -107,8 +107,8 @@ class ParameterizedBrightwayModel:
         Returns directory path of the modified presamples package."""
         array = self._convert_amounts_to_array()
         return append_presamples_package(
-            matrix_presamples=self.matrix_data,
-            parameter_presamples=[(array, sorted(self.data), label)],
+            matrix_data=self.matrix_data,
+            parameter_data=[(array, sorted(self.data), label)],
             dirpath=dirpath
         )
 
@@ -118,8 +118,8 @@ class ParameterizedBrightwayModel:
         Will append to an existing package if ``append``; otherwise, raises an error if this package already exists."""
         array = self._convert_amounts_to_array()
         return create_presamples_package(
-            matrix_presamples=self.matrix_data,
-            parameter_presamples=[(array, sorted(self.data), label)],
+            matrix_data=self.matrix_data,
+            parameter_data=[(array, sorted(self.data), label)],
             name=name,
             id_=id_,
             dirpath=dirpath,

@@ -10,7 +10,7 @@ class ModelBase:
 
     If a subclass will create matrix presamples, then the following must be create or defined:
 
-        * ``self.matrix_array``: Numpy array of pre-calculated samples
+        * ``selff.matrix_array``: Numpy array of pre-calculated samples
         * ``self.indices``: Indices in the correct data type for the matrices to be populated.
 
     If a subclass will create parameter presamples, then the following must be create or defined:
@@ -20,11 +20,11 @@ class ModelBase:
 
    """
     @property
-    def matrix_presamples(self):
+    def matrix_data(self):
         return []
 
     @property
-    def parameter_presamples(self):
+    def parameter_data(self):
         return []
 
     def create_presample_package(self, name=None, id_=None, dirpath=None):
@@ -33,8 +33,8 @@ class ModelBase:
             'name': name,
             'id_': id_,
             'dirpath': dirpath,
-            'matrix_presamples': [self],
-            'parameter_presamples': [self],
+            'matrix_data': [self],
+            'parameter_data': [self],
         }
         return create_presamples_package(**kwargs)
 

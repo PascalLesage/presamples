@@ -4,11 +4,11 @@ __all__ = [
     'convert_parameter_dict_to_presamples',
     'create_presamples_package',
     'FORMATTERS',
+    'Indexer',
     'IrregularPresamplesArray',
-    'MatrixPresamples',
-    'ParameterPresamples',
-    'PresamplesPackage',
+    'PackagesDataLoader',
     'PresampleResource',
+    'PresamplesPackage',
     'split_inventory_presamples',
 ]
 
@@ -16,6 +16,7 @@ __all__ = [
 __version__ = (0, 0, 'dev0')
 
 from .campaigns import Campaign, PresampleResource
+from .indexer import Indexer
 from .array import IrregularPresamplesArray
 from .packaging import (
     append_presamples_package,
@@ -23,9 +24,8 @@ from .packaging import (
     FORMATTERS,
     split_inventory_presamples,
 )
-from .presamples_base import PresamplesPackage
-from .matrix_presamples import MatrixPresamples
-from .parameter_presamples import ParameterPresamples
+from .package_interface import PresamplesPackage
+from .loader import PackagesDataLoader
 from .utils import (
     convert_parameter_dict_to_presamples,
 )

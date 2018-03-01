@@ -1,4 +1,5 @@
 from bw2calc.utils import md5
+from pathlib import Path
 import json
 import numpy as np
 import os
@@ -23,6 +24,7 @@ def convert_parameter_dict_to_presamples(parameters):
 
 def validate_presamples_dirpath(path):
     """Check that a ``dirpath`` has a valid `datapackage.json` file and data files with matching hashes."""
+    path = Path(path)
     assert os.path.isdir(path)
     files = list(os.listdir(path))
     assert "datapackage.json" in files, "{} missing a datapackage file".format(path)

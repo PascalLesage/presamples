@@ -206,9 +206,9 @@ def test_basic_packaging():
 
     # Test without optional fields
     create_presamples_package(inputs, [(s1, n1, 'f'), (s2, n2, 'g')])
-    create_presamples_package(matrix_presamples=inputs)
+    create_presamples_package(matrix_data=inputs)
     create_presamples_package(inputs)
-    create_presamples_package(parameter_presamples=[(s1, n1, '1'), (s2, n2, '2')])
+    create_presamples_package(parameter_data=[(s1, n1, '1'), (s2, n2, '2')])
 
 @bw2test
 def test_basic_packaging_custom_directory():
@@ -246,7 +246,7 @@ def test_parameter_presamples_inconsistent_shape():
     n1 = list('ABCD')
     n2 = list('DE')
     with pytest.raises(ValueError):
-        create_presamples_package(parameter_presamples=[(s1, n1), (s2, n2)])
+        create_presamples_package(parameter_data=[(s1, n1), (s2, n2)])
 
 @bw2test
 def test_matrix_shape_mismatch():
@@ -260,7 +260,7 @@ def test_parameters_shape_mismatch():
     s1 = np.arange(16).reshape((4, 4))
     n1 = list('ABCDE')
     with pytest.raises(ValueError):
-        create_presamples_package(parameter_presamples=[(s1, n1)])
+        create_presamples_package(parameter_data=[(s1, n1)])
 
 @bw2test
 def test_no_data_provided():
@@ -407,8 +407,8 @@ def test_basic_package_appending():
     n2 = list('DEF')
     a, b = append_presamples_package(
         dirpath=dirpath,
-        matrix_presamples=inputs,
-        parameter_presamples=[(s2, n2, 'summer')]
+        matrix_data=inputs,
+        parameter_data=[(s2, n2, 'summer')]
     )
     assert a == id_
     assert b == dirpath
@@ -574,7 +574,7 @@ def test_package_appending_matrix():
     s1 = np.arange(16, dtype=np.int64).reshape((4, 4))
     n1 = list('ABCD')
     id_, dirpath = create_presamples_package(
-        parameter_presamples=[(s1, n1, 'winter')],
+        parameter_data=[(s1, n1, 'winter')],
         name='foo',
         id_='bar'
     )
@@ -593,7 +593,7 @@ def test_package_appending_matrix():
     ]
     a, b = append_presamples_package(
         dirpath=dirpath,
-        matrix_presamples=inputs,
+        matrix_data=inputs,
     )
     assert a == id_
     assert b == dirpath
@@ -680,7 +680,7 @@ def test_package_appending_parameter():
     n2 = list('DEF')
     a, b = append_presamples_package(
         dirpath=dirpath,
-        parameter_presamples=[(s2, n2, 'summer')]
+        parameter_data=[(s2, n2, 'summer')]
     )
     assert a == id_
     assert b == dirpath

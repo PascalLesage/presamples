@@ -99,7 +99,7 @@ def format_technosphere_presamples(indices):
             MAX_SIGNED_32BIT_INT,
             TYPE_DICTIONARY.get(row[2], row[2])
         )
-    return format_matrix_presamples(indices, 'technosphere', dtype, func, metadata)
+    return format_matrix_data(indices, 'technosphere', dtype, func, metadata)
 
 
 def format_biosphere_presamples(indices):
@@ -142,7 +142,7 @@ def format_biosphere_presamples(indices):
             MAX_SIGNED_32BIT_INT,
             MAX_SIGNED_32BIT_INT,
         )
-    return format_matrix_presamples(indices, 'biosphere', dtype, func, metadata)
+    return format_matrix_data(indices, 'biosphere', dtype, func, metadata)
 
 
 def format_cf_presamples(indices):
@@ -171,7 +171,7 @@ def format_cf_presamples(indices):
         ('row', np.uint32),
     ]
     func = lambda row: (mapping.get(row, row), MAX_SIGNED_32BIT_INT)
-    return format_matrix_presamples(indices, 'cf', dtype, func, metadata)
+    return format_matrix_data(indices, 'cf', dtype, func, metadata)
 
 
 FORMATTERS = {
@@ -181,7 +181,7 @@ FORMATTERS = {
 }
 
 
-def validate_matrix_presamples_metadata(metadata, dtype):
+def validate_matrix_data_metadata(metadata, dtype):
     """Make sure ``metdata`` has the required keys, and that ``indices`` agress with ``metadata``."""
     ROWS = ('row from label', 'row to label', 'row dict', 'matrix')
     COLUMNS = ('col from label', 'col to label', 'col dict')
@@ -198,7 +198,7 @@ def validate_matrix_presamples_metadata(metadata, dtype):
             "indices: {}".format(missing))
 
 
-def format_matrix_presamples(indices, kind, dtype=None, row_formatter=None, metadata=None):
+def format_matrix_data(indices, kind, dtype=None, row_formatter=None, metadata=None):
     if dtype is None and row_formatter is None and metadata is None:
         try:
             return FORMATTERS[kind](indices)
@@ -207,7 +207,7 @@ def format_matrix_presamples(indices, kind, dtype=None, row_formatter=None, meta
     elif dtype is None or row_formatter is None or metadata is None:
         raise ValueError("Must provide ``dtype``, ``row_formatter``, and ``metadata``")
     else:
-        validate_matrix_presamples_metadata(metadata, dtype)
+        validate_matrix_data_metadata(metadata, dtype)
 
         array = np.zeros(len(indices), dtype=dtype)
         for index, row in enumerate(indices):
@@ -233,11 +233,11 @@ def get_presample_directory(id_, overwrite=False, dirpath=None):
     return dirpath
 
 
-def create_presamples_package(matrix_presamples=None, parameter_presamples=None, name=None,
+def create_presamples_package(matrix_data=None, parameter_data=None, name=None,
         id_=None, overwrite=False, dirpath=None, seed=None):
     """Create and populate a new presamples directory that stores presampled values for matrix data and/or named parameters.
 
-    ``matrix_presamples`` is a list of :ref:`matrix-presamples`; parameter_presamples`` is a list of :ref:`parameter-presamples`. Both are allowed, but at least one type of presamples must be given. The documentation gives more details on these input arguments.
+    ``matrix_data`` is a list of :ref:`matrix-presamples`; parameter_data`` is a list of :ref:`parameter-presamples`. Both are allowed, but at least one type of presamples must be given. The documentation gives more details on these input arguments.
 
     Both matrix and parameter data should have the same number of possible values (i.e same number of Monte Carlo iterations).
 
@@ -268,8 +268,8 @@ def create_presamples_package(matrix_presamples=None, parameter_presamples=None,
         "resources": []
     }
 
-    if not matrix_presamples and not parameter_presamples:
-        raise ValueError("Must specify at least one of `matrix_presamples` and `parameter_presamples`")
+    if not matrix_data and not parameter_data:
+        raise ValueError("Must specify at least one of `matrix_data` and `parameter_data`")
 
     def elems(lst, label):
         """Yield elements from ``lst``. If an element is a model instance, iterate over its components."""
@@ -280,9 +280,9 @@ def create_presamples_package(matrix_presamples=None, parameter_presamples=None,
             else:
                 yield elem
 
-    # Not defined if matrix_presamples is empty
+    # Not defined if matrix_data is empty
     index = -1
-    for index, row in enumerate(elems(matrix_presamples or [], "matrix_presamples")):
+    for index, row in enumerate(elems(matrix_data or [], "matrix_data")):
         samples, indices, kind, *other = row
         samples = to_2d(to_array(samples))
 
@@ -292,17 +292,17 @@ def create_presamples_package(matrix_presamples=None, parameter_presamples=None,
             raise ValueError("Inconsistent number of Monte Carlo iterations: "
                 "{} and {}".format(samples.shape[1], num_iterations))
 
-        indices, metadata = format_matrix_presamples(indices, kind, *other)
+        indices, metadata = format_matrix_data(indices, kind, *other)
 
         if samples.shape[0] != indices.shape[0]:
             error = "Shape mismatch between samples and indices: {}, {}, {}"
             raise ValueError(error.format(samples.shape, indices.shape, kind))
 
-        result = write_matrix_presamples(samples, indices, metadata, kind, dirpath, index, id_)
+        result = write_matrix_data(samples, indices, metadata, kind, dirpath, index, id_)
         datapackage['resources'].append(result)
 
     offset = (index + 1) if index != -1 else 0
-    for index, row in enumerate(elems(parameter_presamples or [], "parameter_presamples")):
+    for index, row in enumerate(elems(parameter_data or [], "parameter_data")):
         samples, names, label = row
 
         samples = to_2d(to_array(samples))
@@ -316,7 +316,7 @@ def create_presamples_package(matrix_presamples=None, parameter_presamples=None,
             raise ValueError("Inconsistent number of Monte Carlo iterations: "
                 "{} and {}".format(samples.shape[1], num_iterations))
 
-        result = write_parameter_presamples(samples, names, label, dirpath,
+        result = write_parameter_data(samples, names, label, dirpath,
                                             offset + index, id_)
         datapackage['resources'].append(result)
 
@@ -326,12 +326,12 @@ def create_presamples_package(matrix_presamples=None, parameter_presamples=None,
     return id_, dirpath
 
 
-def append_presamples_package(dirpath, matrix_presamples=None, parameter_presamples=None):
+def append_presamples_package(dirpath, matrix_data=None, parameter_data=None):
     """Append new sections to a presamples package.
 
     ``dirpath`` is the directory where the existing presamples can be found.
 
-    ``matrix_presamples`` is a list of :ref:`matrix-presamples`; parameter_presamples`` is a list of :ref:`parameter-presamples`. Both are allowed, but at least one type of presamples must be given. The documentation gives more details on these input arguments.
+    ``matrix_data`` is a list of :ref:`matrix-presamples`; parameter_data`` is a list of :ref:`parameter-presamples`. Both are allowed, but at least one type of presamples must be given. The documentation gives more details on these input arguments.
 
     Both matrix and parameter data should have the same number of possible values (i.e same number of Monte Carlo iterations).
 
@@ -346,8 +346,8 @@ def append_presamples_package(dirpath, matrix_presamples=None, parameter_presamp
     num_iterations = None
     datapackage = json.load(open(dirpath / "datapackage.json"))
 
-    if not matrix_presamples and not parameter_presamples:
-        raise ValueError("Must specify at least one of `matrix_presamples` and `parameter_presamples`")
+    if not matrix_data and not parameter_data:
+        raise ValueError("Must specify at least one of `matrix_data` and `parameter_data`")
 
     offset = max(o['index'] for o in datapackage['resources']) + 1
 
@@ -360,9 +360,9 @@ def append_presamples_package(dirpath, matrix_presamples=None, parameter_presamp
             else:
                 yield elem
 
-    # Not defined if matrix_presamples is empty
+    # Not defined if matrix_data is empty
     index = -1
-    for index, row in enumerate(elems(matrix_presamples or [], "matrix_presamples")):
+    for index, row in enumerate(elems(matrix_data or [], "matrix_data")):
         samples, indices, kind, *other = row
         samples = to_2d(to_array(samples))
 
@@ -372,20 +372,20 @@ def append_presamples_package(dirpath, matrix_presamples=None, parameter_presamp
             raise ValueError("Inconsistent number of Monte Carlo iterations: "
                 "{} and {}".format(samples.shape[1], num_iterations))
 
-        indices, metadata = format_matrix_presamples(indices, kind, *other)
+        indices, metadata = format_matrix_data(indices, kind, *other)
 
         if samples.shape[0] != indices.shape[0]:
             error = "Shape mismatch between samples and indices: {}, {}, {}"
             raise ValueError(error.format(samples.shape, indices.shape, kind))
 
-        result = write_matrix_presamples(
+        result = write_matrix_data(
             samples, indices, metadata, kind,
             dirpath, index + offset, datapackage['id']
         )
         datapackage['resources'].append(result)
 
     offset += (index + 1) if index != -1 else 0
-    for index, row in enumerate(elems(parameter_presamples or [], "parameter_presamples")):
+    for index, row in enumerate(elems(parameter_data or [], "parameter_data")):
         samples, names, label = row
 
         if num_iterations is None:
@@ -394,7 +394,7 @@ def append_presamples_package(dirpath, matrix_presamples=None, parameter_presamp
             raise ValueError("Inconsistent number of Monte Carlo iterations: "
                 "{} and {}".format(samples.shape[1], num_iterations))
 
-        result = write_parameter_presamples(
+        result = write_parameter_data(
             samples, names, label, dirpath,
             offset + index, datapackage['id']
         )
@@ -406,7 +406,7 @@ def append_presamples_package(dirpath, matrix_presamples=None, parameter_presamp
     return datapackage['id'], dirpath
 
 
-def write_matrix_presamples(samples, indices, metadata, kind, dirpath, index, id_):
+def write_matrix_data(samples, indices, metadata, kind, dirpath, index, id_):
     samples_fp = "{}.{}.samples.npy".format(id_, index)
     indices_fp = "{}.{}.indices.npy".format(id_, index)
     np.save(dirpath / samples_fp, samples, allow_pickle=False)
@@ -435,7 +435,7 @@ def write_matrix_presamples(samples, indices, metadata, kind, dirpath, index, id
     return result
 
 
-def write_parameter_presamples(samples, names, label, dirpath, index, id_):
+def write_parameter_data(samples, names, label, dirpath, index, id_):
     samples_fp = "{}.{}.samples.npy".format(id_, index)
     names_fp = "{}.{}.names.json".format(id_, index)
 

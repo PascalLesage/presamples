@@ -88,11 +88,11 @@ class PresamplesPackage:
     @property
     def parameters(self):
         if not hasattr(self, "_parameters"):
-            self._parameters = ParametersNestedMapping(self.path, self.resources, self.name)
+            self._parameters = ParametersMapping(self.path, self.resources, self.name)
         return self._parameters
 
 
-class ParametersNestedMapping(Mapping):
+class ParametersMapping(Mapping):
     def __init__(self, path, resources, package_name):
         name_lists = [
             json.load(open(path / obj['names']['filepath'])) for obj in resources

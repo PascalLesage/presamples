@@ -59,19 +59,19 @@ class PackagesDataLoader:
         self.seed = seed
 
         self.data, self.parameter_metadata = [], []
+        self.sample_indexers, self.msi, self.psi = [], [], []
 
         for dirpath in (dirpaths or []):
             validate_presamples_dirpath(Path(dirpath))
             # Even empty presamples have name and id
             section = self.load_data(Path(dirpath))
+            self.sample_indexers.append(section['indexer'])
             if section["matrix-data"]:
                 self.data.append(section)
+                self.msi.append(section['indexer'])
             if section['parameter-metadata']:
                 self.parameter_metadata.append(section['parameter-metadata'])
-
-        get_seed = lambda x: self.seed if self.seed is not None else x
-
-        self.indexers = [Indexer(get_seed(obj['seed'])) for obj in self.data]
+                self.psi.append(section['indexer'])
 
         self.empty = not bool(self.data)
 
@@ -116,12 +116,14 @@ class PackagesDataLoader:
             open(dirpath / "datapackage.json"),
             encoding="utf-8"
         )
+        get_seed = lambda x: self.seed if self.seed is not None else x
         data = {
             'name': metadata['name'],
             'id': metadata['id'],
             'seed': metadata['seed'],
             'matrix-data': [],
-            'parameter-metadata': None
+            'parameter-metadata': None,
+            'indexer': Indexer(get_seed(metadata['seed']))
         }
         resources = [obj for obj in metadata["resources"] if obj.get('matrix')]
         fltr = lambda x: x['type']
@@ -209,7 +211,7 @@ class PackagesDataLoader:
 
     @nonempty
     def update_matrices(self, lca, matrices=None):
-        for indexer, obj in zip(self.indexers, self.data):
+        for indexer, obj in zip(self.msi, self.data):
             for elem in obj["matrix-data"]:
                 try:
                     matrix = getattr(lca, elem['matrix'])
@@ -220,7 +222,7 @@ class PackagesDataLoader:
                 if matrices is not None and elem['matrix'] not in matrices:
                     continue
 
-                sample = elem['samples'].sample(next(indexer))
+                sample = elem['samples'].sample(indexer.index)
                 if elem['type'] == 'technosphere':
                     MB.fix_supply_use(elem['indices'], sample)
                 if 'col dict' in elem:
@@ -234,8 +236,18 @@ class PackagesDataLoader:
                         elem['indices'][elem['row to label']],
                     ] = sample
 
+    def update_sample_indices(self):
+        for indexer in self.sample_indexers:
+            next(indexer)
+
+        if hasattr(self, "_parameters"):
+            for i, o in zip(self.psi, self.parameters):
+                o.index = i
+
     def parameters(self):
-        if not hasattr(self, "_packages"):
-            self._packages = [ParametersMapping(**metadata)
-                              for metadata in self.parameter_metadata]
-        return self._packages
+        if not hasattr(self, "_parameters"):
+            self._parameters = [
+                ParametersMapping(**metadata)
+                for metadata in self.parameter_metadata
+            ]
+        return self._parameters

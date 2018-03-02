@@ -163,7 +163,7 @@ def test_presample_creation():
     assert len(mp.data) == 1
     assert mp.data[0]['name'] == 'test'
     assert 'id' in mp.data[0]
-    b, t = mp.data[0]['resources']
+    b, t = mp.data[0]['matrix-data']
     assert b['matrix'] == 'biosphere_matrix'
     assert t['matrix'] == 'technosphere_matrix'
     assert b['samples'].data[0][0].shape == (2, 5)

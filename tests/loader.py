@@ -61,8 +61,8 @@ def test_init(package):
     assert len(mp.data) == 1
     assert 'id' in mp.data[0]
     assert 'name' in mp.data[0]
-    assert len(mp.data[0]['resources']) == 1
-    resources = mp.data[0]['resources'][0]
+    assert len(mp.data[0]['matrix-data']) == 1
+    resources = mp.data[0]['matrix-data'][0]
     assert resources['type'] == 'mock'
     assert resources['matrix'] == 'matrix'
     for key in ('row from label', 'row to label', 'row dict',
@@ -155,33 +155,33 @@ def test_update_matrices_one_dimensional():
 def test_index_arrays(package):
     mp = PackagesDataLoader([package])
     lca = MockLCA()
-    assert 'indexed' not in mp.data[0]['resources'][0]
+    assert 'indexed' not in mp.data[0]['matrix-data'][0]
     mp.index_arrays(lca)
     expected = [(1, 1, 2, 3), (1, 2, 2, 6), (2, 3, 4, 9)]
-    assert mp.data[0]['resources'][0]['indices'].tolist() == expected
-    assert mp.data[0]['resources'][0]['indexed']
+    assert mp.data[0]['matrix-data'][0]['indices'].tolist() == expected
+    assert mp.data[0]['matrix-data'][0]['indexed']
 
 def test_index_arrays_already_indexed(package):
     mp = PackagesDataLoader([package])
     lca = MockLCA()
-    assert 'indexed' not in mp.data[0]['resources'][0]
+    assert 'indexed' not in mp.data[0]['matrix-data'][0]
     expected = [(1, 1, 1, 1), (1, 2, 1, 2), (2, 3, 2, 3)]
-    assert mp.data[0]['resources'][0]['indices'].tolist() == expected
+    assert mp.data[0]['matrix-data'][0]['indices'].tolist() == expected
     mp.index_arrays(lca)
     expected = [(1, 1, 2, 3), (1, 2, 2, 6), (2, 3, 4, 9)]
-    assert mp.data[0]['resources'][0]['indices'].tolist() == expected
-    assert mp.data[0]['resources'][0]['indexed']
+    assert mp.data[0]['matrix-data'][0]['indices'].tolist() == expected
+    assert mp.data[0]['matrix-data'][0]['indexed']
     lca.row_dict = {x: 0 for x in range(5)}
     lca.col_dict = {x: 0 for x in range(5)}
     mp.index_arrays(lca)
-    assert mp.data[0]['resources'][0]['indices'].tolist() == expected
+    assert mp.data[0]['matrix-data'][0]['indices'].tolist() == expected
 
 def test_index_arrays_missing_row_dict(package):
     mp = PackagesDataLoader([package])
     lca = MockLCA()
     del lca.row_dict
     expected = [(1, 1, 1, 1), (1, 2, 1, 2), (2, 3, 2, 3)]
-    assert mp.data[0]['resources'][0]['indices'].tolist() == expected
+    assert mp.data[0]['matrix-data'][0]['indices'].tolist() == expected
     mp.index_arrays(lca)
 
 def test_index_arrays_missing_col_dict(package):
@@ -189,7 +189,7 @@ def test_index_arrays_missing_col_dict(package):
     lca = MockLCA()
     del lca.col_dict
     expected = [(1, 1, 1, 1), (1, 2, 1, 2), (2, 3, 2, 3)]
-    assert mp.data[0]['resources'][0]['indices'].tolist() == expected
+    assert mp.data[0]['matrix-data'][0]['indices'].tolist() == expected
     mp.index_arrays(lca)
 
 def test_functionality_with_empty(tempdir):
@@ -198,7 +198,7 @@ def test_functionality_with_empty(tempdir):
         "id": "one",
         "seed": None,
         "profile": "data-package",
-        "resources": []
+        "resources": [],
     }
     with open(tempdir / "datapackage.json", "w", encoding='utf-8') as f:
         json.dump(datapackage, f)
@@ -266,17 +266,17 @@ def test_seed_functions():
         [(a, b, 'mock', dtype, frmt, metadata)],
     )
     mp = PackagesDataLoader([dirpath], 987654321)
-    sampler = mp.data[0]['resources'][0]['samples']
+    sampler = mp.data[0]['matrix-data'][0]['samples']
     indexer = mp.indexers[0]
     first = [sampler.sample(next(indexer)).sum() for _ in range(100)]
     mp = PackagesDataLoader([dirpath], 987654321)
-    sampler = mp.data[0]['resources'][0]['samples']
+    sampler = mp.data[0]['matrix-data'][0]['samples']
     indexer = mp.indexers[0]
     second = [sampler.sample(next(indexer)).sum() for _ in range(100)]
     assert first == second
 
     mp = PackagesDataLoader([dirpath], 12345)
-    sampler = mp.data[0]['resources'][0]['samples']
+    sampler = mp.data[0]['matrix-data'][0]['samples']
     indexer = mp.indexers[0]
     third = [sampler.sample(next(indexer)).sum() for _ in range(100)]
     assert first != third
@@ -486,7 +486,7 @@ def test_consolidate_multiple_groups(mock_ipa, tempdir):
         (10, 11, 10, 11),
         (12, 13, 12, 13)
     ])
-    for x, y in zip(mp.data[0]['resources'][0]['indices'], expected):
+    for x, y in zip(mp.data[0]['matrix-data'][0]['indices'], expected):
         assert np.allclose(list(x), y)
 
     expected = np.array([
@@ -495,12 +495,12 @@ def test_consolidate_multiple_groups(mock_ipa, tempdir):
         (22, 23, 22, 23),
         (30, 31, 30, 31),
     ])
-    for x, y in zip(mp.data[1]['resources'][0]['indices'], expected):
+    for x, y in zip(mp.data[1]['matrix-data'][0]['indices'], expected):
         assert np.allclose(list(x), y)
 
-    assert mp.data[0]['resources'][0]['samples'].two is None
-    assert mp.data[0]['resources'][0]['samples'].one[0][1] == [4, 4]
-    assert mp.data[0]['resources'][0]['samples'].one[1][1] == [2, 4]
-    assert mp.data[1]['resources'][0]['samples'].two is None
-    assert mp.data[1]['resources'][0]['samples'].one[0][1] == [3, 4]
-    assert mp.data[1]['resources'][0]['samples'].one[1][1] == [1, 4]
+    assert mp.data[0]['matrix-data'][0]['samples'].two is None
+    assert mp.data[0]['matrix-data'][0]['samples'].one[0][1] == [4, 4]
+    assert mp.data[0]['matrix-data'][0]['samples'].one[1][1] == [2, 4]
+    assert mp.data[1]['matrix-data'][0]['samples'].two is None
+    assert mp.data[1]['matrix-data'][0]['samples'].one[0][1] == [3, 4]
+    assert mp.data[1]['matrix-data'][0]['samples'].one[1][1] == [1, 4]

@@ -12,3 +12,7 @@ class IncompatibleIndices(BWParameterError):
 class ConflictingLabels(BWParameterError):
     """Conflicting labels in the presample metadata"""
     pass
+
+class NameConflicts(Exception):
+    """Can't flatten dictionary due to conflicting parameter names"""
+    pass

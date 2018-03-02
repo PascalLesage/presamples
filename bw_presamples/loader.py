@@ -1,7 +1,8 @@
 from .array import IrregularPresamplesArray
 from .errors import IncompatibleIndices, ConflictingLabels
-from .utils import validate_presamples_dirpath
 from .indexer import Indexer
+from .package_interface import ParametersNestedMapping
+from .utils import validate_presamples_dirpath
 from bw2calc.indexing import index_with_arrays
 from bw2calc.matrices import TechnosphereBiosphereMatrixBuilder as MB
 from bw2calc.utils import md5
@@ -57,13 +58,16 @@ class PackagesDataLoader:
     def __init__(self, dirpaths, seed=None):
         self.seed = seed
 
-        self.data = []
+        self.data, self.parameter_metadata = [], []
+
         for dirpath in (dirpaths or []):
             validate_presamples_dirpath(Path(dirpath))
             # Even empty presamples have name and id
             section = self.load_data(Path(dirpath))
-            if section['resources']:
+            if section["matrix-data"]:
                 self.data.append(section)
+            if section['parameter-metadata']:
+                self.parameter_metadata.append(section['parameter-metadata'])
 
         get_seed = lambda x: self.seed if self.seed is not None else x
 
@@ -112,21 +116,31 @@ class PackagesDataLoader:
             open(dirpath / "datapackage.json"),
             encoding="utf-8"
         )
-        results = {
+        data = {
             'name': metadata['name'],
             'id': metadata['id'],
             'seed': metadata['seed'],
-            'resources': []
+            'matrix-data': [],
+            'parameter-metadata': None
         }
-        fltr = lambda x: x['type']
         resources = [obj for obj in metadata["resources"] if obj.get('matrix')]
+        fltr = lambda x: x['type']
         resources.sort(key=fltr)
-
         for key, group in itertools.groupby(resources, fltr):
             group = cls.consolidate(dirpath, list(group))
-            results['resources'].append(group)
+            data['matrix-data'].append(group)
 
-        return results
+        parameter_resources = [
+            obj for obj in metadata['resources'] if obj.get('names')
+        ]
+        if parameter_resources:
+            data['parameter-metadata'] = {
+                'path': dirpath,
+                'resources': parameter_resources,
+                'package_name': metadata['name']
+            }
+
+        return data
 
     @staticmethod
     def consolidate(dirpath, group):
@@ -168,7 +182,7 @@ class PackagesDataLoader:
 
         As this function can be called multiple times, we check for each element if it has already been called, and whether the required mapping dictionary is present."""
         for obj in self.data:
-            for elem in obj['resources']:
+            for elem in obj["matrix-data"]:
                 # Allow for iterative indexing, starting with inventory
                 if elem.get('indexed'):
                     # Already indexed
@@ -196,7 +210,7 @@ class PackagesDataLoader:
     @nonempty
     def update_matrices(self, lca, matrices=None):
         for indexer, obj in zip(self.indexers, self.data):
-            for elem in obj['resources']:
+            for elem in obj["matrix-data"]:
                 try:
                     matrix = getattr(lca, elem['matrix'])
                 except AttributeError:
@@ -219,3 +233,9 @@ class PackagesDataLoader:
                         elem['indices'][elem['row to label']],
                         elem['indices'][elem['row to label']],
                     ] = sample
+
+    def parameters(self):
+        if not hasattr(self, "_packages"):
+            self._packages = [ParametersNestedMapping(**metadata)
+                              for metadata in self.parameter_metadata]
+        return self._packages

@@ -1,4 +1,5 @@
-from .utils import validate_presamples_dirpath
+from .array import IrregularPresamplesArray
+from .utils import validate_presamples_dirpath, check_name_conflicts
 from collections.abc import Mapping
 from pathlib import Path
 import json
@@ -6,17 +7,10 @@ import numpy as np
 import os
 
 
-class NameConflicts(Exception):
-    """Can't flatten dictionary due to conflicting parameter names"""
-    pass
-
-
 class PresamplesPackage:
-    """Base class for presample packages.
+    """Interface for individual presample packages.
 
-    Provides methods common to all presample package classes."""
-
-    """Base class for managing a presamples package. Packages are directories, stored either locally or on a network resource (via `PyFilesystem <https://www.pyfilesystem.org/>`__.
+    Packages are directories, stored either locally or on a network resource (via `PyFilesystem <https://www.pyfilesystem.org/>`__.
 
     Presampled arrays are provided as a list of directory paths. Each directory contains a metadata file, and one or more data files:
 
@@ -94,40 +88,38 @@ class PresamplesPackage:
     @property
     def parameters(self):
         if not hasattr(self, "_parameters"):
-            self._parameters = ParametersNestedMapping(self)
+            self._parameters = ParametersNestedMapping(self.path, self.resources, self.name)
         return self._parameters
 
 
 class ParametersNestedMapping(Mapping):
-    def __init__(self, package):
-        self.package = package
-        self.data = {r['label']: self.load_resource(r) for r in self.resources}
+    def __init__(self, path, resources, package_name):
+        name_lists = [
+            json.load(open(path / obj['names']['filepath'])) for obj in resources
+        ]
+        check_name_conflicts(name_lists)
+        self.mapping = {
+            name: index
+            for lst in name_lists
+            for index, name in enumerate(lst)
+        }
+        self.ipa = IrregularPresamplesArray(*[
+            path / obj['samples']['filepath'] for obj in resources
+        ])
+        self.ids = [(path, package_name, name) for name in self.mapping]
+        self.index = 0
 
-    def load_resource(self, obj):
-        maybe_float = lambda x: float(x) if x.shape in ((), (1,)) else x
-
-        names = json.load(open(os.path.join(self.path, obj['names']['filepath'])))
-        samples = np.load(os.path.join(self.path, obj['samples']['filepath']))
-        return {x: maybe_float(y.ravel()) for x, y in zip(names, samples)}
+    def values(self):
+        return self.ipa.sample(self.index)
 
     def __getitem__(self, key):
-        return self.data[key]
+        return float(self.ipa.sample(self.index)[self.mapping[key]])
 
     def __len__(self):
-        return len(self.data)
+        return len(self.mapping)
 
-    def __contains__(self, k):
-        return k in self.data
+    def __contains__(self, key):
+        return key in self.mapping
 
     def __iter__(self):
-        return iter(self.data)
-
-    @property
-    def name_conflicts(self):
-        return sum(len(o) for o in self.values()) != len({x for v in self.values() for x in v})
-
-    def flattened(self):
-        if self.name_conflicts:
-            raise NameConflicts
-
-        return {y: z for x in self.values() for y, z in x.items()}
+        return iter(self.mapping)

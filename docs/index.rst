@@ -67,7 +67,7 @@ Saving presamples
 
 Presamples are stored in :ref:`presample-directories`, and saved using the function ``create_presamples_package``.
 
-.. autofunction:: bw_presamples.packaging.create_presamples_package
+.. autofunction:: presamples.packaging.create_presamples_package
 
 ``matrix_presamples``
 *********************
@@ -107,7 +107,7 @@ Matrices outside the three with built-in functions (technosphere, biosphere, cf)
 
 .. code-block:: python
 
-    from bw_presamples import FORMATTERS
+    from presamples import FORMATTERS
 
     def my_formatter(indices):
         # do something with the indices

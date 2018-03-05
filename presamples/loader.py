@@ -64,7 +64,7 @@ class PackagesDataLoader:
         for dirpath in (dirpaths or []):
             validate_presamples_dirpath(Path(dirpath))
             # Even empty presamples have name and id
-            section = self.load_data(Path(dirpath))
+            section = self.load_data(Path(dirpath), self.seed)
             self.sample_indexers.append(section['indexer'])
             if section["matrix-data"]:
                 self.data.append(section)
@@ -83,7 +83,7 @@ class PackagesDataLoader:
         return len(self.data)
 
     @classmethod
-    def load_data(cls, dirpath):
+    def load_data(cls, dirpath, seed=None):
         """Load data and metadata from a directory.
 
         This function will consolidate presamples with the same type. We check to make sure the relevant metadata (e.g. row and column labels) is identical when doing such consolidation.
@@ -116,7 +116,7 @@ class PackagesDataLoader:
             open(dirpath / "datapackage.json"),
             encoding="utf-8"
         )
-        get_seed = lambda x: self.seed if self.seed is not None else x
+        get_seed = lambda x: seed if seed is not None else x
         data = {
             'name': metadata['name'],
             'id': metadata['id'],

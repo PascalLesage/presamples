@@ -1,9 +1,9 @@
-# from bw_presamples import (
+# from presamples import (
 #     ParameterPresamples,
 #     create_presamples_package,
 #     append_presamples_package,
 # )
-# from bw_presamples.parameter_presamples import NameConflicts
+# from presamples.parameter_presamples import NameConflicts
 # from pathlib import Path
 # import numpy as np
 # import pytest

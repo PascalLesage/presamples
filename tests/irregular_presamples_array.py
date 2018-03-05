@@ -1,4 +1,4 @@
-from bw_presamples import *
+from presamples import *
 from pathlib import Path
 from scipy.sparse import *
 import numpy as np

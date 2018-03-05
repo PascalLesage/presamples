@@ -1,4 +1,4 @@
-from bw_presamples import Indexer
+from presamples import Indexer
 from pathlib import Path
 from scipy.sparse import *
 import numpy as np

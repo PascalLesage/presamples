@@ -74,6 +74,9 @@ class PackagesDataLoader:
 
         self.empty = not bool(self.data)
 
+        # Advance to first position on the indices
+        self.update_sample_indices()
+
     def __str__(self):
         return "PackagesDataLoader with {} resources".format(
             len(self.data))
@@ -210,7 +213,12 @@ class PackagesDataLoader:
                 elem['indexed'] = True
 
     @nonempty
-    def update_matrices(self, lca, matrices=None):
+    def update_matrices(self, lca, matrices=None, advance_indices=True):
+        if matrices is None and advance_indices:
+            # Advance all the indexers; the assumption here is
+            # that we are in a Monte Carlo iteration.
+            self.update_sample_indices()
+
         for indexer, obj in zip(self.msi, self.data):
             for elem in obj["matrix-data"]:
                 try:

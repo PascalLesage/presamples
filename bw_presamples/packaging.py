@@ -246,6 +246,7 @@ def create_presamples_package(matrix_data=None, parameter_data=None, name=None,
     * ``id_``: Unique id for this collection of presamples. Optional, generated automatically if not set.
     * ``overwrite``: If True, replace an existing presamples package with the same ``_id`` if it exists. Default ``False``
     * ``dirpath``: An optional directory path where presamples can be created. Default is to create a subdirectory in the ``project`` folder.
+    * ``seed``: Seed used by indexer to return array columns in random order. Can be an integer, "sequential" or None.
 
     Returns ``id_`` and the absolute path of the created directory.
 

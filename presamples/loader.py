@@ -59,7 +59,7 @@ class PackagesDataLoader:
         self.seed = seed
 
         self.data, self.parameter_metadata = [], []
-        self.sample_indexers, self.msi, self.psi = [], [], []
+        self.sample_indexers, self.msi = [], []
 
         for dirpath in (dirpaths or []):
             validate_presamples_dirpath(Path(dirpath))
@@ -71,7 +71,6 @@ class PackagesDataLoader:
                 self.msi.append(section['indexer'])
             if section['parameter-metadata']:
                 self.parameter_metadata.append(section['parameter-metadata'])
-                self.psi.append(section['indexer'])
 
         self.empty = not bool(self.data)
 
@@ -139,7 +138,8 @@ class PackagesDataLoader:
             data['parameter-metadata'] = {
                 'path': dirpath,
                 'resources': parameter_resources,
-                'package_name': metadata['name']
+                'package_name': metadata['name'],
+                'sample_index': data['indexer'].index,
             }
 
         return data
@@ -239,10 +239,6 @@ class PackagesDataLoader:
     def update_sample_indices(self):
         for indexer in self.sample_indexers:
             next(indexer)
-
-        if hasattr(self, "_parameters"):
-            for i, o in zip(self.psi, self.parameters):
-                o.index = i
 
     def parameters(self):
         if not hasattr(self, "_parameters"):

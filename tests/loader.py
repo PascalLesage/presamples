@@ -24,6 +24,7 @@ class MockLCA:
         self.row_dict = {x: 2 * x for x in range(5)}
         self.col_dict = {x: 3 * x for x in range(5)}
 
+
 @pytest.fixture
 def tempdir():
     with tempfile.TemporaryDirectory() as d:
@@ -73,6 +74,7 @@ def test_init(package):
 
 def test_update_matrices(package):
     mp = PackagesDataLoader([package])
+    mp.update_sample_indices()
     lca = MockLCA()
     mp.update_matrices(lca)
     assert lca.matrix[1, 1] == 100
@@ -117,6 +119,7 @@ def test_update_matrices_technosphere():
 
     lca = LCA()
     mp = PackagesDataLoader([dirpath])
+    mp.update_sample_indices()
     mp.index_arrays(lca)
     mp.update_matrices(lca)
     assert lca.technosphere_matrix[0, 0] == 10
@@ -145,6 +148,7 @@ def test_update_matrices_one_dimensional():
 
     lca = LCA()
     mp = PackagesDataLoader([dirpath])
+    mp.update_sample_indices()
     mp.index_arrays(lca)
     mp.update_matrices(lca)
     assert lca.characterization_matrix[0, 0] == 10

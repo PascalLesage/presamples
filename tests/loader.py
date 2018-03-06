@@ -6,8 +6,8 @@ import os
 import pytest
 import tempfile
 
-from bw_presamples import *
-from bw_presamples.errors import *
+from presamples import *
+from presamples.errors import *
 try:
     from bw2data import mapping
     from bw2data.tests import bw2test
@@ -23,6 +23,7 @@ class MockLCA:
                  self.matrix[i, j] = 0
         self.row_dict = {x: 2 * x for x in range(5)}
         self.col_dict = {x: 3 * x for x in range(5)}
+
 
 @pytest.fixture
 def tempdir():
@@ -267,17 +268,17 @@ def test_seed_functions():
     )
     mp = PackagesDataLoader([dirpath], 987654321)
     sampler = mp.data[0]['matrix-data'][0]['samples']
-    indexer = mp.indexers[0]
+    indexer = mp.sample_indexers[0]
     first = [sampler.sample(next(indexer)).sum() for _ in range(100)]
     mp = PackagesDataLoader([dirpath], 987654321)
     sampler = mp.data[0]['matrix-data'][0]['samples']
-    indexer = mp.indexers[0]
+    indexer = mp.sample_indexers[0]
     second = [sampler.sample(next(indexer)).sum() for _ in range(100)]
     assert first == second
 
     mp = PackagesDataLoader([dirpath], 12345)
     sampler = mp.data[0]['matrix-data'][0]['samples']
-    indexer = mp.indexers[0]
+    indexer = mp.sample_indexers[0]
     third = [sampler.sample(next(indexer)).sum() for _ in range(100)]
     assert first != third
 
@@ -298,7 +299,7 @@ def mock_ipa(monkeypatch):
             self.two = two
 
     monkeypatch.setattr(
-        'bw_presamples.loader.IrregularPresamplesArray',
+        'presamples.loader.IrregularPresamplesArray',
         FakeIPA
     )
 

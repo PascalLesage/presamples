@@ -18,6 +18,6 @@ before_install:
   - pip install -U --no-deps https://bitbucket.org/cmutel/brightway2-calc/get/presamples.zip
 install: "python setup.py develop"
 script:
-  - pwd; pytest --cov=bw_presamples
+  - pwd; pytest --cov=presamples
 after_success:
   - coveralls

@@ -6,7 +6,7 @@ root_dir = os.path.dirname(__file__)
 if root_dir:
     os.chdir(root_dir)
 
-for dirpath, dirnames, filenames in os.walk('bw_presamples'):
+for dirpath, dirnames, filenames in os.walk('presamples'):
     # Ignore dirnames that start with '.'
     if '__init__.py' in filenames:
         pkg = dirpath.replace(os.path.sep, '.')
@@ -24,7 +24,7 @@ def package_files(directory):
 
 
 setup(
-    name='bw-presamples',
+    name='presamples',
     version="0.0.dev0",
     packages=packages,
     author="Pascal Lesage",

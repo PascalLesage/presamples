@@ -7,9 +7,9 @@ import pytest
 import tempfile
 import time
 
-from bw_presamples import create_presamples_package
-from bw_presamples.campaigns import *
-from bw_presamples.errors import MissingPresample
+from presamples import create_presamples_package
+from presamples.campaigns import *
+from presamples.errors import MissingPresample
 try:
     from bw2data.tests import bw2test
 except ImportError:

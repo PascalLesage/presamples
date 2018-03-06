@@ -59,21 +59,23 @@ class PackagesDataLoader:
         self.seed = seed
 
         self.data, self.parameter_metadata = [], []
-        self.sample_indexers, self.msi, self.psi = [], [], []
+        self.sample_indexers, self.msi = [], []
 
         for dirpath in (dirpaths or []):
             validate_presamples_dirpath(Path(dirpath))
             # Even empty presamples have name and id
-            section = self.load_data(Path(dirpath))
+            section = self.load_data(Path(dirpath), self.seed)
             self.sample_indexers.append(section['indexer'])
             if section["matrix-data"]:
                 self.data.append(section)
                 self.msi.append(section['indexer'])
             if section['parameter-metadata']:
                 self.parameter_metadata.append(section['parameter-metadata'])
-                self.psi.append(section['indexer'])
 
         self.empty = not bool(self.data)
+
+        # Advance to first position on the indices
+        self.update_sample_indices()
 
     def __str__(self):
         return "PackagesDataLoader with {} resources".format(
@@ -83,7 +85,7 @@ class PackagesDataLoader:
         return len(self.data)
 
     @classmethod
-    def load_data(cls, dirpath):
+    def load_data(cls, dirpath, seed=None):
         """Load data and metadata from a directory.
 
         This function will consolidate presamples with the same type. We check to make sure the relevant metadata (e.g. row and column labels) is identical when doing such consolidation.
@@ -116,7 +118,7 @@ class PackagesDataLoader:
             open(dirpath / "datapackage.json"),
             encoding="utf-8"
         )
-        get_seed = lambda x: self.seed if self.seed is not None else x
+        get_seed = lambda x: seed if seed is not None else x
         data = {
             'name': metadata['name'],
             'id': metadata['id'],
@@ -139,7 +141,8 @@ class PackagesDataLoader:
             data['parameter-metadata'] = {
                 'path': dirpath,
                 'resources': parameter_resources,
-                'package_name': metadata['name']
+                'package_name': metadata['name'],
+                'sample_index': data['indexer'].index,
             }
 
         return data
@@ -210,7 +213,12 @@ class PackagesDataLoader:
                 elem['indexed'] = True
 
     @nonempty
-    def update_matrices(self, lca, matrices=None):
+    def update_matrices(self, lca, matrices=None, advance_indices=True):
+        if matrices is None and advance_indices:
+            # Advance all the indexers; the assumption here is
+            # that we are in a Monte Carlo iteration.
+            self.update_sample_indices()
+
         for indexer, obj in zip(self.msi, self.data):
             for elem in obj["matrix-data"]:
                 try:
@@ -239,10 +247,6 @@ class PackagesDataLoader:
     def update_sample_indices(self):
         for indexer in self.sample_indexers:
             next(indexer)
-
-        if hasattr(self, "_parameters"):
-            for i, o in zip(self.psi, self.parameters):
-                o.index = i
 
     def parameters(self):
         if not hasattr(self, "_parameters"):

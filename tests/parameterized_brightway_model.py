@@ -1,4 +1,4 @@
-# from bw_presamples import PresamplesPackage
+# from presamples import PresamplesPackage
 # import numpy as np
 # import pytest
 
@@ -12,7 +12,7 @@
 #         ProjectParameter,
 #         parameters,
 #     )
-#     from bw_presamples.models import ParameterizedBrightwayModel
+#     from presamples.models import ParameterizedBrightwayModel
 # except ImportError:
 #     bw2test = pytest.mark.skip
 

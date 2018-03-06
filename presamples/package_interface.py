@@ -93,7 +93,7 @@ class PresamplesPackage:
 
 
 class ParametersMapping(Mapping):
-    def __init__(self, path, resources, package_name):
+    def __init__(self, path, resources, package_name, sample_index=None):
         name_lists = [
             json.load(open(path / obj['names']['filepath'])) for obj in resources
         ]
@@ -107,7 +107,7 @@ class ParametersMapping(Mapping):
             path / obj['samples']['filepath'] for obj in resources
         ])
         self.ids = [(path, package_name, name) for name in self.mapping]
-        self.index = 0
+        self.index = sample_index or 0
 
     def values(self):
         return self.ipa.sample(self.index)

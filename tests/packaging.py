@@ -5,8 +5,8 @@ import os
 import pytest
 import tempfile
 
-from bw_presamples import *
-from bw_presamples.packaging import MAX_SIGNED_32BIT_INT
+from presamples import *
+from presamples.packaging import MAX_SIGNED_32BIT_INT
 try:
     from bw2data import mapping
     from bw2data.tests import bw2test

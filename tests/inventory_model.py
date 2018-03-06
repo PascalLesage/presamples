@@ -1,8 +1,8 @@
 import numpy as np
 import pytest
 
-from bw_presamples.models.inventory_base import InventoryBaseModel
-from bw_presamples import PackagesDataLoader
+from presamples.models.inventory_base import InventoryBaseModel
+from presamples import PackagesDataLoader
 try:
     from bw2data.tests import bw2test
     from bw2data import Database

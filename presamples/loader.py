@@ -83,7 +83,7 @@ class PackagesDataLoader:
         )
 
     def __len__(self):
-        return len(self.matrix_data)
+        return len(self.dirpaths)
 
     @classmethod
     def load_data(cls, dirpath, seed=None):
@@ -249,6 +249,7 @@ class PackagesDataLoader:
         for indexer in self.sample_indexers:
             next(indexer)
 
+    @property
     def parameters(self):
         if not hasattr(self, "_parameters"):
             self._parameters = [

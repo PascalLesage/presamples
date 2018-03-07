@@ -25,7 +25,8 @@
 #         n1 = list('ABCD')
 #         n2 = list('DEF')
 #         id_, dirpath = create_presamples_package(
-#             parameter_presamples=[(s1, n1, 'winter'), (s2, n2, 'summer')], name='foo', id_='bar', dirpath=dirpath
+#             parameter_data=[(s1, n1, 'winter'), (s2, n2, 'summer')],
+#             name='foo', id_='bar', dirpath=dirpath
 #         )
 #         yield dirpath
 

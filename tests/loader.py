@@ -57,15 +57,16 @@ def package():
     return dirpath
 
 @pytest.fixture
-def basic():
+def parameters_fixture():
     with tempfile.TemporaryDirectory() as d:
         dirpath = Path(d)
         s1 = np.arange(16, dtype=np.int64).reshape((4, 4))
         s2 = np.arange(12, dtype=np.int64).reshape((3, 4))
         n1 = list('ABCD')
-        n2 = list('DEF')
+        n2 = list('EFG')
         id_, dirpath = create_presamples_package(
-            parameter_presamples=[(s1, n1, 'winter'), (s2, n2, 'summer')], name='foo', id_='bar', dirpath=dirpath
+            parameter_data=[(s1, n1, 'winter'), (s2, n2, 'summer')],
+            name='foo', id_='bar', dirpath=dirpath
         )
         yield dirpath
 
@@ -529,3 +530,10 @@ def test_consolidate_multiple_groups(mock_ipa, tempdir):
 
 def test_accepts_campaign_as_input():
     pass
+
+def test_parameters_package(package, parameters_fixture):
+    mp = PackagesDataLoader([package, parameters_fixture])
+    assert len(mp) == 2
+    assert len(mp.parameters) == 1
+    assert len(mp.matrix_data) == 1
+    assert "PackagesDataLoader with 2 packages" in str(mp)

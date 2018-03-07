@@ -103,8 +103,9 @@ class ParametersMapping(Mapping):
             for lst in name_lists
             for index, name in enumerate(lst)
         }
-        self.ipa = IrregularPresamplesArray(*[
-            path / obj['samples']['filepath'] for obj in resources
+        self.ipa = IrregularPresamplesArray([
+            (path / obj['samples']['filepath'], obj['samples']['shape'])
+            for obj in resources
         ])
         self.ids = [(path, package_name, name) for name in self.mapping]
         self.index = sample_index or 0

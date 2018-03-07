@@ -143,7 +143,7 @@ class PackagesDataLoader:
                 'path': dirpath,
                 'resources': parameter_resources,
                 'package_name': metadata['name'],
-                'sample_index': data['indexer'].index,
+                'sample_index': data['indexer'],
             }
 
         return data

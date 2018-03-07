@@ -1,4 +1,5 @@
 from .array import IrregularPresamplesArray
+from .indexer import Indexer
 from .utils import validate_presamples_dirpath, check_name_conflicts
 from collections.abc import Mapping
 from pathlib import Path
@@ -54,6 +55,8 @@ class PresamplesPackage:
     def __init__(self, path):
         self.path = Path(path)
         validate_presamples_dirpath(path)
+        self.indexer = Indexer(self.seed)
+        next(self.indexer)
 
     @property
     def metadata(self):
@@ -69,7 +72,7 @@ class PresamplesPackage:
 
     def change_seed(self, new):
         """Change seed to ``new``"""
-        current = json.load(open())
+        current = self.metadata
         current['seed'] = new
         with open(self.path / "datapackage.json", "w", encoding='utf-8') as f:
             json.dump(current, f, indent=2, ensure_ascii=False)
@@ -88,12 +91,12 @@ class PresamplesPackage:
     @property
     def parameters(self):
         if not hasattr(self, "_parameters"):
-            self._parameters = ParametersMapping(self.path, self.resources, self.name)
+            self._parameters = ParametersMapping(self.path, self.resources, self.name, self.indexer)
         return self._parameters
 
 
 class ParametersMapping(Mapping):
-    def __init__(self, path, resources, package_name, sample_index=None):
+    def __init__(self, path, resources, package_name, sample_index=0):
         name_lists = [
             json.load(open(path / obj['names']['filepath'])) for obj in resources
         ]
@@ -108,7 +111,21 @@ class ParametersMapping(Mapping):
             for obj in resources
         ])
         self.ids = [(path, package_name, name) for name in self.mapping]
-        self.index = sample_index or 0
+        self.index = sample_index
+
+    # Changing the Indexer.index value changes the object, meaning our reference
+    # will break. So we need to pass the Indexer object and lookup the `index`
+    # value dynamically
+    def _get_index(self):
+        if isinstance(self.__index, Indexer):
+            return self.__index.index
+        else:
+            return self.__index
+
+    def _set_index(self, value):
+        self.__index = value
+
+    index = property(_get_index, _set_index)
 
     def values(self):
         return self.ipa.sample(self.index)

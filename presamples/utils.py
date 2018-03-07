@@ -46,7 +46,7 @@ def validate_presamples_dirpath(path):
             assert md5(path / resource['names']['filepath']) == \
                 resource['names']['md5']
 
-def check_name_conflicts(*lists):
+def check_name_conflicts(lists):
     """Check if there are overlapping names in ``lists``.
 
     Each element of ``lists`` is an iterable of parameter names."""

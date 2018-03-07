@@ -160,10 +160,10 @@ def test_presample_creation():
     assert package.description is None
     print(package.path)
     mp = PackagesDataLoader([package.path])
-    assert len(mp.data) == 1
-    assert mp.data[0]['name'] == 'test'
-    assert 'id' in mp.data[0]
-    b, t = mp.data[0]['matrix-data']
+    assert len(mp.matrix_data) == 1
+    assert mp.matrix_data[0]['name'] == 'test'
+    assert 'id' in mp.matrix_data[0]
+    b, t = mp.matrix_data[0]['matrix-data']
     assert b['matrix'] == 'biosphere_matrix'
     assert t['matrix'] == 'technosphere_matrix'
     assert b['samples'].data[0][0].shape == (2, 5)

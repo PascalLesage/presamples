@@ -127,6 +127,11 @@ class ParametersMapping(Mapping):
 
     index = property(_get_index, _set_index)
 
+    def items(self):
+        sample = self.values()
+        for key, i in self.mapping.items():
+            yield (key, float(sample[i]))
+
     def values(self):
         return self.ipa.sample(self.index)
 

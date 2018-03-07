@@ -31,11 +31,16 @@ class ParameterizedBrightwayModel:
         self.data = {}
         self.matrix_data = []
 
-    def load_existing(self, fp, labels=None):
-        """Add existing parameter presamples to ``self.global_params``."""
-        for key, value in ParameterPresamples(fp, labels=labels).items():
+    def load_existing(self, fp, only=None):
+        """Add existing parameter presamples to ``self.global_params``.
+
+        ``only`` is an optional list of parameter names to filter; if provided, all other names are ignored.
+        """
+        for key, value in PresamplesPackage(fp).parameters.items():
+            if only and key not in only:
+                continue
             if key in self.global_params:
-                warnings.warn("Replacing existing parameter group: {}".format(key))
+                warnings.warn("Replacing existing named parameter: {}".format(key))
             self.global_params[key] = value
 
     def load_parameter_data(self):
@@ -82,11 +87,10 @@ class ParameterizedBrightwayModel:
                 return new, results
 
         data = {}
-        already = {key for obj in self.global_params.values() for key in obj}
-        groups, data = process_group(self.group, already)
+        groups, data = process_group(self.group, set(self.global_params))
         groups = groups.difference(set(self.global_params))
         while groups:
-            new_groups, new_data = process_group(groups.pop(), already)
+            new_groups, new_data = process_group(groups.pop(), set(self.global_params))
             groups = groups.union(new_groups).difference(set(self.global_params))
             data.update(new_data)
 
@@ -94,7 +98,7 @@ class ParameterizedBrightwayModel:
         # self.global_params. This can occur if a presample includes part of
         # a group - we keep the "fixed" values.
         # TODO: Make sure this behaviour is documented and explained!
-        data = {k: v for k, v in data.items() if k not in already}
+        data = {k: v for k, v in data.items() if k not in self.global_params}
 
         self.data = data
         return self.data
@@ -132,7 +136,7 @@ class ParameterizedBrightwayModel:
         self._convert_amounts_to_floats()
         result = ParameterSet(
             self.data,
-            self._flatten_global_params(self.global_params)
+            self.global_params
         ).evaluate()
         if update_amounts:
             for key, value in self.data.items():
@@ -145,7 +149,7 @@ class ParameterizedBrightwayModel:
         Returns Monte Carlo results (dictionary by parameter name). Also modifies ``amount`` field in-place if ``update_amounts``."""
         result = ParameterSet(
             self.data,
-            self._flatten_global_params(self.global_params)
+            self.global_params
         ).evaluate_monte_carlo(iterations)
         if update_amounts:
             for key, value in self.data.items():
@@ -164,7 +168,7 @@ class ParameterizedBrightwayModel:
 
         interpreter = ParameterSet(
             self.data,
-            self._flatten_global_params(self.global_params)
+            self.global_params
         ).get_interpreter(evaluate_first=False)
         queryset = ParameterizedExchange.select().where(
             ParameterizedExchange.group == self.group
@@ -215,9 +219,3 @@ class ParameterizedBrightwayModel:
             return DatabaseParameter, 'database'
         else:
             return ActivityParameter, 'activity'
-
-    def _flatten_global_params(self, gp):
-        """Flatten nested dictionary of ``{group name: {name: data}}`` to ``{name: data}``.
-
-        Assumes names are namespaced so there are no collisions."""
-        return {y: z for v in gp.values() for y, z in v.items()}

@@ -207,6 +207,10 @@ def test_index_arrays_missing_row_dict(package):
     assert mp.matrix_data[0]['matrix-data'][0]['indices'].tolist() == expected
     mp.index_arrays(lca)
 
+def test_start_with_indexer_advanced(package):
+    mp = PackagesDataLoader([package])
+    assert mp.sample_indexers[0].index is not None
+
 def test_index_arrays_missing_col_dict(package):
     mp = PackagesDataLoader([package])
     lca = MockLCA()
@@ -291,6 +295,7 @@ def test_seed_functions():
     mp = PackagesDataLoader([dirpath], 987654321)
     sampler = mp.matrix_data[0]['matrix-data'][0]['samples']
     indexer = mp.sample_indexers[0]
+    assert indexer.index is not None
     first = [sampler.sample(next(indexer)).sum() for _ in range(100)]
     mp = PackagesDataLoader([dirpath], 987654321)
     sampler = mp.matrix_data[0]['matrix-data'][0]['samples']
@@ -528,8 +533,16 @@ def test_consolidate_multiple_groups(mock_ipa, tempdir):
     assert mp.matrix_data[1]['matrix-data'][0]['samples'].one[0][1] == [3, 4]
     assert mp.matrix_data[1]['matrix-data'][0]['samples'].one[1][1] == [1, 4]
 
-def test_accepts_campaign_as_input():
-    pass
+def test_accepts_campaign_as_input(package, parameters_fixture):
+    pr1 = PresampleResource.create(name='one', path=package)
+    pr2 = PresampleResource.create(name='two', path=parameters_fixture)
+    c = Campaign.create(name='test-campaign')
+    c.add_presample_resource(pr1)
+    c.add_presample_resource(pr2)
+    mp = PackagesDataLoader(c)
+    assert len(mp) == 2
+    assert len(mp.parameters) == 1
+    assert len(mp.matrix_data) == 1
 
 def test_parameters_package(package, parameters_fixture):
     mp = PackagesDataLoader([package, parameters_fixture])
@@ -537,3 +550,19 @@ def test_parameters_package(package, parameters_fixture):
     assert len(mp.parameters) == 1
     assert len(mp.matrix_data) == 1
     assert "PackagesDataLoader with 2 packages" in str(mp)
+
+    assert mp.parameters[0]['E'] in range(4)
+
+def test_update_sample_indices():
+    class MockLoader(PackagesDataLoader):
+        def __init__(self):
+            self.sample_indexers = [Indexer(12345)]
+
+    ml = MockLoader()
+    assert len(ml.sample_indexers) == 1
+    assert ml.sample_indexers[0].index is None
+
+    ml.update_sample_indices()
+    first = ml.sample_indexers[0].index
+    ml.update_sample_indices()
+    assert ml.sample_indexers[0].index != first

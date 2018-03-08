@@ -69,6 +69,10 @@ class PresamplesPackage:
     @property
     def seed(self):
         return self.metadata['seed']
+        
+    @property
+    def ncols(self):
+        return self.metadata['ncols']
 
     def change_seed(self, new):
         """Change seed to ``new``"""

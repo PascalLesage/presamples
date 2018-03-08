@@ -33,7 +33,7 @@ to_2d = lambda x: np.reshape(x, (1, -1)) if len(x.shape) == 1 else x
 def split_inventory_presamples(samples, indices):
     """Split technosphere and biosphere presamples.
 
-    ``samples`` is a Numpy array with rows of exchanges and columns of Monte Carlo iterations. ``indices`` is a list of ``[(input key, output key, type)]``, where ``type`` is like "biosphere" or "technosphere". Everything which isn't type ``biosphere`` will be added to the technosphere presamples.
+    ``samples`` is a Numpy array with rows of exchanges and columns of samples. ``indices`` is a list of ``[(input key, output key, type)]``, where ``type`` is like "biosphere" or "technosphere". Everything which isn't type ``biosphere`` will be added to the technosphere presamples.
 
     Returns a list of ((biosphere samples, biosphere indices, label), (technosphere samples, technosphere indices, label)) - but will skip either element if there are no samples.
 
@@ -239,7 +239,7 @@ def create_presamples_package(matrix_data=None, parameter_data=None, name=None,
 
     ``matrix_data`` is a list of :ref:`matrix-presamples`; parameter_data`` is a list of :ref:`parameter-presamples`. Both are allowed, but at least one type of presamples must be given. The documentation gives more details on these input arguments.
 
-    Both matrix and parameter data should have the same number of possible values (i.e same number of Monte Carlo iterations).
+    Both matrix and parameter data should have the same number of possible values (i.e same number of samples).
 
     The following arguments are optional:
     * ``name``: A human-readable name for these samples.
@@ -290,7 +290,7 @@ def create_presamples_package(matrix_data=None, parameter_data=None, name=None,
         if num_iterations is None:
             num_iterations = samples.shape[1]
         if samples.shape[1] != num_iterations:
-            raise ValueError("Inconsistent number of Monte Carlo iterations: "
+            raise ValueError("Inconsistent number of samples: "
                 "{} and {}".format(samples.shape[1], num_iterations))
 
         indices, metadata = format_matrix_data(indices, kind, *other)
@@ -314,7 +314,7 @@ def create_presamples_package(matrix_data=None, parameter_data=None, name=None,
         if num_iterations is None:
             num_iterations = samples.shape[1]
         if samples.shape[1] != num_iterations:
-            raise ValueError("Inconsistent number of Monte Carlo iterations: "
+            raise ValueError("Inconsistent number of samples: "
                 "{} and {}".format(samples.shape[1], num_iterations))
 
         result = write_parameter_data(samples, names, label, dirpath,
@@ -336,7 +336,7 @@ def append_presamples_package(dirpath, matrix_data=None, parameter_data=None):
 
     ``matrix_data`` is a list of :ref:`matrix-presamples`; parameter_data`` is a list of :ref:`parameter-presamples`. Both are allowed, but at least one type of presamples must be given. The documentation gives more details on these input arguments.
 
-    Both matrix and parameter data should have the same number of possible values (i.e same number of Monte Carlo iterations).
+    Both matrix and parameter data should have the same number of possible values (i.e same number of samples).
 
     The following arguments are optional:
 
@@ -372,7 +372,7 @@ def append_presamples_package(dirpath, matrix_data=None, parameter_data=None):
         if num_iterations is None:
             num_iterations = samples.shape[1]
         if samples.shape[1] != num_iterations:
-            raise ValueError("Inconsistent number of Monte Carlo iterations: "
+            raise ValueError("Inconsistent number of samples: "
                 "{} and {}".format(samples.shape[1], num_iterations))
 
         indices, metadata = format_matrix_data(indices, kind, *other)
@@ -394,7 +394,7 @@ def append_presamples_package(dirpath, matrix_data=None, parameter_data=None):
         if num_iterations is None:
             num_iterations = samples.shape[1]
         if samples.shape[1] != num_iterations:
-            raise ValueError("Inconsistent number of Monte Carlo iterations: "
+            raise ValueError("Inconsistent number of samples: "
                 "{} and {}".format(samples.shape[1], num_iterations))
 
         result = write_parameter_data(

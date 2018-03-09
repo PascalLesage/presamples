@@ -158,7 +158,6 @@ def test_presample_creation():
     assert package.id == 1
     assert package.name == "test"
     assert package.description is None
-    print(package.path)
     mp = PackagesDataLoader([package.path])
     assert len(mp.matrix_data) == 1
     assert mp.matrix_data[0]['name'] == 'test'

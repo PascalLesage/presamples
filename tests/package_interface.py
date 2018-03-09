@@ -53,7 +53,6 @@ def test_parameters(parameters_package):
     assert np.allclose(p['E'], range(4))
     assert np.allclose(p['G'], range(8, 12))
     assert isinstance(p.index, int)
-    print(p.ids)
     expected = [
         (parameters_package, 'foo', o)
         for o in 'ABCDEFG'

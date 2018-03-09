@@ -12,7 +12,7 @@ class Indexer(RandomState):
     ncols: Number of columns in the array for which a column index is returned.
     seed: Seed for RNG. Optional. If seed is "sequential", then starts counting from zero."""
 
-    def __init__(self, ncols=0, seed=None):
+    def __init__(self, ncols, seed=None):
         self.ncols = ncols
         self.seed_value, self.count, self.index = seed, 0, None
         super().__init__(None if seed == 'sequential' else seed)

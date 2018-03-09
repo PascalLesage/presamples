@@ -55,7 +55,7 @@ class PresamplesPackage:
     def __init__(self, path):
         self.path = Path(path)
         validate_presamples_dirpath(path)
-        self.indexer = Indexer(self.seed)
+        self.indexer = Indexer(self.ncols, self.seed)
         next(self.indexer)
 
     @property

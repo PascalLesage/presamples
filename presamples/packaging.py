@@ -320,7 +320,7 @@ def create_presamples_package(matrix_data=None, parameter_data=None, name=None,
         result = write_parameter_data(samples, names, label, dirpath,
                                             offset + index, id_)
         datapackage['resources'].append(result)
-    
+
     datapackage['ncols'] = num_iterations
 
     with open(dirpath / "datapackage.json", "w", encoding='utf-8') as f:

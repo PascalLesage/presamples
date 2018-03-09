@@ -8,7 +8,7 @@ class RegularPresamplesArrays:
 
     Input arguments:
 
-    * ``filepaths``: An iterable of (Numpy array filepath, shape as tuple).
+    * ``filepaths``: An iterable of Numpy array filepaths.
 
     """
     def __init__(self, filepaths):
@@ -17,7 +17,7 @@ class RegularPresamplesArrays:
             np.load(str(fp), mmap_mode='r')
             for fp in filepaths
         ]
-        self.start_indices = np.cumsum([0] + [shape[0] for _, shape in filepaths])
+        self.start_indices = np.cumsum([0] + [array.shape[0] for array in self.data])
 
     def sample(self, index):
         """Draw a new sample from the pre-sampled arrays"""

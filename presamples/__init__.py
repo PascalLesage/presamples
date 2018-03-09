@@ -5,7 +5,7 @@ __all__ = [
     'create_presamples_package',
     'FORMATTERS',
     'Indexer',
-    'IrregularPresamplesArray',
+    'RegularPresamplesArrays',
     'PackagesDataLoader',
     'PresampleResource',
     'PresamplesPackage',
@@ -17,7 +17,7 @@ __version__ = (0, 0, 'dev0')
 
 from .campaigns import Campaign, PresampleResource
 from .indexer import Indexer
-from .array import IrregularPresamplesArray
+from .array import RegularPresamplesArrays
 from .packaging import (
     append_presamples_package,
     create_presamples_package,

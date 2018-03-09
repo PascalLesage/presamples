@@ -23,8 +23,8 @@ def dirpath():
 
 def test_loading(arrays):
     dirpath, a, b = arrays
-    ipa = IrregularPresamplesArray(
-        [(dirpath / "a.npy", (5, 5)), (dirpath / "b.npy", (2, 5))]
+    ipa = RegularPresamplesArrays(
+        [dirpath / "a.npy", dirpath / "b.npy"]
     )
     (h, i), (j, k) = ipa.data
     assert np.allclose(a, h)
@@ -34,8 +34,8 @@ def test_loading(arrays):
 
 def test_sampling(arrays):
     dirpath, a, b = arrays
-    ipa = IrregularPresamplesArray(
-        [(dirpath / "a.npy", (5, 5)), (dirpath / "b.npy", (2, 5))]
+    ipa = RegularPresamplesArrays(
+        [dirpath / "a.npy", dirpath / "b.npy"]
     )
     assert ipa.sample(0).dtype == a.dtype
     assert ipa.sample(0).shape == (7,)
@@ -45,11 +45,11 @@ def test_sampling(arrays):
 
 def test_reproducible_sampling(arrays):
     dirpath, a, b = arrays
-    first = IrregularPresamplesArray(
-        [(dirpath / "a.npy", (5, 5)), (dirpath / "b.npy", (2, 5))]
+    first = RegularPresamplesArrays(
+        [dirpath / "a.npy", dirpath / "b.npy"]
     )
-    second = IrregularPresamplesArray(
-        [(dirpath / "a.npy", (5, 5)), (dirpath / "b.npy", (2, 5))]
+    second = RegularPresamplesArrays(
+        [dirpath / "a.npy", dirpath / "b.npy"]
     )
     i = Indexer()
     for _ in range(100):
@@ -62,11 +62,11 @@ def test_reproducible_sampling_heterogeneous(dirpath):
     b = np.arange(100).reshape((25, 4))
     np.save(dirpath / "a.npy", a, allow_pickle=False)
     np.save(dirpath / "b.npy", b, allow_pickle=False)
-    first = IrregularPresamplesArray(
-        [(dirpath / "a.npy", (500, 50)), (dirpath / "b.npy", (25, 4))]
+    first = RegularPresamplesArrays(
+        [dirpath / "a.npy", dirpath / "b.npy"]
     )
-    second = IrregularPresamplesArray(
-        [(dirpath / "a.npy", (500, 50)), (dirpath / "b.npy", (25, 4))]
+    second = RegularPresamplesArrays(
+        [dirpath / "a.npy", dirpath / "b.npy"]
     )
     i = Indexer()
     for _ in range(100):
@@ -77,7 +77,7 @@ def test_reproducible_sampling_heterogeneous(dirpath):
 def test_reproducible_sampling_single_column(dirpath):
     a = np.random.random(size=(500, 1))
     np.save(dirpath / "a.npy", a, allow_pickle=False)
-    ipa = IrregularPresamplesArray([(dirpath / "a.npy", (500, 1))])
+    ipa = RegularPresamplesArrays([dirpath / "a.npy"])
     i = Indexer()
     for _ in range(100):
         assert ipa.sample(next(i)).shape == (500,)

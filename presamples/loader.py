@@ -1,4 +1,4 @@
-from .array import IrregularPresamplesArray
+from .array import RegularPresamplesArrays
 from .errors import IncompatibleIndices, ConflictingLabels
 from .indexer import Indexer
 from .package_interface import IndexedParametersMapping
@@ -91,7 +91,7 @@ class PackagesDataLoader:
 
         This function will consolidate presamples with the same type. We check to make sure the relevant metadata (e.g. row and column labels) is identical when doing such consolidation.
 
-        Will also instantiate ``IrregularPresamplesArray`` objects.
+        Will also instantiate ``RegularPresamplesArrays`` objects.
 
         Returns a dictionary with a list of resources:
 
@@ -102,7 +102,7 @@ class PackagesDataLoader:
                 'id': uuid,
                 'resources': [{
                     'type': string,
-                    'samples': IrregularPresamplesArray instance,
+                    'samples': RegularPresamplesArrays instance,
                     'indices': Numpy array,
                     'matrix': string,
                     "row from label": string,
@@ -173,7 +173,7 @@ class PackagesDataLoader:
         if not len({o.dtype for o in indices}) == 1:
             raise IncompatibleIndices
         indices = np.hstack(indices)
-        samples = IrregularPresamplesArray([
+        samples = RegularPresamplesArrays([
             (dirpath / el['samples']['filepath'])
             for el in group
         ])

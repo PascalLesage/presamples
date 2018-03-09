@@ -83,7 +83,7 @@ def test_init(package):
     for key in ('row from label', 'row to label', 'row dict',
                 'col from label', 'col to label', 'col dict'):
         assert key in resources
-    assert isinstance(resources['samples'], IrregularPresamplesArray)
+    assert isinstance(resources['samples'], RegularPresamplesArrays)
     assert isinstance(resources['indices'], np.ndarray)
 
 def test_str(package):
@@ -326,7 +326,7 @@ def mock_ipa(monkeypatch):
             self.two = two
 
     monkeypatch.setattr(
-        'presamples.loader.IrregularPresamplesArray',
+        'presamples.loader.RegularPresamplesArrays',
         FakeIPA
     )
 

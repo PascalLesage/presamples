@@ -1,4 +1,4 @@
-from .array import IrregularPresamplesArray
+from .array import RegularPresamplesArrays
 from .indexer import Indexer
 from .utils import validate_presamples_dirpath, check_name_conflicts
 from collections.abc import Mapping
@@ -110,7 +110,7 @@ class ParametersMapping(Mapping):
             for i, lst in enumerate(name_lists)
             for j, name in enumerate(lst)
         }
-        self.ipa = IrregularPresamplesArray([
+        self.ipa = RegularPresamplesArrays([
             path / obj['samples']['filepath']
             for obj in resources
         ])

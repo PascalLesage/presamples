@@ -1,10 +1,10 @@
 import numpy as np
 
 
-class IrregularPresamplesArray:
+class RegularPresamplesArrays:
     """A wrapper around a list of memory-mapped Numpy arrays with heterogeneous shapes.
 
-    This class provides a simple way to consistently sample arrays with different shapes and datatypes.
+    This class provides a simple way to consistently multiple arrays with the same number of columns.
 
     Input arguments:
 

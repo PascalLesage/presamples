@@ -124,9 +124,10 @@ class PackagesDataLoader:
             'name': metadata['name'],
             'id': metadata['id'],
             'seed': metadata['seed'],
+            'ncols': metadata['ncols'],
             'matrix-data': [],
             'parameter-metadata': None,
-            'indexer': Indexer(get_seed(metadata['seed']))
+            'indexer': Indexer(metadata['ncols'], get_seed(metadata['seed']))
         }
         resources = [obj for obj in metadata["resources"] if obj.get('matrix')]
         fltr = lambda x: x['type']
@@ -173,7 +174,7 @@ class PackagesDataLoader:
             raise IncompatibleIndices
         indices = np.hstack(indices)
         samples = IrregularPresamplesArray([
-            (dirpath / el['samples']['filepath'], el['samples']['shape'])
+            (dirpath / el['samples']['filepath'])
             for el in group
         ])
 
@@ -246,6 +247,7 @@ class PackagesDataLoader:
                     ] = sample
 
     def update_sample_indices(self):
+        """Move to next index"""
         for indexer in self.sample_indexers:
             next(indexer)
 

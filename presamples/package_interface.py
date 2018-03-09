@@ -69,6 +69,10 @@ class PresamplesPackage:
     @property
     def seed(self):
         return self.metadata['seed']
+        
+    @property
+    def ncols(self):
+        return self.metadata['ncols']
 
     def change_seed(self, new):
         """Change seed to ``new``"""
@@ -107,7 +111,7 @@ class ParametersMapping(Mapping):
             for j, name in enumerate(lst)
         }
         self.ipa = IrregularPresamplesArray([
-            (path / obj['samples']['filepath'], obj['samples']['shape'])
+            path / obj['samples']['filepath']
             for obj in resources
         ])
         self.ids = [(path, package_name, name) for name in self.mapping]

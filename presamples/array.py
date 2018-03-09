@@ -14,14 +14,14 @@ class IrregularPresamplesArray:
     def __init__(self, filepaths):
         self.count = 0
         self.data = [
-            (np.load(str(fp), mmap_mode='r'), shape[1])
-            for fp, shape in filepaths
+            np.load(str(fp), mmap_mode='r')
+            for fp in filepaths
         ]
         self.start_indices = np.cumsum([0] + [shape[0] for _, shape in filepaths])
 
     def sample(self, index):
         """Draw a new sample from the pre-sampled arrays"""
-        result = np.hstack([arr[:, index % ncols] for arr, ncols in self.data])
+        result = np.hstack([arr[:, index] for arr in self.data])
         self.count += 1
         return result
 

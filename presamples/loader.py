@@ -127,7 +127,8 @@ class PackagesDataLoader:
             'ncols': metadata['ncols'],
             'matrix-data': [],
             'parameter-metadata': None,
-            'indexer': Indexer(metadata['ncols'], get_seed(metadata['seed']))
+            # Set default ncols if package is empty
+            'indexer': Indexer(metadata['ncols'] or 1, get_seed(metadata['seed']))
         }
         resources = [obj for obj in metadata["resources"] if obj.get('matrix')]
         fltr = lambda x: x['type']

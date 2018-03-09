@@ -90,6 +90,7 @@ def test_basic_packaging():
         'name': 'foo',
         'profile': 'data-package',
         'seed': 42,
+        'ncols': 4,
         'resources': [{
             'profile': 'data-resource',
             'samples': {
@@ -346,6 +347,7 @@ def test_basic_package_appending():
         'name': 'foo',
         'profile': 'data-package',
         'seed': 216,
+        'ncols': 4,
         'resources': [{
             'profile': 'data-resource',
             'samples': {
@@ -454,6 +456,7 @@ def test_basic_package_appending():
         'name': 'foo',
         'profile': 'data-package',
         'seed': 216,
+        'ncols': 4,
         'resources': [{
             'profile': 'data-resource',
             'samples': {
@@ -608,6 +611,7 @@ def test_package_appending_matrix():
         'name': 'foo',
         'profile': 'data-package',
         'seed': None,
+        'ncols': 4,
         'resources': [{
             'profile': 'data-resource',
             'samples': {
@@ -695,6 +699,7 @@ def test_package_appending_parameter():
         'name': 'foo',
         'profile': 'data-package',
         'seed': None,
+        'ncols': 4,
         'resources': [{
             'profile': 'data-resource',
             'samples': {
@@ -786,6 +791,7 @@ def test_custom_metadata():
         'name': 'foo',
         'profile': 'data-package',
         'seed': None,
+        'ncols': 4,
         'resources': [{
             'profile': 'data-resource',
             'index': 0,

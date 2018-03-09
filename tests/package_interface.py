@@ -52,38 +52,48 @@ def test_parameters(parameters_package):
     assert np.allclose(p['D'], range(12, 16))
     assert np.allclose(p['E'], range(4))
     assert np.allclose(p['G'], range(8, 12))
-    assert isinstance(p.index, int)
+    assert not hasattr(p, "index")
     expected = [
         (parameters_package, 'foo', o)
         for o in 'ABCDEFG'
     ]
     assert p.ids == expected
-    expected = {'A': 0, 'B': 1, 'C': 2, 'D': 3, 'E': 0, 'F': 1, 'G': 2}
+    expected = {
+        'A': (0, 0),
+        'B': (0, 1),
+        'C': (0, 2),
+        'D': (0, 3),
+        'E': (1, 0),
+        'F': (1, 1),
+        'G': (1, 2)
+    }
     assert p.mapping == expected
     assert 'E' in p
     assert list(iter(p)) == list('ABCDEFG')
 
-def test_parameters_get_updated_index(parameters_package):
-    pp = PresamplesPackage(parameters_package)
-    ps = pp.parameters
-    first = pp.indexer.index
-    assert ps.index == first
-    next(pp.indexer)
-    assert ps.index != first
-    assert ps.index == pp.indexer.index
+# TODO: Can be recycled for IndexedParameterMapping
 
-def test_manual_index(parameters_package):
-    pp = PresamplesPackage(parameters_package)
-    pm = ParametersMapping(
-        parameters_package,
-        pp.resources,
-        'foo',
-        1
-    )
-    assert np.allclose(pm.values(), [1, 5 , 9, 13, 1, 5, 9])
+# def test_parameters_get_updated_index(parameters_package):
+#     pp = PresamplesPackage(parameters_package)
+#     ps = pp.parameters
+#     first = pp.indexer.index
+#     assert ps.index == first
+#     next(pp.indexer)
+#     assert ps.index != first
+#     assert ps.index == pp.indexer.index
 
-def test_set_manual_index(parameters_package):
-    p = PresamplesPackage(parameters_package).parameters
-    p.index = 2
-    assert p.index == 2
-    assert np.allclose(p.values(), [2, 6 , 10, 14, 2, 6, 10])
+# def test_manual_index(parameters_package):
+#     pp = PresamplesPackage(parameters_package)
+#     pm = ParametersMapping(
+#         parameters_package,
+#         pp.resources,
+#         'foo',
+#         1
+#     )
+#     assert np.allclose(pm.values(), [1, 5 , 9, 13, 1, 5, 9])
+
+# def test_set_manual_index(parameters_package):
+#     p = PresamplesPackage(parameters_package).parameters
+#     p.index = 2
+#     assert p.index == 2
+#     assert np.allclose(p.values(), [2, 6 , 10, 14, 2, 6, 10])

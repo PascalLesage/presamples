@@ -26,11 +26,9 @@ def test_loading(arrays):
     ipa = RegularPresamplesArrays(
         [dirpath / "a.npy", dirpath / "b.npy"]
     )
-    (h, i), (j, k) = ipa.data
+    h, j = ipa.data
     assert np.allclose(a, h)
     assert np.allclose(b, j)
-    assert i == 5
-    assert k == 5
 
 def test_sampling(arrays):
     dirpath, a, b = arrays
@@ -51,7 +49,7 @@ def test_reproducible_sampling(arrays):
     second = RegularPresamplesArrays(
         [dirpath / "a.npy", dirpath / "b.npy"]
     )
-    i = Indexer()
+    i = Indexer(5)
     for _ in range(100):
         index = next(i)
         f, s = first.sample(index), second.sample(index)
@@ -68,7 +66,7 @@ def test_reproducible_sampling_heterogeneous(dirpath):
     second = RegularPresamplesArrays(
         [dirpath / "a.npy", dirpath / "b.npy"]
     )
-    i = Indexer()
+    i = Indexer(4)
     for _ in range(100):
         index = next(i)
         f, s = first.sample(index), second.sample(index)
@@ -78,7 +76,7 @@ def test_reproducible_sampling_single_column(dirpath):
     a = np.random.random(size=(500, 1))
     np.save(dirpath / "a.npy", a, allow_pickle=False)
     ipa = RegularPresamplesArrays([dirpath / "a.npy"])
-    i = Indexer()
+    i = Indexer(1)
     for _ in range(100):
         assert ipa.sample(next(i)).shape == (500,)
         assert np.allclose(ipa.sample(next(i)), a.ravel())

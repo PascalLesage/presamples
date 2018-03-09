@@ -165,5 +165,5 @@ def test_presample_creation():
     b, t = mp.matrix_data[0]['matrix-data']
     assert b['matrix'] == 'biosphere_matrix'
     assert t['matrix'] == 'technosphere_matrix'
-    assert b['samples'].data[0][0].shape == (2, 5)
-    assert t['samples'].data[0][0].shape == (2, 5)
+    assert b['samples'].data[0].shape == (2, 5)
+    assert t['samples'].data[0].shape == (2, 5)

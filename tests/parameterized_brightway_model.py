@@ -458,7 +458,7 @@ def test_calculate_stochastic():
 
     pp = PresamplesPackage(dirpath_project)
     assert len(pp) == 1
-    assert pp.parameters['project__p1'] == 101
+    assert np.allclose(pp.parameters['project__p1'], np.ones(10) + 100)
 
     # Create rest of parameters
     Group.create(name="E", order=[])

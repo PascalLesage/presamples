@@ -226,6 +226,7 @@ def test_functionality_with_empty(tempdir):
         "seed": None,
         "profile": "data-package",
         "resources": [],
+        "ncols": None,
     }
     with open(tempdir / "datapackage.json", "w", encoding='utf-8') as f:
         json.dump(datapackage, f)
@@ -320,14 +321,14 @@ def mp():
 
 @pytest.fixture
 def mock_ipa(monkeypatch):
-    class FakeIPA:
+    class FakeRPA:
         def __init__(self, one, two=None):
             self.one = one
             self.two = two
 
     monkeypatch.setattr(
         'presamples.loader.RegularPresamplesArrays',
-        FakeIPA
+        FakeRPA
     )
 
 def test_consolidate_mismatched_matrices(package, mp):
@@ -453,12 +454,12 @@ def test_consolidate_single_group(mock_ipa, mp, tempdir):
 
     results = mp.consolidate(dirpath, PresamplesPackage(dirpath).metadata['resources'])
     expected = [
-        (dirpath / f'{id_}.0.samples.npy', [3, 4]),
-        (dirpath / f'{id_}.1.samples.npy', [2, 4]),
+        dirpath / f'{id_}.0.samples.npy',
+        dirpath / f'{id_}.1.samples.npy',
     ]
-    ipa = results['samples']
-    assert ipa.one == expected
-    assert ipa.two is None
+    rpa = results['samples']
+    assert rpa.one == expected
+    assert rpa.two is None
 
 def test_consolidate_multiple_groups(mock_ipa, tempdir):
     a = np.ones(shape=(4, 4)) * 100
@@ -527,11 +528,11 @@ def test_consolidate_multiple_groups(mock_ipa, tempdir):
         assert np.allclose(list(x), y)
 
     assert mp.matrix_data[0]['matrix-data'][0]['samples'].two is None
-    assert mp.matrix_data[0]['matrix-data'][0]['samples'].one[0][1] == [4, 4]
-    assert mp.matrix_data[0]['matrix-data'][0]['samples'].one[1][1] == [2, 4]
+    assert '0.samples.npy' in str(mp.matrix_data[0]['matrix-data'][0]['samples'].one[0])
+    assert '1.samples.npy' in str(mp.matrix_data[0]['matrix-data'][0]['samples'].one[1])
     assert mp.matrix_data[1]['matrix-data'][0]['samples'].two is None
-    assert mp.matrix_data[1]['matrix-data'][0]['samples'].one[0][1] == [3, 4]
-    assert mp.matrix_data[1]['matrix-data'][0]['samples'].one[1][1] == [1, 4]
+    assert '0.samples.npy' in str(mp.matrix_data[1]['matrix-data'][0]['samples'].one[0])
+    assert '1.samples.npy' in str(mp.matrix_data[1]['matrix-data'][0]['samples'].one[1])
 
 def test_accepts_campaign_as_input(package, parameters_fixture):
     pr1 = PresampleResource.create(name='one', path=package)

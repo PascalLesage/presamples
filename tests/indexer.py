@@ -16,6 +16,10 @@ def test_ncols():
     i = Indexer(1e6)
     assert i.ncols == 1e6
 
+def test_sequential_wraparound():
+    i = Indexer(5, 'sequential')
+    assert [next(i) for _ in range(10)] == list(range(5)) * 2
+
 def test_no_seed_different_each_time():
     i = Indexer(1e6)
     a = [next(i) for _ in range(10)]

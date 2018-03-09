@@ -19,9 +19,9 @@ class Indexer(RandomState):
         super().__init__(None if seed == 'sequential' else seed)
 
     def __next__(self):
-        self.count += 1
         if self.seed_value == 'sequential':
-            self.index = (self.count % self.ncols) - 1
+            self.index = (self.count % self.ncols)
         else:
             self.index = self.randint(0, MAX_SIGNED_32BIT_INT) % self.ncols
+        self.count += 1
         return self.index

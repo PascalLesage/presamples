@@ -19,7 +19,7 @@ except ImportError:
 from peewee import (DateTimeField, ForeignKeyField, IntegerField, Model,
                     TextField, fn, DoesNotExist)
 from .errors import MissingPresample
-from .presamples_base import PresamplesPackage
+from .package_interface import PresamplesPackage
 
 
 class ModelBase(Model):
@@ -64,7 +64,7 @@ class Campaign(ModelBase):
     def __iter__(self):
         """Iterate over campaign packages in order.
 
-        Returns the path of each package (needed for LCA object)."""
+        Returns the path of each package for PackagesDataLoader."""
         for package in self.packages:
             yield package.as_loadable()
 

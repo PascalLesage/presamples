@@ -1,4 +1,4 @@
-from .. import ParameterPresamples
+from .. import PresamplesPackage
 from ..packaging import (
     append_presamples_package,
     create_presamples_package,
@@ -24,6 +24,21 @@ class ExpiredGroup(Exception):
 
 
 class ParameterizedBrightwayModel:
+    """Model that samples and calculates parameterized datasets from Brightway2 data.
+
+    This model takes one input, ``group``, the name of the group of parameters to load. The model will load this group and all other groups needed in its dependency chain.
+
+    Normally the entire dependency chain will be freshly calculated. However, you can load parameter values that have been calculated in another model run using the ``load_existing`` function. The ``load_existing`` function **does not** copy values from an existing package, if just makes these values available during calculations.
+
+    TODO: Explain this better, including gotchas.
+
+    Because parameter names can overlap from group to group, we change the parameter names by append the group name followed by the string "__". For example, parameter "foo" from group "bar" would become "bar__foo".
+
+    Model runs can be either static (one new set of values produced) or stochastic (many new values produced) - the corresponding methods are ``calculate_static`` and ``calculate_stochastic``. A static calculation will just reproduce what is already in your database, so the normal use case is to alter one of the named parameters, and then recalculate the dependency chain.
+
+    Both calculation methods only generate new values for the named parameters. To values that can be inserted into an LCA matrix, your ``group`` should have some activated exchanges, and you need to call ``calculate_matrix_presamples``.
+
+    Use either ``save_presample`` (for a new presample package) or ``append_presample`` (to add to an existing presample package) to save model results. Be aware that presample packages can't have duplicate named parameters, so appending to an existing package where even one of the named parameters already exists will raise an error."""
     def __init__(self, group):
         self.group = group
         self.obj, self.kind = self._get_parameter_object(group)
@@ -31,11 +46,16 @@ class ParameterizedBrightwayModel:
         self.data = {}
         self.matrix_data = []
 
-    def load_existing(self, fp, labels=None):
-        """Add existing parameter presamples to ``self.global_params``."""
-        for key, value in ParameterPresamples(fp, labels=labels).items():
+    def load_existing(self, fp, only=None):
+        """Add existing parameter presamples to ``self.global_params``.
+
+        ``only`` is an optional list of parameter names to filter; if provided, all other names are ignored.
+        """
+        for key, value in PresamplesPackage(fp).parameters.items():
+            if only and key not in only:
+                continue
             if key in self.global_params:
-                warnings.warn("Replacing existing parameter group: {}".format(key))
+                warnings.warn("Replacing existing named parameter: {}".format(key))
             self.global_params[key] = value
 
     def load_parameter_data(self):
@@ -56,48 +76,58 @@ class ParameterizedBrightwayModel:
               \    \     /           /
                 B - E ---------------
 
-        We can start with ``A``; we namespace the variables, and use ``dependency_chain`` to find out where all the other used parameters (in ``C``, ``B``, etc.) are. We can already namespace these as well, because we know their group name.
+        We can start with ``A``; we namespace the variables, and use ``dependency_chain`` to find out where all the other used parameters (in ``C``, ``B``, etc.) are. We can already namespace these as well, because we know their group name. The tricky part is that we need to get the dependencies or the dependencies, even if they aren't directly required by the original group.
 
-        ``dependency_chain`` also gives us a list of groups to traverse **in order**; we can then proceed group by group up the chain. The only tricky bit here would be to make sure we do things in the right order, but as we are using ``dependency_chain``, we are actually treating each activity group as its own graph, and so avoid any conflicts implicitly.
+        ``dependency_chain`` gives us a list of groups to traverse **in order**; we can then proceed group by group up the chain. The only tricky bit here would be to make sure we do things in the right order, to avoid "missing" dependent groups. As we are using ``dependency_chain``, we are actually treating each activity group as **its own graph**, and so avoid any conflicts implicitly.
 
         Adds results to ``self.data`` and ``self.substitutions``. Doesn't return anything."""
-        def process_group(group, already):
-            """Load namespaced data for this group, including dependent variables."""
-            obj, kind = self._get_parameter_object(group)
-            result = prefix_parameter_dict(obj.load(group), group + "__")[0]
-            if kind == 'project':
-                return set(), result
-            else:
-                chain = obj.dependency_chain(group)
-                substitutions = {
-                    name: elem['group'] + '__' + name
-                    for elem in chain
-                    for name in elem['names']
-                }
-                results = substitute_in_formulas(result, substitutions)
-                new = {o['group'] for o in chain
-                       if {substitutions[name]
-                           for name in o['names']}.difference(already)
-                       }
-                return new, results
-
-        data = {}
-        already = {key for obj in self.global_params.values() for key in obj}
-        groups, data = process_group(self.group, already)
-        groups = groups.difference(set(self.global_params))
+        self.groups = set([self.group])
+        groups, data = self._process_group(self.group)
         while groups:
-            new_groups, new_data = process_group(groups.pop(), already)
-            groups = groups.union(new_groups).difference(set(self.global_params))
+            this_group = groups.pop()
+            self.groups.add(this_group)
+            new_groups, new_data = self._process_group(this_group)
+            groups = groups.union(new_groups).difference(self.groups)
             data.update(new_data)
 
         # Purge any individual parameters which were already defined in
         # self.global_params. This can occur if a presample includes part of
-        # a group - we keep the "fixed" values.
+        # a group - we keep the "fixed" values. The presamples library doesn't
+        # include any functions that allow for partial inclusion, but who knows
+        # what users will do.
         # TODO: Make sure this behaviour is documented and explained!
-        data = {k: v for k, v in data.items() if k not in already}
+        self.data = {k: v for k, v in data.items() if k not in self.global_params}
 
-        self.data = data
         return self.data
+
+    def _process_group(self, group):
+        """Load namespaced data for this group, including dependent variables, while ignoring variables already defined in ``global_params``.
+
+        Returns a set of group names to traverse and a dictionary of named parameters and values."""
+        obj, kind = self._get_parameter_object(group)
+        # Loads just parameters from this group
+        result = prefix_parameter_dict(obj.load(group), group + "__")[0]
+        if kind == 'project':
+            # Not different logic, just shortcut
+            return set(), result
+        else:
+            chain = obj.dependency_chain(group)
+            substitutions = {
+                name: elem['group'] + '__' + name
+                for elem in chain
+                for name in elem['names']
+            }
+            # Substitute the variable references applicable *for this group*.
+            # In another group, the same named variable could refenence
+            # something else.
+            results = substitute_in_formulas(result, substitutions)
+            # For each new group, check if **all** parameters are defined in
+            # ``global_params``
+            new = {o['group'] for o in chain
+                   if {substitutions[name] for name in o['names']
+                       }.difference(set(self.global_params))
+                   }
+            return new, results
 
     def append_presample(self, dirpath, label):
         """Append presample to an existing presamples package.
@@ -107,8 +137,8 @@ class ParameterizedBrightwayModel:
         Returns directory path of the modified presamples package."""
         array = self._convert_amounts_to_array()
         return append_presamples_package(
-            matrix_presamples=self.matrix_data,
-            parameter_presamples=[(array, sorted(self.data), label)],
+            matrix_data=self.matrix_data,
+            parameter_data=[(array, sorted(self.data), label)],
             dirpath=dirpath
         )
 
@@ -118,8 +148,8 @@ class ParameterizedBrightwayModel:
         Will append to an existing package if ``append``; otherwise, raises an error if this package already exists."""
         array = self._convert_amounts_to_array()
         return create_presamples_package(
-            matrix_presamples=self.matrix_data,
-            parameter_presamples=[(array, sorted(self.data), label)],
+            matrix_data=self.matrix_data,
+            parameter_data=[(array, sorted(self.data), label)],
             name=name,
             id_=id_,
             dirpath=dirpath,
@@ -132,7 +162,7 @@ class ParameterizedBrightwayModel:
         self._convert_amounts_to_floats()
         result = ParameterSet(
             self.data,
-            self._flatten_global_params(self.global_params)
+            self.global_params
         ).evaluate()
         if update_amounts:
             for key, value in self.data.items():
@@ -145,7 +175,7 @@ class ParameterizedBrightwayModel:
         Returns Monte Carlo results (dictionary by parameter name). Also modifies ``amount`` field in-place if ``update_amounts``."""
         result = ParameterSet(
             self.data,
-            self._flatten_global_params(self.global_params)
+            self.global_params
         ).evaluate_monte_carlo(iterations)
         if update_amounts:
             for key, value in self.data.items():
@@ -164,7 +194,7 @@ class ParameterizedBrightwayModel:
 
         interpreter = ParameterSet(
             self.data,
-            self._flatten_global_params(self.global_params)
+            self.global_params
         ).get_interpreter(evaluate_first=False)
         queryset = ParameterizedExchange.select().where(
             ParameterizedExchange.group == self.group
@@ -215,9 +245,3 @@ class ParameterizedBrightwayModel:
             return DatabaseParameter, 'database'
         else:
             return ActivityParameter, 'activity'
-
-    def _flatten_global_params(self, gp):
-        """Flatten nested dictionary of ``{group name: {name: data}}`` to ``{name: data}``.
-
-        Assumes names are namespaced so there are no collisions."""
-        return {y: z for v in gp.values() for y, z in v.items()}

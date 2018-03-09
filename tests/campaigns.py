@@ -7,9 +7,9 @@ import pytest
 import tempfile
 import time
 
-from bw_presamples import create_presamples_package
-from bw_presamples.campaigns import *
-from bw_presamples.errors import MissingPresample
+from presamples import create_presamples_package
+from presamples.campaigns import *
+from presamples.errors import MissingPresample
 try:
     from bw2data.tests import bw2test
 except ImportError:
@@ -329,7 +329,6 @@ def test_campaign_add_local_presamples_no_copy_index(tempdir_package):
 def test_campaign_add_local_presamples_copy(tempdir_package):
     c = Campaign.create(name='test-campaign')
     from bw2data import projects
-    print("Projects.dir:", projects.dir)
     c.add_local_presamples(tempdir_package)
     assert len(c) == 1
     pr1 = PresampleResource.get()
@@ -341,7 +340,6 @@ def test_campaign_add_local_presamples_copy(tempdir_package):
 def test_campaign_add_local_presamples_copy_already_exists(tempdir_package):
     c = Campaign.create(name='test-campaign')
     from bw2data import projects
-    print("Projects.dir:", projects.dir)
     c.add_local_presamples(tempdir_package)
     with pytest.raises(ValueError):
         c.add_local_presamples(tempdir_package)

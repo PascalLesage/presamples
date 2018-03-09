@@ -1,4 +1,6 @@
+from .errors import NameConflicts
 from bw2calc.utils import md5
+from pathlib import Path
 import json
 import numpy as np
 import os
@@ -23,6 +25,7 @@ def convert_parameter_dict_to_presamples(parameters):
 
 def validate_presamples_dirpath(path):
     """Check that a ``dirpath`` has a valid `datapackage.json` file and data files with matching hashes."""
+    path = Path(path)
     assert os.path.isdir(path)
     files = list(os.listdir(path))
     assert "datapackage.json" in files, "{} missing a datapackage file".format(path)
@@ -42,3 +45,11 @@ def validate_presamples_dirpath(path):
             assert os.path.isfile(path / resource['names']['filepath'])
             assert md5(path / resource['names']['filepath']) == \
                 resource['names']['md5']
+
+def check_name_conflicts(lists):
+    """Check if there are overlapping names in ``lists``.
+
+    Each element of ``lists`` is an iterable of parameter names."""
+    names = [name for lst in lists for name in lst]
+    if len(set(names)) != len(names):
+        raise NameConflicts

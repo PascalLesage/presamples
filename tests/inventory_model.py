@@ -1,8 +1,8 @@
 import numpy as np
 import pytest
 
-from bw_presamples.models.inventory_base import InventoryBaseModel
-from bw_presamples import MatrixPresamples
+from presamples.models.inventory_base import InventoryBaseModel
+from presamples import PackagesDataLoader
 try:
     from bw2data.tests import bw2test
     from bw2data import Database
@@ -158,12 +158,12 @@ def test_presample_creation():
     assert package.id == 1
     assert package.name == "test"
     assert package.description is None
-    mp = MatrixPresamples([package.path])
-    assert len(mp.data) == 1
-    assert mp.data[0]['name'] == 'test'
-    assert 'id' in mp.data[0]
-    b, t = mp.data[0]['resources']
+    mp = PackagesDataLoader([package.path])
+    assert len(mp.matrix_data) == 1
+    assert mp.matrix_data[0]['name'] == 'test'
+    assert 'id' in mp.matrix_data[0]
+    b, t = mp.matrix_data[0]['matrix-data']
     assert b['matrix'] == 'biosphere_matrix'
     assert t['matrix'] == 'technosphere_matrix'
-    assert b['samples'].data[0][0].shape == (2, 5)
-    assert t['samples'].data[0][0].shape == (2, 5)
+    assert b['samples'].data[0].shape == (2, 5)
+    assert t['samples'].data[0].shape == (2, 5)

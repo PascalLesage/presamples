@@ -1,4 +1,4 @@
-from bw_presamples.models import KroneckerDelta
+from presamples.models import KroneckerDelta
 import numpy as np
 import pytest
 

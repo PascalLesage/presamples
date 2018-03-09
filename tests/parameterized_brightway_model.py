@@ -1,4 +1,4 @@
-from bw_presamples import ParameterPresamples, PresamplesPackage
+from presamples import *
 import numpy as np
 import pytest
 
@@ -12,7 +12,7 @@ try:
         ProjectParameter,
         parameters,
     )
-    from bw_presamples.models import ParameterizedBrightwayModel
+    from presamples.models import ParameterizedBrightwayModel
 except ImportError:
     bw2test = pytest.mark.skip
 
@@ -230,9 +230,9 @@ def test_load_existing_complete():
     for obj in pbm.data.values():
         obj['amount'] = 10
     _, dirpath_project = pbm.save_presample('project-test')
-    pp = ParameterPresamples(dirpath_project)
+    pp = PresamplesPackage(dirpath_project)
     assert len(pp) == 1
-    assert pp['project-test'] == {'project__p1': 10, 'project__p2': 10}
+    assert pp.parameters['project__p1'] == 10
 
     # We will also do group 'D'; this will include database parameters, which will we purge ourselves
     Database("db").register()
@@ -259,7 +259,7 @@ def test_load_existing_complete():
     parameters.recalculate()
     pbm = ParameterizedBrightwayModel("D")
     pbm.load_existing(dirpath_project)
-    expected = {'project-test': {'project__p1': 10, 'project__p2': 10}}
+    expected = {'project__p1': 10, 'project__p2': 10}
     assert pbm.global_params == expected
 
     pbm.load_parameter_data()
@@ -286,9 +286,9 @@ def test_load_existing_complete():
     pbm.data = {'D__d1': pbm.data['D__d1']}
     pbm.data['D__d1']['amount'] = 12
     _, dirpath_d = pbm.save_presample('D-test')
-    pp = ParameterPresamples(dirpath_d)
+    pp = PresamplesPackage(dirpath_d)
     assert len(pp) == 1
-    assert pp['D-test'] == {'D__d1': 12}
+    assert pp.parameters['D__d1'] == 12
 
     # Create rest of parameters
     Group.create(name="E", order=[])
@@ -397,9 +397,9 @@ def test_append_package():
     for obj in pbm.data.values():
         obj['amount'] = 10
     _, dirpath = pbm.save_presample('project-test')
-    pp = ParameterPresamples(dirpath)
+    pp = PresamplesPackage(dirpath)
     assert len(pp) == 1
-    assert pp['project-test'] == {'project__p1': 10, 'project__p2': 10}
+    assert pp.parameters['project__p1'] == 10
 
     Database("db").register()
     Group.create(name="D", order=[])
@@ -425,7 +425,7 @@ def test_append_package():
     parameters.recalculate()
     pbm = ParameterizedBrightwayModel("D")
     pbm.load_existing(dirpath)
-    expected = {'project-test': {'project__p1': 10, 'project__p2': 10}}
+    expected = {'project__p1': 10, 'project__p2': 10}
     assert pbm.global_params == expected
 
     pbm.load_parameter_data()
@@ -433,10 +433,10 @@ def test_append_package():
     pbm.data['D__d1']['amount'] = 12
     _, dp = pbm.append_presample(dirpath, 'D-test')
     assert dp == dirpath
-    pp = ParameterPresamples(dirpath)
+    pp = PresamplesPackage(dirpath)
     assert len(pp) == 2
-    assert pp['D-test'] == {'D__d1': 12}
-    assert pp['project-test'] == {'project__p1': 10, 'project__p2': 10}
+    assert pp.parameters['D__d1'] == 12
+    assert pp.parameters['project__p1'] == 10
 
 @bw2test
 def test_calculate_stochastic():
@@ -456,9 +456,9 @@ def test_calculate_stochastic():
     pbm.data['project__p2']['amount'] = np.ones(10) + 10
     _, dirpath_project = pbm.save_presample('project-test')
 
-    pp = ParameterPresamples(dirpath_project)
+    pp = PresamplesPackage(dirpath_project)
     assert len(pp) == 1
-    assert np.allclose(pp['project-test']['project__p1'], [101]*10)
+    assert np.allclose(pp.parameters['project__p1'], np.ones(10) + 100)
 
     # Create rest of parameters
     Group.create(name="E", order=[])
@@ -543,7 +543,7 @@ def test_calculate_matrix_presamples():
 
     # Check for file contents
     pp = PresamplesPackage(dirpath)
-    resources = pp.metadata['resources']
+    resources = pp.resources
     assert len(resources) == 3
     assert resources[0]['type'] == 'biosphere'
     assert resources[0]['samples']['shape'] == [1, 1]

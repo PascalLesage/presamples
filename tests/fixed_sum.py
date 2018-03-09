@@ -1,4 +1,4 @@
-from bw_presamples.models import FixedSum
+from presamples.models import FixedSum
 import numpy as np
 import pytest
 

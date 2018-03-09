@@ -1,6 +1,8 @@
-from .array import IrregularPresamplesArray
+from .array import RegularPresamplesArrays
 from .errors import IncompatibleIndices, ConflictingLabels
-from .presamples_base import PackageBase
+from .indexer import Indexer
+from .package_interface import IndexedParametersMapping
+from .utils import validate_presamples_dirpath
 from bw2calc.indexing import index_with_arrays
 from bw2calc.matrices import TechnosphereBiosphereMatrixBuilder as MB
 from bw2calc.utils import md5
@@ -21,7 +23,7 @@ def nonempty(wrapped, instance, args, kwargs):
         return wrapped(*args, **kwargs)
 
 
-class MatrixPresamples(PackageBase):
+class PackagesDataLoader:
     """Efficiently map presampled arrays and insert their values into LCA matrices.
 
     The presamples directory will contain the following two files for each resource:
@@ -50,23 +52,38 @@ class MatrixPresamples(PackageBase):
 
     Note that we currently assume that all index values will be present in the built matrix. Silent errors or losses in efficiency could happen if this assumption does not hold!
 
+    ``seed``: Seed value to use for index RNGs. Default is to use the seed values in each package, only specify this if you want to override the default.
+
     """
     def __init__(self, dirpaths, seed=None):
-        self.seed = seed
+        self.seed, self.dirpaths = seed, dirpaths
+        self.matrix_data, self.parameter_metadata = [], []
+        self.sample_indexers, self.msi = [], []
 
-        self.data = []
         for dirpath in (dirpaths or []):
-            self.validate_dirpath(Path(dirpath))
+            validate_presamples_dirpath(Path(dirpath))
             # Even empty presamples have name and id
-            section = self.load_data(Path(dirpath), seed)
-            if section['resources']:
-                self.data.append(section)
+            section = self.load_data(Path(dirpath), self.seed)
+            self.sample_indexers.append(section['indexer'])
+            if section["matrix-data"]:
+                self.matrix_data.append(section)
+                self.msi.append(section['indexer'])
+            if section['parameter-metadata']:
+                self.parameter_metadata.append(section['parameter-metadata'])
 
-        self.empty = not bool(self.data)
+        # Used for LCA classes; can skip matrix manipulation if no matrix data
+        self.empty = not bool(self.matrix_data)
+
+        # Advance to first position on the indices
+        self.update_sample_indices()
 
     def __str__(self):
-        return "MatrixPresamples with {} resources".format(
-            len(self.data))
+        return "PackagesDataLoader with {} packages:{}".format(
+            len(self.dirpaths), ["\n\t{}".format(o) for o in self.dirpaths]
+        )
+
+    def __len__(self):
+        return len(self.dirpaths)
 
     @classmethod
     def load_data(cls, dirpath, seed=None):
@@ -74,7 +91,7 @@ class MatrixPresamples(PackageBase):
 
         This function will consolidate presamples with the same type. We check to make sure the relevant metadata (e.g. row and column labels) is identical when doing such consolidation.
 
-        Will also instantiate ``IrregularPresamplesArray`` objects.
+        Will also instantiate ``RegularPresamplesArrays`` objects.
 
         Returns a dictionary with a list of resources:
 
@@ -85,7 +102,7 @@ class MatrixPresamples(PackageBase):
                 'id': uuid,
                 'resources': [{
                     'type': string,
-                    'samples': IrregularPresamplesArray instance,
+                    'samples': RegularPresamplesArrays instance,
                     'indices': Numpy array,
                     'matrix': string,
                     "row from label": string,
@@ -102,23 +119,39 @@ class MatrixPresamples(PackageBase):
             open(dirpath / "datapackage.json"),
             encoding="utf-8"
         )
-        results = {
+        get_seed = lambda x: seed if seed is not None else x
+        data = {
             'name': metadata['name'],
             'id': metadata['id'],
-            'resources': []
+            'seed': metadata['seed'],
+            'ncols': metadata['ncols'],
+            'matrix-data': [],
+            'parameter-metadata': None,
+            # Set default ncols if package is empty
+            'indexer': Indexer(metadata['ncols'] or 1, get_seed(metadata['seed']))
         }
-        fltr = lambda x: x['type']
         resources = [obj for obj in metadata["resources"] if obj.get('matrix')]
+        fltr = lambda x: x['type']
         resources.sort(key=fltr)
-
         for key, group in itertools.groupby(resources, fltr):
-            group = cls.consolidate(dirpath, list(group), seed)
-            results['resources'].append(group)
+            group = cls.consolidate(dirpath, list(group))
+            data['matrix-data'].append(group)
 
-        return results
+        parameter_resources = [
+            obj for obj in metadata['resources'] if obj.get('names')
+        ]
+        if parameter_resources:
+            data['parameter-metadata'] = {
+                'path': dirpath,
+                'resources': parameter_resources,
+                'package_name': metadata['name'],
+                'sample_index': data['indexer'],
+            }
+
+        return data
 
     @staticmethod
-    def consolidate(dirpath, group, seed=None):
+    def consolidate(dirpath, group):
         """Add together indices and samples in the same presamples directory if they have the same type.
 
         Consolidating is not necessary for the functionality of this class, but it does make it easier to do things like sensitivity analysis afterwards."""
@@ -141,10 +174,10 @@ class MatrixPresamples(PackageBase):
         if not len({o.dtype for o in indices}) == 1:
             raise IncompatibleIndices
         indices = np.hstack(indices)
-        samples = IrregularPresamplesArray([
-            (dirpath / el['samples']['filepath'], el['samples']['shape'])
+        samples = RegularPresamplesArrays([
+            (dirpath / el['samples']['filepath'])
             for el in group
-        ], seed)
+        ])
 
         SKIP = ('indices', 'samples', 'profile', 'format', 'mediatype')
         result = {k: v for k, v in group[0].items() if k not in SKIP}
@@ -156,8 +189,8 @@ class MatrixPresamples(PackageBase):
         """Add row and column values to the indices.
 
         As this function can be called multiple times, we check for each element if it has already been called, and whether the required mapping dictionary is present."""
-        for obj in self.data:
-            for elem in obj['resources']:
+        for obj in self.matrix_data:
+            for elem in obj["matrix-data"]:
                 # Allow for iterative indexing, starting with inventory
                 if elem.get('indexed'):
                     # Already indexed
@@ -183,9 +216,14 @@ class MatrixPresamples(PackageBase):
                 elem['indexed'] = True
 
     @nonempty
-    def update_matrices(self, lca, matrices=None):
-        for obj in self.data:
-            for elem in obj['resources']:
+    def update_matrices(self, lca, matrices=None, advance_indices=True):
+        if matrices is None and advance_indices:
+            # Advance all the indexers; the assumption here is
+            # that we are in a Monte Carlo iteration.
+            self.update_sample_indices()
+
+        for indexer, obj in zip(self.msi, self.matrix_data):
+            for elem in obj["matrix-data"]:
                 try:
                     matrix = getattr(lca, elem['matrix'])
                 except AttributeError:
@@ -195,7 +233,7 @@ class MatrixPresamples(PackageBase):
                 if matrices is not None and elem['matrix'] not in matrices:
                     continue
 
-                sample = elem['samples'].sample()
+                sample = elem['samples'].sample(indexer.index)
                 if elem['type'] == 'technosphere':
                     MB.fix_supply_use(elem['indices'], sample)
                 if 'col dict' in elem:
@@ -208,3 +246,17 @@ class MatrixPresamples(PackageBase):
                         elem['indices'][elem['row to label']],
                         elem['indices'][elem['row to label']],
                     ] = sample
+
+    def update_sample_indices(self):
+        """Move to next index"""
+        for indexer in self.sample_indexers:
+            next(indexer)
+
+    @property
+    def parameters(self):
+        if not hasattr(self, "_parameters"):
+            self._parameters = [
+                IndexedParametersMapping(**metadata)
+                for metadata in self.parameter_metadata
+            ]
+        return self._parameters

@@ -102,15 +102,42 @@ class ParametersMapping(Mapping):
         ]
         check_name_conflicts(name_lists)
         self.mapping = {
-            name: index
-            for lst in name_lists
-            for index, name in enumerate(lst)
+            name: (i, j)
+            for i, lst in enumerate(name_lists)
+            for j, name in enumerate(lst)
         }
         self.ipa = IrregularPresamplesArray([
             (path / obj['samples']['filepath'], obj['samples']['shape'])
             for obj in resources
         ])
         self.ids = [(path, package_name, name) for name in self.mapping]
+
+    def items(self):
+        for key in self.mapping:
+            yield (key, self[key])
+
+    def values(self):
+        for i, j in self.mapping.values():
+            yield self.ipa.data[i][0][j, :]
+
+    def __getitem__(self, key):
+        i, j = self.mapping[key]
+        return self.ipa.data[i][0][j, :]
+
+    def __len__(self):
+        return len(self.mapping)
+
+    def __contains__(self, key):
+        return key in self.mapping
+
+    def __iter__(self):
+        return iter(self.mapping)
+
+
+class IndexedParametersMapping(ParametersMapping):
+    """Like ``ParametersMapping``, but with a column index, so """
+    def __init__(self, path, resources, package_name, sample_index=0):
+        super().__init__(path, resources, package_name)
         self.index = sample_index
 
     # Changing the Indexer.index value changes the object, meaning our reference
@@ -127,22 +154,14 @@ class ParametersMapping(Mapping):
 
     index = property(_get_index, _set_index)
 
-    def items(self):
-        sample = self.values()
-        for key, i in self.mapping.items():
-            yield (key, float(sample[i]))
-
     def values(self):
+        return (float(x) for x in self.array)
+
+    @property
+    def array(self):
         return self.ipa.sample(self.index)
 
     def __getitem__(self, key):
-        return float(self.ipa.sample(self.index)[self.mapping[key]])
-
-    def __len__(self):
-        return len(self.mapping)
-
-    def __contains__(self, key):
-        return key in self.mapping
-
-    def __iter__(self):
-        return iter(self.mapping)
+        array = super().__getitem__(key)
+        # TODO: Maybe rethink this to not duplicate functionality from IPA
+        return float(array[self.index % array.shape[0]])

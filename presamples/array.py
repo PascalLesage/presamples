@@ -17,9 +17,17 @@ class IrregularPresamplesArray:
             (np.load(str(fp), mmap_mode='r'), shape[1])
             for fp, shape in filepaths
         ]
+        self.start_indices = np.cumsum([0] + [shape[0] for _, shape in filepaths])
 
     def sample(self, index):
         """Draw a new sample from the pre-sampled arrays"""
         result = np.hstack([arr[:, index % ncols] for arr, ncols in self.data])
         self.count += 1
         return result
+
+    def translate_row(self, row):
+        """Translate row index from concatenated array to (array list index, row modulo)
+
+        TODO: Test"""
+        i = np.searchsorted(self.start_indices, row)
+        return (i, row - self.start_indices[i])

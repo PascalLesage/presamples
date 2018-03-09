@@ -1,7 +1,7 @@
 from .array import IrregularPresamplesArray
 from .errors import IncompatibleIndices, ConflictingLabels
 from .indexer import Indexer
-from .package_interface import ParametersMapping
+from .package_interface import IndexedParametersMapping
 from .utils import validate_presamples_dirpath
 from bw2calc.indexing import index_with_arrays
 from bw2calc.matrices import TechnosphereBiosphereMatrixBuilder as MB
@@ -253,7 +253,7 @@ class PackagesDataLoader:
     def parameters(self):
         if not hasattr(self, "_parameters"):
             self._parameters = [
-                ParametersMapping(**metadata)
+                IndexedParametersMapping(**metadata)
                 for metadata in self.parameter_metadata
             ]
         return self._parameters

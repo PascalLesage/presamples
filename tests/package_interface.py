@@ -48,10 +48,10 @@ def test_change_seed(parameters_package):
 def test_parameters(parameters_package):
     p = PresamplesPackage(parameters_package).parameters
     assert len(p) == 7
-    assert p['A'] in range(4)
-    assert p['D'] in range(12, 16)
-    assert p['E'] in range(4)
-    assert p['G'] in range(8, 12)
+    assert np.allclose(p['A'], range(4))
+    assert np.allclose(p['D'], range(12, 16))
+    assert np.allclose(p['E'], range(4))
+    assert np.allclose(p['G'], range(8, 12))
     assert isinstance(p.index, int)
     print(p.ids)
     expected = [

@@ -9,8 +9,14 @@ import tempfile
 def test_seed():
     i = Indexer()
     assert i.seed_value is None
-    i = Indexer(42)
+    i = Indexer(seed=42)
     assert i.seed_value == 42
+
+def test_ncols():
+    i = Indexer()
+    assert i.ncols == 0
+    i = Indexer(42)
+    assert i.ncols == 42
 
 def test_no_seed_different_each_time():
     i = Indexer()
@@ -20,15 +26,15 @@ def test_no_seed_different_each_time():
     assert len(set(a)) == 10
 
 def test_reproducible_indexing():
-    i = Indexer(12345)
+    i = Indexer(seed=12345)
     a = [next(i) for _ in range(10)]
-    i = Indexer(12345)
+    i = Indexer(seed=12345)
     b = [next(i) for _ in range(10)]
     assert a == b
     assert a != list(range(10))
 
 def test_sequential_seed():
-    i = Indexer('sequential')
+    i = Indexer(seed='sequential')
     a = [next(i) for _ in range(10)]
     assert a == list(range(10))
     assert i.count == 10

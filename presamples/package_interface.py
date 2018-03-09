@@ -69,7 +69,7 @@ class PresamplesPackage:
     @property
     def seed(self):
         return self.metadata['seed']
-        
+
     @property
     def ncols(self):
         return self.metadata['ncols']
@@ -122,11 +122,11 @@ class ParametersMapping(Mapping):
 
     def values(self):
         for i, j in self.mapping.values():
-            yield self.ipa.data[i][0][j, :]
+            yield self.ipa.data[i][j, :]
 
     def __getitem__(self, key):
         i, j = self.mapping[key]
-        return self.ipa.data[i][0][j, :]
+        return self.ipa.data[i][j, :]
 
     def __len__(self):
         return len(self.mapping)
@@ -167,5 +167,4 @@ class IndexedParametersMapping(ParametersMapping):
 
     def __getitem__(self, key):
         array = super().__getitem__(key)
-        # TODO: Maybe rethink this to not duplicate functionality from IPA
-        return float(array[self.index % array.shape[0]])
+        return float(array[self.index])

@@ -131,10 +131,12 @@ class PackagesDataLoader:
             # Set default ncols if package is empty
             'indexer': Indexer(metadata['ncols'] or 1, get_seed(metadata['seed']))
         }
-        resources = [obj for obj in metadata["resources"] if obj.get('matrix')]
+        matrix_resources = [
+            obj for obj in metadata["resources"] if obj.get('matrix')
+        ]
         fltr = lambda x: x['type']
-        resources.sort(key=fltr)
-        for key, group in itertools.groupby(resources, fltr):
+        matrix_resources.sort(key=fltr)
+        for key, group in itertools.groupby(matrix_resources, fltr):
             group = cls.consolidate(dirpath, list(group))
             data['matrix-data'].append(group)
 

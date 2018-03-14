@@ -103,6 +103,20 @@ def test_update_matrices(package):
     assert lca.matrix[2, 3] == 100
     assert lca.matrix.sum() == 300
 
+def test_update_matrices_no_lca(package):
+    mp = PackagesDataLoader([package])
+    with pytest.raises(ValueError):
+        mp.update_matrices()
+
+def test_update_matrices_lca_init_arg(package):
+    lca = MockLCA()
+    mp = PackagesDataLoader([package], lca=lca)
+    mp.update_matrices()
+    assert lca.matrix[1, 1] == 100
+    assert lca.matrix[1, 2] == 100
+    assert lca.matrix[2, 3] == 100
+    assert lca.matrix.sum() == 300
+
 def test_update_matrices_skip_missing_matrix(package):
     class WrongLCA:
         def __init__(self):

@@ -55,10 +55,11 @@ class PackagesDataLoader:
     ``seed``: Seed value to use for index RNGs. Default is to use the seed values in each package, only specify this if you want to override the default.
 
     """
-    def __init__(self, dirpaths, seed=None):
+    def __init__(self, dirpaths, seed=None, lca=None):
         self.seed, self.dirpaths = seed, dirpaths
         self.matrix_data, self.parameter_metadata = [], []
         self.sample_indexers, self.msi = [], []
+        self.lca_reference = lca
 
         for dirpath in (dirpaths or []):
             validate_presamples_dirpath(Path(dirpath))
@@ -216,7 +217,11 @@ class PackagesDataLoader:
                 elem['indexed'] = True
 
     @nonempty
-    def update_matrices(self, lca, matrices=None, advance_indices=True):
+    def update_matrices(self, lca=None, matrices=None, advance_indices=True):
+        lca = self.lca_reference if lca is None else lca
+        if lca is None:
+            raise ValueError("Must give LCA on instantiation or in this method")
+
         if matrices is None and advance_indices:
             # Advance all the indexers; the assumption here is
             # that we are in a Monte Carlo iteration.

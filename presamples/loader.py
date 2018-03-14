@@ -235,6 +235,12 @@ class PackagesDataLoader:
                     # This LCA doesn't have this matrix
                     continue
 
+                if elem['matrix'] == 'technosphere_matrix':
+                    # Remove existing matrix factorization
+                    # because changing technosphere
+                    if hasattr(lca, "solver"):
+                        delattr(lca, "solver")
+
                 if matrices is not None and elem['matrix'] not in matrices:
                     continue
 

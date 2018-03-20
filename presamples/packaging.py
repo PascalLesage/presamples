@@ -7,6 +7,7 @@ import shutil
 import uuid
 
 from bw2calc.utils import md5
+from .errors import InconsistentSampleNumber, ShapeMismatch
 from .utils import validate_presamples_dirpath
 
 try:
@@ -39,7 +40,8 @@ def split_inventory_presamples(samples, indices):
 
     """
     assert isinstance(samples, np.ndarray)
-    assert samples.shape[0] == len(indices), "Shape mismatch"
+    if samples.shape[0] != len(indices):
+        raise ShapeMismatch("Shape mismatch: {}, {}".format(samples.shape[0], len(indices)))
 
     mask = np.array([o[2] in (2, 'biosphere') for o in indices])
     no_empty = lambda lst: [o for o in lst if o[1]]
@@ -290,14 +292,14 @@ def create_presamples_package(matrix_data=None, parameter_data=None, name=None,
         if num_iterations is None:
             num_iterations = samples.shape[1]
         if samples.shape[1] != num_iterations:
-            raise ValueError("Inconsistent number of samples: "
+            raise InconsistentSampleNumber("Inconsistent number of samples: "
                 "{} and {}".format(samples.shape[1], num_iterations))
 
         indices, metadata = format_matrix_data(indices, kind, *other)
 
         if samples.shape[0] != indices.shape[0]:
             error = "Shape mismatch between samples and indices: {}, {}, {}"
-            raise ValueError(error.format(samples.shape, indices.shape, kind))
+            raise ShapeMismatch(error.format(samples.shape, indices.shape, kind))
 
         result = write_matrix_data(samples, indices, metadata, kind, dirpath, index, id_)
         datapackage['resources'].append(result)
@@ -308,13 +310,13 @@ def create_presamples_package(matrix_data=None, parameter_data=None, name=None,
 
         samples = to_2d(to_array(samples))
         if not len(names) == samples.shape[0]:
-            raise ValueError("Shape mismatch between samples and names: "
+            raise ShapeMismatch("Shape mismatch between samples and names: "
                 "{}, {}".format(samples.shape, len(names)))
 
         if num_iterations is None:
             num_iterations = samples.shape[1]
         if samples.shape[1] != num_iterations:
-            raise ValueError("Inconsistent number of samples: "
+            raise InconsistentSampleNumber("Inconsistent number of samples: "
                 "{} and {}".format(samples.shape[1], num_iterations))
 
         result = write_parameter_data(samples, names, label, dirpath,
@@ -346,8 +348,8 @@ def append_presamples_package(dirpath, matrix_data=None, parameter_data=None):
     dirpath = Path(dirpath)
     validate_presamples_dirpath(dirpath)
 
-    num_iterations = None
     datapackage = json.load(open(dirpath / "datapackage.json"))
+    num_iterations = datapackage['ncols']
 
     if not matrix_data and not parameter_data:
         raise ValueError("Must specify at least one of `matrix_data` and `parameter_data`")
@@ -369,17 +371,15 @@ def append_presamples_package(dirpath, matrix_data=None, parameter_data=None):
         samples, indices, kind, *other = row
         samples = to_2d(to_array(samples))
 
-        if num_iterations is None:
-            num_iterations = samples.shape[1]
         if samples.shape[1] != num_iterations:
-            raise ValueError("Inconsistent number of samples: "
+            raise InconsistentSampleNumber("Inconsistent number of samples: "
                 "{} and {}".format(samples.shape[1], num_iterations))
 
         indices, metadata = format_matrix_data(indices, kind, *other)
 
         if samples.shape[0] != indices.shape[0]:
             error = "Shape mismatch between samples and indices: {}, {}, {}"
-            raise ValueError(error.format(samples.shape, indices.shape, kind))
+            raise ShapeMismatch(error.format(samples.shape, indices.shape, kind))
 
         result = write_matrix_data(
             samples, indices, metadata, kind,
@@ -391,10 +391,8 @@ def append_presamples_package(dirpath, matrix_data=None, parameter_data=None):
     for index, row in enumerate(elems(parameter_data or [], "parameter_data")):
         samples, names, label = row
 
-        if num_iterations is None:
-            num_iterations = samples.shape[1]
         if samples.shape[1] != num_iterations:
-            raise ValueError("Inconsistent number of samples: "
+            raise InconsistentSampleNumber("Inconsistent number of samples: "
                 "{} and {}".format(samples.shape[1], num_iterations))
 
         result = write_parameter_data(

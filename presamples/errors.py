@@ -16,3 +16,11 @@ class ConflictingLabels(BWParameterError):
 class NameConflicts(Exception):
     """Can't flatten dictionary due to conflicting parameter names"""
     pass
+
+class InconsistentSampleNumber(BWParameterError):
+    """Different numbers of samples passed to package function"""
+    pass
+
+class ShapeMismatch(BWParameterError):
+    """Labels don't match number of rows"""
+    pass

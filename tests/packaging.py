@@ -6,6 +6,7 @@ import pytest
 import tempfile
 
 from presamples import *
+from presamples.errors import InconsistentSampleNumber, ShapeMismatch
 from presamples.packaging import MAX_SIGNED_32BIT_INT
 try:
     from bw2data import mapping
@@ -227,7 +228,7 @@ def test_basic_packaging_custom_directory():
         assert len(list(os.listdir(nd))) == 3
 
 @bw2test
-def test_matrix_presamples_inconsistent_shape():
+def test_create_matrix_presamples_inconsistent_shape():
     mapping.add('ABCDEF')
     t1 = [('A', 'A', 0), ('A', 'B', 1), ('B', 'C', 3)]
     t2 = np.arange(12).reshape((3, 4))
@@ -237,31 +238,112 @@ def test_matrix_presamples_inconsistent_shape():
         (t2, t1, 'technosphere'),
         (t4, t3, 'biosphere'),
     ]
-    with pytest.raises(ValueError):
+    with pytest.raises(InconsistentSampleNumber):
         create_presamples_package(inputs)
 
 @bw2test
-def test_parameter_presamples_inconsistent_shape():
+def test_append_matrix_presamples_inconsistent_shape():
+    mapping.add('ABCDEF')
+    t1 = [('A', 'A', 0), ('A', 'B', 1), ('B', 'C', 3)]
+    t2 = np.arange(12).reshape((3, 4))
+    inputs = [
+        (t2, t1, 'technosphere'),
+    ]
+    dp = create_presamples_package(inputs)[1]
+
+    t3 = [('A', 'A', 0), ('A', 'B', 1)]
+    t4 = np.arange(12).reshape((2, 6))
+    inputs = [
+        (t4, t3, 'biosphere'),
+    ]
+    with pytest.raises(InconsistentSampleNumber):
+        append_presamples_package(dp, inputs)
+
+@bw2test
+def test_append_matrix_presamples_inconsistent_shape_from_parameters():
+    s1 = np.arange(16).reshape((4, 4))
+    n1 = list('ABCD')
+    dp = create_presamples_package(parameter_data=[(s1, n1, 'a')])[1]
+
+    mapping.add('ABCDEF')
+    t3 = [('A', 'A', 0), ('A', 'B', 1)]
+    t4 = np.arange(12).reshape((2, 6))
+    inputs = [
+        (t4, t3, 'biosphere'),
+    ]
+    with pytest.raises(InconsistentSampleNumber):
+        append_presamples_package(dp, inputs)
+
+@bw2test
+def test_create_parameter_presamples_inconsistent_shape():
     s1 = np.arange(16).reshape((4, 4))
     s2 = np.arange(12).reshape((2, 6))
     n1 = list('ABCD')
     n2 = list('DE')
-    with pytest.raises(ValueError):
-        create_presamples_package(parameter_data=[(s1, n1), (s2, n2)])
+    with pytest.raises(InconsistentSampleNumber):
+        create_presamples_package(parameter_data=[(s1, n1, 'a'), (s2, n2, 'b')])
 
 @bw2test
-def test_matrix_shape_mismatch():
-    s1 = np.arange(20).reshape((5, 4))
-    n1 = list('ABC')
-    with pytest.raises(ValueError):
-        create_presamples_package([(s1, n1)])
+def test_append_parameter_presamples_inconsistent_shape():
+    s1 = np.arange(16).reshape((4, 4))
+    n1 = list('ABCD')
+    dp = create_presamples_package(parameter_data=[(s1, n1, 'a')])[1]
+
+    s2 = np.arange(12).reshape((2, 6))
+    n2 = list('DE')
+    with pytest.raises(InconsistentSampleNumber):
+        append_presamples_package(dp, parameter_data=[(s2, n2, 'b')])
+
+@bw2test
+def test_append_parameter_presamples_inconsistent_shape_from_matrix():
+    mapping.add('ABCDEF')
+    t1 = [('A', 'A', 0), ('A', 'B', 1), ('B', 'C', 3)]
+    t2 = np.arange(12).reshape((3, 4))
+    inputs = [
+        (t2, t1, 'technosphere'),
+    ]
+    dp = create_presamples_package(inputs)[1]
+
+    s2 = np.arange(12).reshape((2, 6))
+    n2 = list('DE')
+    with pytest.raises(InconsistentSampleNumber):
+        append_presamples_package(dp, parameter_data=[(s2, n2, 'b')])
+
+@bw2test
+def test_create_matrix_shape_mismatch():
+    mapping.add('ABCDEF')
+    t1 = [('A', 'A', 0), ('A', 'B', 1)]
+    t2 = np.arange(12).reshape((3, 4))
+    inputs = [
+        (t2, t1, 'technosphere'),
+    ]
+    with pytest.raises(ShapeMismatch):
+        create_presamples_package(inputs)
+
+@bw2test
+def test_append_matrix_shape_mismatch():
+    mapping.add('ABCDEF')
+    t1 = [('A', 'A', 0), ('A', 'B', 1), ('B', 'C', 3)]
+    t2 = np.arange(12).reshape((3, 4))
+    inputs = [
+        (t2, t1, 'technosphere'),
+    ]
+    dp = create_presamples_package(inputs)[1]
+
+    t3 = [('A', 'A', 0),]
+    t4 = np.arange(8).reshape((2, 4))
+    inputs = [
+        (t4, t3, 'biosphere'),
+    ]
+    with pytest.raises(ShapeMismatch):
+        append_presamples_package(dp, inputs)
 
 @bw2test
 def test_parameters_shape_mismatch():
     s1 = np.arange(16).reshape((4, 4))
     n1 = list('ABCDE')
-    with pytest.raises(ValueError):
-        create_presamples_package(parameter_data=[(s1, n1)])
+    with pytest.raises(ShapeMismatch):
+        create_presamples_package(parameter_data=[(s1, n1, 'a')])
 
 @bw2test
 def test_no_data_provided():
@@ -964,7 +1046,7 @@ def test_shape_mismatch():
         [(a, b, 'foo', dtype, frmt, metadata)]
     )
     a = np.arange(20).reshape((5, 4))
-    with pytest.raises(ValueError):
+    with pytest.raises(ShapeMismatch):
         create_presamples_package(
             [(a, b, 'foo', dtype, frmt, metadata)]
         )
@@ -1003,10 +1085,10 @@ def tests_split_inventory_presamples_error():
         split_inventory_presamples(None, [])
     a = np.arange(20).reshape((4, 5))
     b = list(range(5))
-    with pytest.raises(AssertionError):
+    with pytest.raises(ShapeMismatch):
         split_inventory_presamples(a, b)
 
-def test_split_inventory_presamples_integer_types():
+def test_split_inventory_presamples_ginteger_types():
     a = np.arange(20).reshape((4, 5))
     b = [
         (1, 2, 1),

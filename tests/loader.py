@@ -139,8 +139,14 @@ def test_update_matrices_technosphere():
         assert mapping[y] == x + 1
 
     # 0 is production, 3 is substitution
-    t1 = [('A', 'A', 0), ('A', 'B', 1), ('B', 'C', 3)]
-    t2 = np.arange(3).reshape((3, 1)) + 10
+    t1 = [
+        ('A', 'A', 0),
+        ('A', 'B', 1),
+        ('B', 'C', 3),
+        ('C', 'D', 1),
+        ('C', 'D', 1)
+        ]
+    t2 = np.arange(5).reshape((5, 1)) + 10
     _, dirpath = create_presamples_package([(t2, t1, 'technosphere')])
 
     class LCA:
@@ -159,8 +165,9 @@ def test_update_matrices_technosphere():
     assert lca.technosphere_matrix[0, 0] == 10
     assert lca.technosphere_matrix[0, 1] == -11
     assert lca.technosphere_matrix[1, 2] == 12
-    assert lca.technosphere_matrix.sum() == 10 - 11 + 12
-
+    assert lca.technosphere_matrix[2, 3] == -14
+    assert lca.technosphere_matrix.sum() == 10 - 11 + 12 - 14
+    
 @bw2test
 def test_update_matrices_one_dimensional():
     mapping.add('ABCDEF')

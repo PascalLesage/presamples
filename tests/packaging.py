@@ -6,7 +6,11 @@ import pytest
 import tempfile
 
 from presamples import *
-from presamples.errors import InconsistentSampleNumber, ShapeMismatch
+from presamples.errors import (
+    InconsistentSampleNumber,
+    NameConflicts,
+    ShapeMismatch,
+)
 from presamples.packaging import MAX_SIGNED_32BIT_INT
 try:
     from bw2data import mapping
@@ -42,7 +46,7 @@ def test_basic_packaging():
     s1 = np.arange(16, dtype=np.int64).reshape((4, 4))
     s2 = np.arange(12, dtype=np.int64).reshape((3, 4))
     n1 = list('ABCD')
-    n2 = list('DEF')
+    n2 = list('EFG')
     id_, dirpath = create_presamples_package(
         inputs, [(s1, n1, 'winter'), (s2, n2, 'summer')], name='foo',
         id_='bar', seed=42
@@ -84,7 +88,7 @@ def test_basic_packaging():
     assert np.allclose(np.load(dirpath / 'bar.3.samples.npy'), expected)
     expected = ['A', 'B', 'C', 'D']
     assert json.load(open(dirpath / 'bar.3.names.json')) ==  expected
-    expected = ['D', 'E', 'F']
+    expected = ['E', 'F', 'G']
     assert json.load(open(dirpath / 'bar.4.names.json')) ==  expected
     expected = {
         'id': 'bar',
@@ -279,9 +283,34 @@ def test_create_parameter_presamples_inconsistent_shape():
     s1 = np.arange(16).reshape((4, 4))
     s2 = np.arange(12).reshape((2, 6))
     n1 = list('ABCD')
-    n2 = list('DE')
+    n2 = list('EF')
     with pytest.raises(InconsistentSampleNumber):
         create_presamples_package(parameter_data=[(s1, n1, 'a'), (s2, n2, 'b')])
+
+@bw2test
+def test_create_parameter_presamples_name_conflicts():
+    s1 = np.arange(16).reshape((4, 4))
+    s2 = np.arange(8).reshape((2, 4))
+    n1 = list('ABCD')
+    n2 = list('DE')
+    with pytest.raises(NameConflicts):
+        create_presamples_package(parameter_data=[(s1, n1, 'a'), (s2, n2, 'b')])
+
+@bw2test
+def test_append_parameter_presamples_name_conflicts():
+    s1 = np.arange(16).reshape((4, 4))
+    n1 = list('ABCD')
+    dp = create_presamples_package(parameter_data=[(s1, n1, 'a')])[1]
+
+    s2 = np.arange(8).reshape((2, 4))
+    n2 = list('DE')
+    with pytest.raises(NameConflicts):
+        append_presamples_package(dp, parameter_data=[(s2, n2, 'b')])
+
+    s2 = np.arange(8).reshape((2, 4))
+    n2 = list('EE')
+    with pytest.raises(NameConflicts):
+        append_presamples_package(dp, parameter_data=[(s2, n2, 'b')])
 
 @bw2test
 def test_append_parameter_presamples_inconsistent_shape():
@@ -290,7 +319,7 @@ def test_append_parameter_presamples_inconsistent_shape():
     dp = create_presamples_package(parameter_data=[(s1, n1, 'a')])[1]
 
     s2 = np.arange(12).reshape((2, 6))
-    n2 = list('DE')
+    n2 = list('EF')
     with pytest.raises(InconsistentSampleNumber):
         append_presamples_package(dp, parameter_data=[(s2, n2, 'b')])
 
@@ -384,7 +413,7 @@ def test_package_appending_missing():
     s1 = np.arange(16, dtype=np.int64).reshape((4, 4))
     s2 = np.arange(12, dtype=np.int64).reshape((3, 4))
     n1 = list('ABCD')
-    n2 = list('DEF')
+    n2 = list('EFG')
     id_, dirpath = create_presamples_package(
         inputs, [(s1, n1, 'winter'), (s2, n2, 'summer')], name='foo', id_='bar'
     )
@@ -488,7 +517,7 @@ def test_basic_package_appending():
         (c2, c1, 'cf'),
     ]
     s2 = np.arange(12, dtype=np.int64).reshape((3, 4))
-    n2 = list('DEF')
+    n2 = list('EFG')
     a, b = append_presamples_package(
         dirpath=dirpath,
         matrix_data=inputs,
@@ -531,7 +560,7 @@ def test_basic_package_appending():
     assert np.allclose(np.load(dirpath / 'bar.1.samples.npy'), expected)
     expected = ['A', 'B', 'C', 'D']
     assert json.load(open(dirpath / 'bar.1.names.json')) ==  expected
-    expected = ['D', 'E', 'F']
+    expected = ['E', 'F', 'G']
     assert json.load(open(dirpath / 'bar.4.names.json')) ==  expected
     expected = {
         'id': 'bar',

@@ -7,7 +7,7 @@ import shutil
 import uuid
 
 from bw2calc.utils import md5
-from .errors import InconsistentSampleNumber, ShapeMismatch
+from .errors import InconsistentSampleNumber, ShapeMismatch, NameConflicts
 from .utils import validate_presamples_dirpath
 
 try:
@@ -304,6 +304,19 @@ def create_presamples_package(matrix_data=None, parameter_data=None, name=None,
         result = write_matrix_data(samples, indices, metadata, kind, dirpath, index, id_)
         datapackage['resources'].append(result)
 
+    names = [
+        name for _, names, _ in elems(parameter_data or [], "parameter_data")
+        for name in names
+    ]
+
+    num_names = len(names)
+    num_unique_names = len(set(names))
+    if num_names != num_unique_names:
+        raise NameConflicts(
+            "{} named parameters, but only {} unique names".format(
+            num_names, num_unique_names
+        ))
+
     offset = (index + 1) if index != -1 else 0
     for index, row in enumerate(elems(parameter_data or [], "parameter_data")):
         samples, names, label = row
@@ -386,6 +399,29 @@ def append_presamples_package(dirpath, matrix_data=None, parameter_data=None):
             dirpath, index + offset, datapackage['id']
         )
         datapackage['resources'].append(result)
+
+    if parameter_data:
+        filepaths = [dirpath / resource['names']['filepath'] for resource in datapackage['resources'] if 'names' in resource]
+        old_names = [name for fp in filepaths for name in json.load(open(fp))]
+        names = [
+            name for _, names, _ in elems(parameter_data or [], "parameter_data")
+            for name in names
+        ]
+        print(old_names)
+        print(names)
+        if set(old_names).intersection(set(names)):
+            raise NameConflicts(
+                "Named parameters already defined in existing package: {}".format(
+                set(old_names).intersection(set(names))
+            ))
+
+        num_names = len(names)
+        num_unique_names = len(set(names))
+        if num_names != num_unique_names:
+            raise NameConflicts(
+                "{} named parameters, but only {} unique names".format(
+                num_names, num_unique_names
+            ))
 
     offset += (index + 1) if index != -1 else 0
     for index, row in enumerate(elems(parameter_data or [], "parameter_data")):

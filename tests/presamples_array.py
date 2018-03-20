@@ -80,3 +80,21 @@ def test_reproducible_sampling_single_column(dirpath):
     for _ in range(100):
         assert ipa.sample(next(i)).shape == (500,)
         assert np.allclose(ipa.sample(next(i)), a.ravel())
+
+def test_translate_row(arrays):
+    dirpath, a, b = arrays
+    ipa = RegularPresamplesArrays(
+        [dirpath / "a.npy", dirpath / "b.npy"]
+    )
+    assert ipa.translate_row(6) == (1, 1)
+    assert ipa.translate_row(5) == (1, 0)
+    assert ipa.translate_row(4) == (0, 4)
+    assert ipa.translate_row(3) == (0, 3)
+    assert ipa.translate_row(2) == (0, 2)
+    assert ipa.translate_row(1) == (0, 1)
+    assert ipa.translate_row(0) == (0, 0)
+
+    with pytest.raises(ValueError):
+        assert ipa.translate_row(7)
+    with pytest.raises(ValueError):
+        assert ipa.translate_row(-1)

@@ -67,7 +67,12 @@ def db():
             'input': ("test", "3"),
             'uncertainty type': 0
         }, {
-            'amount': 0.1,
+            'amount': 0.05,
+            'type': 'technosphere',
+            'input': ("test", "3"),
+            'uncertainty type': 0
+        }, {
+            'amount': 0.05,
             'type': 'technosphere',
             'input': ("test", "3"),
             'uncertainty type': 0
@@ -91,10 +96,36 @@ def db():
 
     Database("test").write(tech_data)
 
+def test_no_matrix_array(db):
+    im = InventoryBaseModel()
+    with pytest.raises(ValueError):
+        im.matrix_data
+
+def test_find_exchanges_wrong_type(db):
+    im = InventoryBaseModel()
+    with pytest.raises(ValueError):
+        im.find_exchanges(['3'])
+
 def test_find_exchanges_multiple_error(db):
     im = InventoryBaseModel()
     with pytest.raises(ValueError):
         im.find_exchanges([(('test', '3'), ('test', '3'))])
+
+def test_find_exchanges_none_error(db):
+    im = InventoryBaseModel()
+    with pytest.raises(ValueError):
+        im.find_exchanges([(('test', '10'), ('test', '11'))])
+
+def test_find_exchanges_with_type_multiple_error(db):
+    im = InventoryBaseModel()
+    im.find_exchanges([(('test', '3'), ('test', '3'), 'production')])
+    with pytest.raises(ValueError):
+        im.find_exchanges([(('test', '3'), ('test', '3'), 'technosphere')])
+
+def test_find_exchanges_with_type_none_error(db):
+    im = InventoryBaseModel()
+    with pytest.raises(ValueError):
+        im.find_exchanges([(('test', '3'), ('test', '2'), 'technosphere')])
 
 def test_find_exchanges_two_tuple(db):
     im = InventoryBaseModel()

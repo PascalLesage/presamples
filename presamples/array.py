@@ -26,8 +26,12 @@ class RegularPresamplesArrays:
         return result
 
     def translate_row(self, row):
-        """Translate row index from concatenated array to (array list index, row modulo)
-
-        TODO: Test"""
-        i = np.searchsorted(self.start_indices, row)
+        """Translate row index from concatenated array to (array list index, row modulo)"""
+        if row < 0:
+            raise ValueError("Row index must be >= 0")
+        if row >= self.start_indices[-1]:
+            raise ValueError("Row index too large")
+        if row == 0:
+            return (0, 0)
+        i = np.searchsorted(self.start_indices, row, side='right') - 1
         return (i, row - self.start_indices[i])

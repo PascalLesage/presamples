@@ -71,29 +71,30 @@ def test_parameters(parameters_package):
     assert 'E' in p
     assert list(iter(p)) == list('ABCDEFG')
 
-# TODO: Can be recycled for IndexedParameterMapping
+def test_parameters_values(parameters_package):
+    p = PresamplesPackage(parameters_package).parameters
+    possibles = [6, 22, 38, 54]
+    for row in p.values():
+        assert isinstance(row, np.ndarray)
+        assert row.shape == (4,)
+        assert row.sum() in possibles
 
-# def test_parameters_get_updated_index(parameters_package):
-#     pp = PresamplesPackage(parameters_package)
-#     ps = pp.parameters
-#     first = pp.indexer.index
-#     assert ps.index == first
-#     next(pp.indexer)
-#     assert ps.index != first
-#     assert ps.index == pp.indexer.index
+def test_indexed_parameter_mapping_without_indexer(parameters_package):
+    pp = PresamplesPackage(parameters_package)
+    p = IndexedParametersMapping(pp.path, pp.resources, pp.name)
+    assert p.index == 0
+    p.index = 6
+    assert p.index == 6
 
-# def test_manual_index(parameters_package):
-#     pp = PresamplesPackage(parameters_package)
-#     pm = ParametersMapping(
-#         parameters_package,
-#         pp.resources,
-#         'foo',
-#         1
-#     )
-#     assert np.allclose(pm.values(), [1, 5 , 9, 13, 1, 5, 9])
+def test_indexed_parameter_mapping_values(parameters_package):
+    pp = PresamplesPackage(parameters_package)
+    p = IndexedParametersMapping(pp.path, pp.resources, pp.name)
+    possibles  = [0, 4, 8, 12]
+    for value in p.values():
+        assert isinstance(value, float)
+        assert value in possibles
 
-# def test_set_manual_index(parameters_package):
-#     p = PresamplesPackage(parameters_package).parameters
-#     p.index = 2
-#     assert p.index == 2
-#     assert np.allclose(p.values(), [2, 6 , 10, 14, 2, 6, 10])
+def test_indexed_parameter_array(parameters_package):
+    pp = PresamplesPackage(parameters_package)
+    p = IndexedParametersMapping(pp.path, pp.resources, pp.name)
+    assert np.allclose(np.array([0, 4, 8, 12, 0, 4, 8]), p.array)

@@ -380,6 +380,14 @@ def test_load_existing_complete():
     }
     assert result == expected
 
+    pbm = ParameterizedBrightwayModel("A")
+    pbm.load_existing(dirpath_project, only=['project__p1'])
+    pbm.load_existing(dirpath_d)
+    pbm.load_parameter_data()
+    assert 'project__p2' in pbm.data
+    assert 'project__p1' not in pbm.data
+
+
 @bw2test
 def test_append_package():
     ProjectParameter.create(

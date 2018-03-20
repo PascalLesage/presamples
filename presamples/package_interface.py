@@ -139,7 +139,7 @@ class ParametersMapping(Mapping):
 
 
 class IndexedParametersMapping(ParametersMapping):
-    """Like ``ParametersMapping``, but with a column index, so """
+    """Like ``ParametersMapping``, but with a column index"""
     def __init__(self, path, resources, package_name, sample_index=0):
         super().__init__(path, resources, package_name)
         self.index = sample_index

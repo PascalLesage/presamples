@@ -6,13 +6,13 @@ import shutil
 
 try:
     from bw2data import config, projects
-    from bw2data.sqlite import create_database
+    from bw2data.sqlite import SubstitutableDatabase
     def presamples_dir():
         """Needs to be function for tests"""
         return Path(projects.request_directory("presamples"))
 
 except ImportError:
-    from .fallbacks import create_database
+    from .fallbacks import SubstitutableDatabase
     projects = None
     presamples_dir = os.getcwd
 
@@ -302,20 +302,19 @@ class CampaignOrdering(ModelBase):
 
 
 def init_campaigns():
-    db = create_database(
+    db = SubstitutableDatabase(
         os.path.join(projects.dir, "campaigns.db"),
         [Campaign, PresampleResource, CampaignOrdering]
     )
     config.sqlite3_databases.append((
         "campaigns.db",
         db,
-        [Campaign, PresampleResource, CampaignOrdering]
     ))
     return db
 
 
 def init_campaigns_fallback():
-    return create_database(
+    return SubstitutableDatabase(
         os.path.join(presamples_dir(), "campaigns.db"),
         [Campaign, PresampleResource, CampaignOrdering]
     )

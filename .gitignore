@@ -7,7 +7,7 @@ docs/_build
 MANIFEST
 *.sublime*
 *.egg-info
-*/.ipynb_checkpoints
+**/.ipynb_checkpoints
 *.pickle
 .cache
 .coverage

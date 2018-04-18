@@ -169,7 +169,7 @@ class ParameterizedBrightwayModel:
                 value['amount'] = result[key]
         return result
 
-    def calculate_stochastic(self, iterations=1000, update_amounts=True):
+    def calculate_stochastic(self, iterations=1000, update_amounts=False):
         """Monte Carlo calculation of parameter samples.
 
         Returns Monte Carlo results (dictionary by parameter name). Also modifies ``amount`` field in-place if ``update_amounts``."""

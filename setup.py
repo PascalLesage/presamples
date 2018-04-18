@@ -25,7 +25,7 @@ def package_files(directory):
 
 setup(
     name='presamples',
-    version="0.1",
+    version="0.2",
     packages=packages,
     author="Pascal Lesage",
     author_email="pascal.lesage@polymtl.ca",

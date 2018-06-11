@@ -142,7 +142,7 @@ class ParameterizedBrightwayModel:
             dirpath=dirpath
         )
 
-    def save_presample(self, label, name=None, id_=None, dirpath=None):
+    def save_presample(self, label, name=None, id_=None, dirpath=None, overwrite=False, seed=None):
         """Save results to a presamples package.
 
         Will append to an existing package if ``append``; otherwise, raises an error if this package already exists."""
@@ -153,6 +153,8 @@ class ParameterizedBrightwayModel:
             name=name,
             id_=id_,
             dirpath=dirpath,
+            seed=seed,
+            overwrite=overwrite
         )
 
     def calculate_static(self, update_amounts=True):

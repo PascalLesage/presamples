@@ -103,6 +103,7 @@ class ParametersMapping(Mapping):
     def __init__(self, path, resources, package_name, sample_index=0):
         name_lists = [
             json.load(open(path / obj['names']['filepath'])) for obj in resources
+            if obj.get('names')
         ]
         check_name_conflicts(name_lists)
         self.mapping = {

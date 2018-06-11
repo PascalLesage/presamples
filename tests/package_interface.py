@@ -3,17 +3,37 @@ from presamples.package_interface import *
 import numpy as np
 import pytest
 import tempfile
+try:
+    from bw2data import mapping
+    from bw2data.tests import bw2test
+except ImportError:
+    bw2test = pytest.mark.skip
 
-
+@bw2test
 @pytest.fixture
 def parameters_package():
     with tempfile.TemporaryDirectory() as d:
         dirpath = Path(d)
+        # Matrix data
+        mapping.add('ABCDEF')
+        t1 = [('A', 'A', 0), ('A', 'B', 1), ('B', 'C', 3)]
+        t2 = np.arange(12, dtype=np.int64).reshape((3, 4))
+        b1 = [('A', 'D'), ('A', 'E'), ('B', 'F')]
+        b2 = np.arange(12, dtype=np.int64).reshape((3, 4))
+        c1 = 'DEF'
+        c2 = np.arange(12, dtype=np.int64).reshape((3, 4))
+        inputs = [
+            (t2, t1, 'technosphere'),
+            (b2, b1, 'biosphere'),
+            (c2, c1, 'cf'),
+        ]
+        # Parameter data
         s1 = np.arange(16, dtype=np.int64).reshape((4, 4))
         s2 = np.arange(12, dtype=np.int64).reshape((3, 4))
         n1 = list('ABCD')
         n2 = list('EFG')
         id_, dirpath = create_presamples_package(
+            matrix_data = inputs,
             parameter_data=[(s1, n1, 'winter'), (s2, n2, 'summer')],
             name='foo', id_='bar', dirpath=dirpath, seed=42
         )
@@ -27,8 +47,8 @@ def test_basic_presamplespackage(parameters_package):
     assert pp.seed == 42
     assert pp.id == 'bar'
     assert isinstance(pp.resources, list)
-    assert len(pp.resources) == 2
-    assert len(pp) == 2
+    assert len(pp.resources) == 5
+    assert len(pp) == 5
 
 def test_indexer(parameters_package):
     pp = PresamplesPackage(parameters_package)
@@ -44,6 +64,11 @@ def test_change_seed(parameters_package):
     pp.change_seed(88)
     new = PresamplesPackage(parameters_package)
     assert pp.seed == 88
+
+# def test_parameters_mapping(parameters_package):
+#     pp = PresamplesPackage(parameters_package)
+#     pm = pp.parameters
+
 
 def test_parameters(parameters_package):
     p = PresamplesPackage(parameters_package).parameters

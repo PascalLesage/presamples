@@ -114,6 +114,7 @@ class ParametersMapping(Mapping):
         self.ipa = RegularPresamplesArrays([
             path / obj['samples']['filepath']
             for obj in resources
+            if obj.get('names')
         ])
         self.ids = [(path, package_name, name) for name in self.mapping]
 

@@ -46,17 +46,21 @@ class ParameterizedBrightwayModel:
         self.data = {}
         self.matrix_data = []
 
-    def load_existing(self, fp, only=None):
+    def load_existing(self, fp, only=None, prefix=None):
         """Add existing parameter presamples to ``self.global_params``.
 
         ``only`` is an optional list of parameter names to filter; if provided, all other names are ignored.
+        ``prefix`` can be used to replace parameters that are in groups (and hence would have the name some_group__key_
         """
         for key, value in PresamplesPackage(fp).parameters.items():
             if only and key not in only:
                 continue
             if key in self.global_params:
                 warnings.warn("Replacing existing named parameter: {}".format(key))
-            self.global_params[key] = value
+            if prefix:
+                self.global_params[prefix + "__" + key] = value
+            else:
+                self.global_params[key] = value
 
     def load_parameter_data(self):
         """Load all necessary parameter data from group ``self.group``.

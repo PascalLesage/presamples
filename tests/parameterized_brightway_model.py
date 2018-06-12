@@ -389,6 +389,105 @@ def test_load_existing_complete():
 
 
 @bw2test
+def test_load_existing_with_prefix():
+    # Same as test_load_existing_complete but parameter presamples don't know what groups they are in.
+
+    # Start with `project`
+    project_parameters = [
+        {
+            'name': 'p1',
+            'amount': 1
+        },
+        {
+            'name': 'p2',
+            'amount': 1
+        }
+    ]
+
+    parameters.new_project_parameters(project_parameters)
+    parameters.recalculate()
+    _, dirpath_project = create_presamples_package(parameter_data=[(np.stack([[42], [42]]), ['p1', 'p2'], 'label')])
+
+    pbm = ParameterizedBrightwayModel("project")
+    loaded = pbm.load_parameter_data()
+    assert len(loaded) == 2
+    result = pbm.calculate_static()
+    expected = {'project__p1': 1, 'project__p2': 1}
+    assert result == expected
+
+    pbm = ParameterizedBrightwayModel("project")
+    pbm.load_existing(dirpath_project, prefix="project")
+    loaded = pbm.load_parameter_data()
+    assert len(loaded) == 0
+    result = pbm.calculate_static()
+    expected = {} # Globals don't show up in results-->see ParameterSet.evaluate()
+    assert result == expected
+    result = pbm.global_params
+    expected = {'project__p1': 42, 'project__p2': 42}
+    assert result == expected
+
+    pbm = ParameterizedBrightwayModel("project")
+    pbm.load_existing(dirpath_project, only='p1', prefix="project")
+    loaded = pbm.load_parameter_data()
+    assert len(loaded) == 1
+    result = pbm.calculate_static()
+    expected = {'project__p2':1}
+    assert result == expected
+
+    # With database parameters now
+    Database("db").register()
+    Group.create(name="D", order=[])
+    database_parameters = [
+        {
+            'name': "db1",
+            'formula': "2 * p1",
+            'amount': 2,
+        },
+        {
+            'name': "db2",
+            'amount': 2,
+        },
+        {
+            'name': "db3",
+            'formula': "10 * db2",
+            'amount': 0,
+        }
+    ]
+    parameters.new_database_parameters(database_parameters, 'db')
+    _, dirpath_db = create_presamples_package(
+        parameter_data=[(np.array([100]), ['db2'], 'yet another label')]
+    )
+    parameters.recalculate()
+    pbm = ParameterizedBrightwayModel("db")
+    pbm.load_parameter_data()
+    result = pbm.calculate_static()
+    expected = {
+                   'db__db1': 2,
+                   'db__db2': 2,
+                   'db__db3': 20,
+                   'project__p1': 1,
+                   'project__p2': 1,
+    }
+    assert expected == result
+    # Load existing
+    pbm = ParameterizedBrightwayModel("db")
+    pbm.load_existing(dirpath_db, prefix='db')
+    pbm.load_parameter_data()
+    result = pbm.global_params
+    expected = {'db__db2': 100}
+    assert result == expected
+    result = pbm.calculate_static()
+    expected = {
+                   'db__db1': 2,
+                   'db__db3': 1000,
+                   'project__p1': 1,
+                   'project__p2': 1,
+    }
+    assert expected == result
+
+
+
+@bw2test
 def test_append_package():
     ProjectParameter.create(
         name="p1",

@@ -312,6 +312,7 @@ def create_presamples_package(matrix_data=None, parameter_data=None, name=None,
     num_names = len(names)
     num_unique_names = len(set(names))
     if num_names != num_unique_names:
+        # Only get names if necessary
         seen = []
         dupes = []
         for name in names:
@@ -425,9 +426,17 @@ def append_presamples_package(dirpath, matrix_data=None, parameter_data=None):
         num_names = len(names)
         num_unique_names = len(set(names))
         if num_names != num_unique_names:
+            #Only get names if necessary
+            seen = []
+            dupes = []
+            for name in names:
+                if name not in seen:
+                    seen.append(name)
+                else:
+                    dupes.append(name)
             raise NameConflicts(
-                "{} named parameters, but only {} unique names".format(
-                num_names, num_unique_names
+                "{} named parameters, but only {} unique names. Non-unique names: {}".format(
+                num_names, num_unique_names, dupes
             ))
 
     offset += (index + 1) if index != -1 else 0

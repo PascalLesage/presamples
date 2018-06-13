@@ -293,8 +293,9 @@ def test_create_parameter_presamples_name_conflicts():
     s2 = np.arange(8).reshape((2, 4))
     n1 = list('ABCD')
     n2 = list('DE')
-    with pytest.raises(NameConflicts):
+    with pytest.raises(NameConflicts) as conflict:
         create_presamples_package(parameter_data=[(s1, n1, 'a'), (s2, n2, 'b')])
+    assert str(conflict.value) == "6 named parameters, but only 5 unique names. Non-unique names: ['D']"
 
 @bw2test
 def test_append_parameter_presamples_name_conflicts():
@@ -304,13 +305,15 @@ def test_append_parameter_presamples_name_conflicts():
 
     s2 = np.arange(8).reshape((2, 4))
     n2 = list('DE')
-    with pytest.raises(NameConflicts):
+    with pytest.raises(NameConflicts) as conflict:
         append_presamples_package(dp, parameter_data=[(s2, n2, 'b')])
+    assert str(conflict.value) == "Named parameters already defined in existing package: {'D'}"
 
     s2 = np.arange(8).reshape((2, 4))
     n2 = list('EE')
-    with pytest.raises(NameConflicts):
+    with pytest.raises(NameConflicts) as conflict:
         append_presamples_package(dp, parameter_data=[(s2, n2, 'b')])
+    assert str(conflict.value) == "2 named parameters, but only 1 unique names. Non-unique names: ['E']"
 
 @bw2test
 def test_append_parameter_presamples_inconsistent_shape():

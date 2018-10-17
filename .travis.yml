@@ -12,9 +12,8 @@ before_install:
   - conda info -a
   - conda create -q -n test-environment python=3.6
   - source activate test-environment
-  - conda install -q -c conda-forge -c cmutel -c haasad bw2data bw2calc pytest pytest-cov numpy scipy stats_arrays peewee wrapt
+  - conda install -q -c conda-forge -c cmutel -c haasad bw2data bw2calc pytest pytest-cov numpy scipy stats_arrays peewee wrapt python-coveralls
   - echo $(python --version)
-  - pip install python-coveralls
 install: "python setup.py develop"
 script:
   - pwd; pytest --cov=presamples

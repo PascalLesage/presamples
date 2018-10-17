@@ -1,9 +1,20 @@
 from .errors import NameConflicts
-from bw2calc.utils import md5
 from pathlib import Path
+import hashlib
 import json
 import numpy as np
 import os
+
+
+def md5(filepath, blocksize=65536):
+    """Generate MD5 hash for file at `filepath`"""
+    hasher = hashlib.md5()
+    fo = open(filepath, 'rb')
+    buf = fo.read(blocksize)
+    while len(buf) > 0:
+        hasher.update(buf)
+        buf = fo.read(blocksize)
+    return hasher.hexdigest()
 
 
 def convert_parameter_dict_to_presamples(parameters):
@@ -45,6 +56,7 @@ def validate_presamples_dirpath(path):
             assert os.path.isfile(path / resource['names']['filepath'])
             assert md5(path / resource['names']['filepath']) == \
                 resource['names']['md5']
+
 
 def check_name_conflicts(lists):
     """Check if there are overlapping names in ``lists``.

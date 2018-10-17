@@ -2,10 +2,7 @@ from .array import RegularPresamplesArrays
 from .errors import IncompatibleIndices, ConflictingLabels
 from .indexer import Indexer
 from .package_interface import IndexedParametersMapping
-from .utils import validate_presamples_dirpath
-from bw2calc.indexing import index_with_arrays
-from bw2calc.matrices import TechnosphereBiosphereMatrixBuilder as MB
-from bw2calc.utils import md5
+from .utils import validate_presamples_dirpath, md5
 from pathlib import Path
 import itertools
 import json
@@ -192,6 +189,8 @@ class PackagesDataLoader:
         """Add row and column values to the indices.
 
         As this function can be called multiple times, we check for each element if it has already been called, and whether the required mapping dictionary is present."""
+        from bw2calc.indexing import index_with_arrays
+
         for obj in self.matrix_data:
             for elem in obj["matrix-data"]:
                 # Allow for iterative indexing, starting with inventory
@@ -220,6 +219,8 @@ class PackagesDataLoader:
 
     @nonempty
     def update_matrices(self, lca=None, matrices=None, advance_indices=True):
+        from bw2calc.matrices import TechnosphereBiosphereMatrixBuilder as MB
+
         lca = self.lca_reference if lca is None else lca
         if lca is None:
             raise ValueError("Must give LCA on instantiation or in this method")

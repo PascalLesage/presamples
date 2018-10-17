@@ -6,9 +6,8 @@ import os
 import shutil
 import uuid
 
-from bw2calc.utils import md5
 from .errors import InconsistentSampleNumber, ShapeMismatch, NameConflicts
-from .utils import validate_presamples_dirpath
+from .utils import validate_presamples_dirpath, md5
 
 try:
     from bw2data.utils import TYPE_DICTIONARY

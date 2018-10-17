@@ -1,7 +1,10 @@
-import pytest
 from presamples.utils import *
 import numpy as np
+import os
+import pytest
 
+
+basedir = os.path.dirname(os.path.abspath(__file__))
 
 def test_name_conflicts():
     assert check_name_conflicts(['ABC', 'DEF']) is None
@@ -28,3 +31,7 @@ def test_convert_parameter_dict_to_presamples_error():
     }
     with pytest.raises(ValueError):
         convert_parameter_dict_to_presamples(data)
+
+def test_md5():
+    expected = "700c072345111586ddb5b90ea8018fc8"
+    assert md5(os.path.join(basedir, "random.nonsense")) == expected

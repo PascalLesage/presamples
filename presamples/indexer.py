@@ -15,7 +15,7 @@ class Indexer(RandomState):
 
     def __init__(self, ncols, seed=None):
         self.ncols = ncols
-        self.seed_value, self.count, self.index = seed, 0, None
+        self.seed_value, self.count, self.index = seed, -1, None
         super().__init__(None if seed == 'sequential' else seed)
 
     def __next__(self):

@@ -266,6 +266,13 @@ class PackagesDataLoader:
         for indexer in self.sample_indexers:
             next(indexer)
 
+    def reset_sequential_indices(self):
+        """Reset all sequential indexers.
+
+        Needed for Monte Carlo calculations."""
+        for indexer in self.sample_indexers:
+            indexer.reset_sequential_indices()
+
     @property
     def parameters(self):
         if not hasattr(self, "_parameters"):

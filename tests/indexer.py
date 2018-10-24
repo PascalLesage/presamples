@@ -54,3 +54,19 @@ def test_index_attribute():
     for index in range(10):
         next(i)
         assert i.index != i.count
+
+def test_sequential_reset():
+    i = Indexer(1e6, seed='sequential')
+    a = [next(i) for _ in range(10)]
+    assert a == list(range(10))
+    assert i.count == 10
+    assert i.index == 9
+
+    i.reset_sequential_indices()
+    assert i.count == i.index == 0
+
+    a = [next(i) for _ in range(10)]
+    assert a == list(range(10))
+    assert i.count == 10
+    assert i.index == 9
+

@@ -25,3 +25,10 @@ class Indexer(RandomState):
             self.index = self.randint(0, MAX_SIGNED_32BIT_INT) % self.ncols
         self.count += 1
         return self.index
+
+    def reset_sequential_indices(self):
+        """Reset index value if this is a sequential indexer.
+
+        Used in Monte Carlo calculations."""
+        if self.seed_value == 'sequential':
+            self.count, self.index = 0, 0

@@ -1,6 +1,11 @@
+# 0.2.2 (2018-10-24)
+
+Add function to allow resetting sequential indices. Makes Monte Carlo LCA happier.
+
 # 0.2.1 (2018-06-11)
-Fix `ParametersMapping` for presample packages that have both matrix and paramter data  
-Extend power of `ParameterizedBrightwayModel` by extending arguments of its `save_presamples` method to all arguments allowed in the underlying `create_presamples_package` 
+
+* Fix `ParametersMapping` for presample packages that have both matrix and paramter data
+* Extend power of `ParameterizedBrightwayModel` by extending arguments of its `save_presamples` method to all arguments allowed in the underlying `create_presamples_package`
 
 # 0.2 (2018-03-20)
 

@@ -374,9 +374,12 @@ def test_load_existing_complete():
         'A__a1': 70.0,
         'B__b1': 42.0,
         'C__c1': 50.0,
+        'D__d1': 12.0,
         'E__e1': 22.0,
         'db__db1': 20.0,
-        'db__db2': 2.0
+        'db__db2': 2.0,
+        'project__p1': 10,
+        'project__p2': 10,
     }
     assert result == expected
 

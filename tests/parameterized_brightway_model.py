@@ -423,7 +423,7 @@ def test_load_existing_with_prefix():
     loaded = pbm.load_parameter_data()
     assert len(loaded) == 0
     result = pbm.calculate_static()
-    expected = {} # Globals don't show up in results-->see ParameterSet.evaluate()
+    expected = {'project__p1': 42, 'project__p2': 42}
     assert result == expected
     result = pbm.global_params
     expected = {'project__p1': 42, 'project__p2': 42}
@@ -434,7 +434,7 @@ def test_load_existing_with_prefix():
     loaded = pbm.load_parameter_data()
     assert len(loaded) == 1
     result = pbm.calculate_static()
-    expected = {'project__p2':1}
+    expected = {'project__p1': 42, 'project__p2':1}
     assert result == expected
 
     # With database parameters now
@@ -482,6 +482,7 @@ def test_load_existing_with_prefix():
     result = pbm.calculate_static()
     expected = {
                    'db__db1': 2,
+                   'db__db2': 100,
                    'db__db3': 1000,
                    'project__p1': 1,
                    'project__p2': 1,

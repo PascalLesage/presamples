@@ -13,7 +13,7 @@ __all__ = [
 ]
 
 
-__version__ = (0, 2, 2)
+__version__ = (0, 2, 3)
 
 from .campaigns import Campaign, PresampleResource
 from .indexer import Indexer

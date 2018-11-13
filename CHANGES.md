@@ -1,3 +1,7 @@
+# 0.2.3 (2018-11-13)
+
+Update for API changes in `bw2parameters`.
+
 # 0.2.2 (2018-10-24)
 
 Add function to allow resetting sequential indices. Makes Monte Carlo LCA happier.

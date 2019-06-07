@@ -4,6 +4,7 @@ Quickstart
 ==========
 
 This section provides a brief overview of the use of presamples:
+
 * :ref:`objectives`
 * :ref:`creating_presamples`
 * :ref:`accessing_package`
@@ -40,12 +41,14 @@ simply arrays of values specific parameters can take. These are stored in
 by the `Open Knowledge Foundation <https://okfn.org/projects/>`_.
 
 These presample arrays can be based on any source:
+
   - Time series data from a statistical agency;
   - Array of random values generated from a given distribution;
   - The output from a MonteCarlo Simulation from a model;
   - A hat.
 
 Presamples allows these arrays to be generated *ahead* of their use in a particular model. This is useful if:
+
   - Generating these values is computationally expensive and there is no need to recalculate them with each model run;
   - We want to reuse the *same* values every time a model is solved.
 

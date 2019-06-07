@@ -9,11 +9,12 @@ presamples
 Presamples is used to write, load, manage and verify *presample arrays*.
 
 Presample arrays refer to arrays of values that specific parameters can take on. Presamples allows these arrays
- to be generated *ahead* of their use in a particular model. This is useful if:
-  - Generating these values is computationally expensive and there is no need to recalculate them with each model run;
-  - We want to reuse the *same* values every time a model is solved.
+to be generated *ahead* of their use in a particular model. This is useful if:
 
-Presample's source code is hosted on github.
+- Generating these values is computationally expensive and there is no need to recalculate them with each model run;
+- We want to reuse the *same* values every time a model is solved.
+
+Presample's source code is `hosted on github <https://github.com/PascalLesage/presamples/>`_.
 
 Contents:
 

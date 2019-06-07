@@ -1,0 +1,43 @@
+NOTES FOR CHRIS
+
+- Peewee has a script to run tests so users can make sure they installed correctly:
+http://docs.peewee-orm.com/en/latest/peewee/installation.html#running-tests
+Should we consider doing this?
+
+- installing.rst:
+  - The part on "sudo install" was ripped off peewee documentation. Relevant do you think?
+
+
+
+
+Installing
+
+Quickstart
+- Concept
+- Creating a presamples package
+- Storing a presamples resource
+- Managing resources using campaigns
+- Example use: random samples
+- Example use: scenarios
+
+Using with brightway2
+- Introduction
+- Passing matrix data to presample creation
+- Using presamples in LCA
+- Using presamples in MonteCarloLCA
+- Fixed sums helper model
+- Kronecker delta helper model
+- Parameterized brightway models
+
+Technical reference (API)
+- Creating presample packages
+- Interacting with presample resources
+- Campaigns
+
+Other examples
+
+Papers and presentations
+
+Contributing
+
+

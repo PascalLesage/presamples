@@ -9,6 +9,66 @@ Should we consider doing this?
 
 
 
+.. topic:: Example usage
+
+  The fuel consumption of a ship is a function of several uncertain parameters: water resistance coefficients,
+  effective wake, propeller efficiency, etc.
+
+  If the fuel consumed during shipping is just one of many other parameters
+  in a model you want to solve, you probably don't want to include all the parameters contributing to fuel consumption
+  directly.
+
+  Presamples allows you to store an array of fuel consumption values, and to reuse these directly and efficiently
+  in another model downstream.
+
+
+
+Store samples of a parameter used in a model in presample packages
+
+Store samples of the model outputs in presample packages
+
+Stored samples of model outputs can be used in non-parametric models
+Non-parametric models make strong assumptions about independence
+
+Create and use variations of the same presample package
+
+
+
+
+
+
+
+
+Since the
+
+Keeps models simple by replacing submodels with aggregated values
+Can update input data values: using other models or data to calculate underlying models and input data
+
+
+Data used in models can be:
+  - measured
+  = the output of another model
+
+When measured,
+When looking for input data, we may therefore
+
+
+
+In some fields, such as industrial ecology, models often are are incorporate a vast number of models
+
+Data used in models is prone to uncertainty. Parameter values is itself often
+
+Model aggregation
+Availability of input parameter values
+Possibility to easily replace input parameter values
+
+
+Keeps trace of the input parameters used to evaluate some output
+Allows the aggregated output to be used directly in other models
+
+
+
+
 
 Installing
 

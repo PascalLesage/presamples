@@ -4,6 +4,9 @@
    contain the root `toctree` directive.
 
 .. image:: presamples_logo.png
+   :scale: 50 %
+   :alt: presamples logo
+   :align: right
 
 presamples
 ======================================

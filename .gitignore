@@ -1,7 +1,5 @@
 syntax:glob
 dist
-build
-docs/_build
 docs/docs_planning
 docs/doc_structure_notes_delete
 *.pyc

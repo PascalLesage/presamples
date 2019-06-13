@@ -10,9 +10,11 @@
  
  Presamples are useful anytime values for named parameters or matrix elements need to be saved and reused.
  
- **Documentation**: Better documentation is on its way, in the meantime, please consult the Jupyter Notebook [here](https://github.com/PascalLesage/presamples/blob/master/docs/presamples%20docs%20and%20examples.ipynb)
+ **Documentation**: We are in the process of writing better documentation.  
+ - To read our documentation "under construction", go to our [readthedocs](https://presamples.readthedocs.io/en/latest/?badge=latest) page. 
+ - If you can't find what you are looking for, you can also try the Jupyter Notebook [here](https://github.com/PascalLesage/presamples/blob/master/docs/presamples%20docs%20and%20examples.ipynb)
  
- **Examples**: More examples are on their way, in the meantime please consult the Jupyter Notebooks [here](https://github.com/PascalLesage/presamples/tree/master/docs/examples)
+ **Examples**: We will include links to examples in our documentations. In the meantime please consult the Jupyter Notebooks [here](https://github.com/PascalLesage/presamples/tree/master/docs/examples)
  
 
 [![Linux/OS X build status](https://travis-ci.org/PascalLesage/presamples.svg?branch=master)](https://travis-ci.org/PascalLesage/presamples) 

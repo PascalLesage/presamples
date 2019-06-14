@@ -118,11 +118,16 @@ The following data, stored as arrays, were collected for years 2003-2015 from th
 Creating presample packages for data inputs
 -------------------------------------------
 
-To create a presamples package for the input data described above:
+Presamples packages for named parameters are created using ``create_presamples_package``.
+
+The input data need to be formatted as a list of ``(samples, names, label)``, where:
+  - ``samples`` are arrays containing *n* observations (columns) for *m* named parameters (rows)
+  - ``names`` are a list of m parameter names
+  - ``label`` is simply a tag to name the set of data being passed.
+
+To format the agricultural data above:
 
 .. code-block:: python
-
-    >>> import presamples
 
     # Stack arrays of data.
     # The number of columns equals the number of observations
@@ -137,6 +142,13 @@ To create a presamples package for the input data described above:
 
     # Create a list of your parameter names
     >>> ag_names = ['cereal production [t]', 'fert consumption [kg/km2]', 'land [ha]']
+
+
+The presample package can now be created:
+
+.. code-block:: python
+
+    >>> import presamples
 
     >>> pp_id, pp_path = presamples.create_presamples_package(
     ...     parameter_data = [(ag_sample_arr, ag_names, "Agri baseline data")]
@@ -187,10 +199,10 @@ See the :ref:`tech_ref` for more detail and for a list of other arguments.
 
 .. _accessing_package:
 
-Accessing a presamples package for inspection
+Accessing all data in a presamples package
 ---------------------------------------------
 
-To obtain information on a presamples package:
+One way to interact with the presamples package is via the ``PresamplesPackage`` package interface:
 
 .. code-block:: python
 
@@ -239,15 +251,13 @@ You can also access a specific array directly from the parameter name:
             15060300., 13156000., 13536700., 14981496., 15924684., 14023084.,
             14581100.])
 
-Note however that this is NOT typically how you would interact with presample packages.
-
 
 .. _using_package:
 
-Using a presample package in a model
-------------------------------------
+Accessing single samples in a presamples package
+-------------------------------------------------
 
-The more typical way to access parameter data for use in a model is one observation at a time.
+It is also possible to access a single observation for each variable rather than returning the entire array of observations.
 
 This is done via the ``PackagesDataLoader``.
 
@@ -257,10 +267,10 @@ A ``PackagesDataLoader`` is instantiated with a list of presamples package paths
 
     >>> ag_loader = presamples.PackagesDataLoader([ag_fp])
 
-One of the important things the ``PackagesDataLoader`` does in create an ``Indexer`` for each presamples package. This indexer
-simply returns an integer representing the column number of the presamples array from which data should be taken.
+One of the important things the ``PackagesDataLoader`` does is create an ``Indexer`` for each presamples package. This indexer
+simply returns an integer representing the column number of the presamples array from which data will be taken.
 By default, the ``Indexer`` returns indices at random (useful for e.g. Monte Carlo simulations). However, it can also return
-values sequentially (see XXX).
+values sequentially (see :ref:`sequential_indexers`) and can also be seeded (see :ref:`seeded_indexers`).
 
 .. code-block:: python
 

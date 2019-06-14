@@ -100,7 +100,7 @@ class PresamplesPackage:
 
 
 class ParametersMapping(Mapping):
-    def __init__(self, path, resources, package_name, sample_index=0):
+    def __init__(self, path, resources, package_name):
         name_lists = [
             json.load(open(path / obj['names']['filepath'])) for obj in resources
             if obj.get('names')

@@ -2,10 +2,9 @@ from .array import RegularPresamplesArrays
 from .indexer import Indexer
 from .utils import validate_presamples_dirpath, check_name_conflicts
 from collections.abc import Mapping
+from collections import OrderedDict
 from pathlib import Path
 import json
-import numpy as np
-import os
 
 
 class PresamplesPackage:
@@ -106,11 +105,11 @@ class ParametersMapping(Mapping):
             if obj.get('names')
         ]
         check_name_conflicts(name_lists)
-        self.mapping = {
-            name: (i, j)
+        self.mapping = OrderedDict(
+            (name, (i, j))
             for i, lst in enumerate(name_lists)
             for j, name in enumerate(lst)
-        }
+        )
         self.ipa = RegularPresamplesArrays([
             path / obj['samples']['filepath']
             for obj in resources
@@ -125,6 +124,10 @@ class ParametersMapping(Mapping):
     def values(self):
         for i, j in self.mapping.values():
             yield self.ipa.data[i][j, :]
+
+    @property
+    def names(self):
+        return list(self.keys())
 
     def __getitem__(self, key):
         i, j = self.mapping[key]

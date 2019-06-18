@@ -70,6 +70,35 @@ def parameters_fixture():
         )
         yield dirpath
 
+@pytest.fixture
+def parameters_fixture_2():
+    with tempfile.TemporaryDirectory() as d:
+        dirpath = Path(d)
+        s1 = np.array([100, 200]).reshape(2, 1)
+        s2 = np.array([42]).reshape(1, 1)
+        n1 = list('AB')
+        n2 = list('E')
+        id_, dirpath = create_presamples_package(
+            parameter_data=[(s1, n1, 'spring'), (s2, n2, 'fall')],
+            name='nufoo', id_='nubar', dirpath=dirpath
+        )
+        yield dirpath
+
+@pytest.fixture
+def parameters_fixture_3():
+    with tempfile.TemporaryDirectory() as d:
+        dirpath = Path(d)
+        s1 = np.array([300]).reshape(1, 1)
+        s2 = np.array([123]).reshape(1, 1)
+        n1 = list('C')
+        n2 = list('E')
+        id_, dirpath = create_presamples_package(
+            parameter_data=[(s1, n1, 'equinox'), (s2, n2, 'solstice')],
+            name='nunufoo', id_='nunubar', dirpath=dirpath
+        )
+        yield dirpath
+
+
 def test_init(package):
     mp = PackagesDataLoader([package])
     assert not mp.empty
@@ -588,3 +617,122 @@ def test_update_sample_indices():
     first = ml.sample_indexers[0].index
     ml.update_sample_indices()
     assert ml.sample_indexers[0].index != first
+
+def test_consolidated_indexed_parameter_arrays(parameters_fixture, parameters_fixture_2, parameters_fixture_3):
+    mp_1 = PackagesDataLoader([parameters_fixture])
+    assert len(mp_1.parameters) == 1 #Only one IPM
+    assert mp_1.parameters.names == list("ABCDEFG")
+    # Consolidated array depends on index, but is sure to be one of following:
+    first_col_arr = np.array([0, 4, 8, 12, 0, 4, 8], dtype=np.float)
+    possible_consolidated_arrays = [first_col_arr+scalar for scalar in range(0, 4)]
+    assert any([np.array_equal(mp_1.parameters.consolidated_array, arr) for arr in possible_consolidated_arrays])
+    # Values still possible after updating index
+    mp_1.update_sample_indices()
+    assert any([np.array_equal(mp_1.parameters.consolidated_array, arr) for arr in possible_consolidated_arrays])
+    # All parameter values taken from imp at index 0
+    assert all([mp_1.parameters.ipm_mapper[n] == 0 for n in mp_1.parameters.names])
+    assert len(mp_1.parameters.replaced) == 0
+    all_ids_paths = [mp_1.parameters.ids[name][0] for name in mp_1.parameters.names]
+    assert all([Path(p) == Path(parameters_fixture) for p in all_ids_paths]), "Got {}, expected {}".format(all_ids_paths, parameters_fixture)
+
+    mp_2 = PackagesDataLoader([parameters_fixture, parameters_fixture_2])
+    assert len(mp_2.parameters) == 2
+    assert mp_2.parameters.names == list("ABCDEFG")
+    # Consolidated array depends on index, but is sure to be one of following:
+    not_replaced_first_col = np.array([8, 12, 4, 8], dtype=np.float)
+    possible_not_replaced_sample = [not_replaced_first_col+scalar for scalar in range(0, 4)]
+    not_replaced_indices = [2, 3, 5, 6]
+    replaced_indices = [0, 1, 4]
+    # Unreplaced named parameters still in possible values
+    assert any([np.array_equal(mp_2.parameters.consolidated_array[not_replaced_indices], arr) for arr in possible_not_replaced_sample]), "got this: {}".format(mp_1.parameters.consolidated_array)
+    # Replaced named parameters have new values
+    assert np.array_equal(mp_2.parameters.consolidated_array[replaced_indices], np.array([100, 200, 42]))
+    # Value tests still correct after updating index
+    mp_2.update_sample_indices()
+    assert any([np.array_equal(mp_2.parameters.consolidated_array[not_replaced_indices], arr) for arr in possible_not_replaced_sample])
+    assert np.array_equal(mp_2.parameters.consolidated_array[replaced_indices], np.array([100, 200, 42]))
+
+    # All parameter values taken from imp at index 0
+    assert all(
+        [mp_2.parameters.ipm_mapper[n] == 0
+         for n in mp_2.parameters.names
+         if n not in mp_2.parameters.replaced.keys()
+         ]
+    )
+    assert all(
+        [mp_2.parameters.ipm_mapper[n] == 1
+         for n in mp_2.parameters.names
+         if n in mp_2.parameters.replaced.keys()
+         ]
+    )
+
+    assert len(mp_2.parameters.replaced) == 3
+    for replaced_name, replaced_paths in mp_2.parameters.replaced.items():
+        assert len(replaced_paths)==1
+        assert replaced_paths==[(parameters_fixture, 'foo')]
+
+    all_ids_paths_not_replaced = [
+        mp_2.parameters.ids[name][0]
+        for name in mp_2.parameters.names
+        if name not in mp_2.parameters.replaced
+    ]
+    all_ids_paths_replaced = [
+        mp_2.parameters.ids[name][0]
+        for name in mp_2.parameters.names
+        if name in mp_2.parameters.replaced
+    ]
+    assert all([
+        Path(p) == Path(parameters_fixture) for p in all_ids_paths_not_replaced
+        ]
+    )
+    assert all([
+        Path(p) == Path(parameters_fixture_2) for p in all_ids_paths_replaced
+        ]
+    )
+
+    mp_3 = PackagesDataLoader([parameters_fixture, parameters_fixture_2, parameters_fixture_3])
+    assert len(mp_3.parameters) == 3
+    assert mp_2.parameters.names == list("ABCDEFG")
+    # Consolidated array depends on index, but is sure to be one of following:
+    not_replaced_first_col = np.array([12, 4, 8], dtype=np.float)
+    possible_not_replaced_sample = [not_replaced_first_col + scalar for scalar in range(0, 4)]
+    not_replaced_indices = [3, 5, 6]
+    replaced_indices = [0, 1, 2, 4]
+    # Unreplaced named parameters still in possible values
+    assert any([
+        np.array_equal(mp_3.parameters.consolidated_array[not_replaced_indices], arr)
+        for arr in possible_not_replaced_sample
+    ])
+    # Replaced named parameters have new values
+    assert np.array_equal(mp_3.parameters.consolidated_array[replaced_indices], np.array([100, 200, 300, 123]))
+    # Value tests still correct after updating index
+    mp_3.update_sample_indices()
+    assert any([np.array_equal(mp_3.parameters.consolidated_array[not_replaced_indices], arr) for arr in
+                possible_not_replaced_sample])
+    assert np.array_equal(mp_3.parameters.consolidated_array[replaced_indices], np.array([100, 200, 300, 123]))
+
+    # All parameter values taken from imp at index 0
+    assert all(
+        [mp_3.parameters.ipm_mapper[n] == 0
+         for n in mp_3.parameters.names
+         if n not in mp_3.parameters.replaced.keys()
+         ]
+    )
+    assert all(
+        [mp_3.parameters.ipm_mapper[n] == 1
+         for n in mp_3.parameters.names
+         if n in list('AB')
+         ]
+    )
+    assert all(
+        [mp_3.parameters.ipm_mapper[n] == 2
+         for n in mp_3.parameters.names
+         if n in list('CE')
+         ]
+    )
+
+    assert len(mp_3.parameters.replaced) == 4
+    assert mp_3.parameters.replaced['A'] == [(parameters_fixture, 'foo')]
+    assert mp_3.parameters.replaced['B'] == [(parameters_fixture, 'foo')]
+    assert mp_3.parameters.replaced['C'] == [(parameters_fixture, 'foo')]
+    assert mp_3.parameters.replaced['E'] == [(parameters_fixture, 'foo'), (parameters_fixture_2, 'nufoo')]

@@ -2,13 +2,14 @@ from .array import RegularPresamplesArrays
 from .errors import IncompatibleIndices, ConflictingLabels
 from .indexer import Indexer
 from .package_interface import IndexedParametersMapping
-from .utils import validate_presamples_dirpath, md5
+from .utils import validate_presamples_dirpath
 from pathlib import Path
 import itertools
 import json
 import numpy as np
-import os
 import wrapt
+from collections.abc import Sequence
+from collections import defaultdict
 
 
 @wrapt.decorator
@@ -276,8 +277,60 @@ class PackagesDataLoader:
     @property
     def parameters(self):
         if not hasattr(self, "_parameters"):
-            self._parameters = [
-                IndexedParametersMapping(**metadata)
-                for metadata in self.parameter_metadata
-            ]
+            self._parameters = ConsolidatedIndexedParameterMapping(
+                [
+                    IndexedParametersMapping(**metadata)
+                    for metadata in self.parameter_metadata
+                ]
+            )
         return self._parameters
+
+class ConsolidatedIndexedParameterMapping(Sequence):
+    """ todo"""
+    def __init__(self, list_IPM, warn_on_replacement=False):
+        self.ipms = list_IPM
+        assert all([
+            isinstance(ipm, IndexedParametersMapping)
+            for ipm in self.ipms
+        ])
+
+        self.consolidate_ipms()
+
+    def __len__(self):
+        return len(self.ipms)
+
+    def __getitem__(self, i):
+        return self.ipms[i]
+
+
+    def consolidate_ipms(self):
+        """map parameter names to source package and values"""
+        self.names = []
+        self.ids = {}
+        self.ipm_mapper = {}
+        self.replaced = defaultdict(list)
+        for i, ipm in enumerate(self.ipms):
+            for n, name in enumerate(ipm.names):
+                if name not in self.names:
+                    self.names.append(name)
+                else:
+                    old_ipm = self.ipms[self.ipm_mapper[name]]
+                    ind_index = list(old_ipm.mapping.keys()).index(name)
+                    self.replaced[name].append((old_ipm.ids[ind_index][0], old_ipm.ids[ind_index][1]))
+                self.ids[name] = ipm.ids[n]
+                self.ipm_mapper[name] = i
+
+    @property
+    def consolidated_array(self):
+        """ Array of values for named parameter
+
+        Each value is taken from the last IndexedParameterMapping object that
+        contains data on the named parameter.
+        The used IndexedParameterMapping contains information about the path
+        to the presamples array, the corresponding mapping for the named
+        parameter and the current Indexer value.
+        """
+        arr = np.empty(shape=(len(self.names)))
+        for i, name in enumerate(self.names):
+            arr[i] = self.ipms[self.ipm_mapper[name]][name]
+        return arr

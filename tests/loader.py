@@ -627,14 +627,18 @@ def test_consolidated_indexed_parameter_arrays(parameters_fixture, parameters_fi
     assert len(mp_1.parameter_data_loaded) == 1
     assert len(mp_1.parameters) == 7
     assert mp_1.parameters.names == list("ABCDEFG")
+    itered_names = [n for n in mp_1.parameters]
+    assert itered_names == list("ABCDEFG")
     # Consolidated array depends on index, but is sure to be one of following:
     first_col_arr = np.array([0, 4, 8, 12, 0, 4, 8], dtype=np.float)
     possible_consolidated_arrays = [first_col_arr+scalar for scalar in range(0, 4)]
     assert any([np.array_equal(mp_1.parameters.consolidated_array, arr) for arr in possible_consolidated_arrays])
+    assert len(set(mp_1.parameters.consolidated_indices))==1
     # Values still possible after updating index
     mp_1.update_package_indices()
     assert any([np.array_equal(mp_1.parameters.consolidated_array, arr) for arr in possible_consolidated_arrays])
-    # All parameter values taken from imp at index 0
+    assert len(set(mp_1.parameters.consolidated_indices)) == 1
+    # All parameter values taken from ipm at index 0
     assert all([mp_1.parameters.ipm_mapper[n] == 0 for n in mp_1.parameters.names])
     assert len(mp_1.parameters.replaced) == 0
     all_ids_paths = [mp_1.parameters.ids[name][0] for name in mp_1.parameters.names]
@@ -653,6 +657,11 @@ def test_consolidated_indexed_parameter_arrays(parameters_fixture, parameters_fi
     assert any([np.array_equal(mp_2.parameters.consolidated_array[not_replaced_indices], arr) for arr in possible_not_replaced_sample]), "got this: {}".format(mp_1.parameters.consolidated_array)
     # Replaced named parameters have new values
     assert np.array_equal(mp_2.parameters.consolidated_array[replaced_indices], np.array([100, 200, 42]))
+    # All replaced names have index values == 0 (since the number of observations == 1)
+    assert all([mp_2.parameters.consolidated_indices[i]==0 for i in [0, 1, 4]])
+    # All unreplaced names have same index, since have the same indexer
+    assert len(set([mp_2.parameters.consolidated_indices[i] for i in [2, 3, 5, 6]]))
+
     # Value tests still correct after updating index
     mp_2.update_package_indices()
     assert any([np.array_equal(mp_2.parameters.consolidated_array[not_replaced_indices], arr) for arr in possible_not_replaced_sample])

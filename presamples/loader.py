@@ -408,6 +408,3 @@ class ConsolidatedIndexedParameterMapping(Mapping):
         for i, name in enumerate(self.names):
             arr[i] = self.ipms[self.ipm_mapper[name]][name]
         return arr
-
-def delete():
-    np.random.rand()

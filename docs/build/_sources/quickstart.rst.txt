@@ -3,13 +3,13 @@
 Quickstart
 ==========
 
-This section provides a brief overview of the use of presamples via a simple example:
+This section provides a brief overview of the use of presamples for named parameters via a simple example.
 
 * :ref:`objectives`
 * :ref:`simple_example`
 * :ref:`creating_presamples`
 * :ref:`accessing_package`
-* :ref:`using_package`
+* :ref:`loading_package`
 * :ref:`storing_model_results`
 * :ref:`storing_resource`
 * :ref:`seeded_indexers`
@@ -139,7 +139,8 @@ To create a presamples package for the input data described above:
     >>> ag_names = ['cereal production [t]', 'fert consumption [kg/km2]', 'land [ha]']
 
     >>> pp_id, pp_path = presamples.create_presamples_package(
-    ...     parameter_data = [(ag_sample_arr, ag_names, "Agri baseline data")]
+    ...     parameter_data = [(ag_sample_arr, ag_names, "Agri baseline data")],
+    ...     name="Baseline agri data - presample package"
     ... )
 
 This function does several things:
@@ -147,63 +148,111 @@ This function does several things:
 1) It stores the samples to a numpy array and the parameter names as a json file to disk, at the location ``pp_path``
 2) It generates a file ``datapackage.json`` that contains metadata on the presamples package.
 
+.. code-block:: python
+
+    >>> import os
+    >>> os.listdir(pp_path)
+    ['datapackage.json',
+     'dbc8f4abb93540f9a1ab040b8923672f.0.names.json',
+     'dbc8f4abb93540f9a1ab040b8923672f.0.samples.npy']
+
 The datapackage has the following structure:
 
-.. code-block:: json
+.. code-block:: python
 
+    >>> import json
+    >>> with open(pp_path/'datapackage.json', 'rb') as f:
+    ...     datapackage = json.load(f)
+    >>> print(json.dumps(datapackage, indent=4))
     {
-      "name": "f53d306db86a41d79e68d2181ca32bea",
-      "id": "f53d306db86a41d79e68d2181ca32bea",
-      "profile": "data-package",
-      "seed": null,
-      "resources": [
-        {
-          "samples": {
-            "filepath": "f53d306db86a41d79e68d2181ca32bea.0.samples.npy",
-            "md5": "58978441f250cadca1d5829110d23942",
-            "shape": [
-              3,
-              13
-            ],
-            "dtype": "float64",
-            "format": "npy",
-            "mediatype": "application/octet-stream"
-          },
-          "names": {
-            "filepath": "f53d306db86a41d79e68d2181ca32bea.0.names.json",
-            "md5": "c2202d5f8fd5fd9eb11e3cd528b6b14d",
-            "format": "json",
-            "mediatype": "application/json"
-          },
-          "profile": "data-resource",
-          "label": "Canadian ag data from World Bank",
-          "index": 0
-        }
-      ],
-      "ncols": 13
+        "name": "Baseline agri data - presample package",
+        "id": "dbc8f4abb93540f9a1ab040b8923672f",
+        "profile": "data-package",
+        "seed": null,
+        "resources": [
+            {
+                "samples": {
+                    "filepath": "dbc8f4abb93540f9a1ab040b8923672f.0.samples.npy",
+                    "md5": "58978441f250cadca1d5829110d23942",
+                    "shape": [
+                        3,
+                        13
+                    ],
+                    "dtype": "float64",
+                    "format": "npy",
+                    "mediatype": "application/octet-stream"
+                },
+                "names": {
+                    "filepath": "dbc8f4abb93540f9a1ab040b8923672f.0.names.json",
+                    "md5": "c2202d5f8fd5fd9eb11e3cd528b6b14d",
+                    "format": "json",
+                    "mediatype": "application/json"
+                },
+                "profile": "data-resource",
+                "label": "Agri baseline data",
+                "index": 0
+            }
+        ],
+        "ncols": 13
     }
 
 See the :ref:`tech_ref` for more detail and for a list of other arguments.
 
 .. _accessing_package:
 
-Accessing a presamples package for inspection
+Direct interface to presamples package
 ---------------------------------------------
 
-To obtain information on a presamples package:
+To interact directly with a single presamples package :
 
 .. code-block:: python
 
     >>> package = presamples.PresamplesPackage(pp_path)
 
-The package can return multiple properties, such as:
+The entire content of the ``datapackage.json`` file is returned by ``package.metadata``.
 
-  - information contained in datapackage.json (``package.metadata``)
-  - a ParametersMapping object (``package.parameters``), which can be used to access parameter names (keys), presample arrays (values) or both (items):
+The package can also be used to directly return several properties contained in the datapackage, for example:
 
 .. code-block:: python
 
-    >>> names = list(package.parameters.keys())
+    >>> package.name  # Name passed as optional argument in ``create_presamples_package``
+    'Agri example - baseline data'
+
+    >>> package.ncols # Number of columns, i.e. number of observations stored in the presamples array
+    13
+
+    >>> package.id
+    '2a31aa637f564618bf5e606333ffb7fc'
+
+Accessing the package's ``resources`` provides metadata on the stored data and filepaths to access it.
+``packages.resources`` returns a list with as many resources as were passed in ``create_presamples_package``. In our
+simple example, only one set of parameter data was passed, so ``packages.resources`` only contains one element.
+
+.. code-block:: python
+
+    >>> package.resources # List of resources, in simple example there is one
+    [{'samples': {'filepath': 'dbc8f4abb93540f9a1ab040b8923672f.0.samples.npy',
+       'md5': '58978441f250cadca1d5829110d23942',
+       'shape': [3, 13],
+       'dtype': 'float64',
+       'format': 'npy',
+       'mediatype': 'application/octet-stream'},
+      'names': {'filepath': 'dbc8f4abb93540f9a1ab040b8923672f.0.names.json',
+       'md5': 'c2202d5f8fd5fd9eb11e3cd528b6b14d',
+       'format': 'json',
+       'mediatype': 'application/json'},
+      'profile': 'data-resource',
+      'label': 'Agri baseline data',
+      'index': 0}]
+
+The PresamplesPackage also provides a ``ParametersMapping`` interface to access named parameter data:
+
+.. code-block:: python
+
+    >>> package.parameters
+    <presamples.package_interface.ParametersMapping at 0x2136d4de5f8>
+
+    >>> list(package.parameters.keys())
     ['cereal production [t]', 'fert consumption [kg/km2]', 'land [ha]']
 
     >>> list(package.parameters.values()) # Note that the arrays are memory mapped
@@ -230,7 +279,7 @@ The package can return multiple properties, such as:
              15060300., 13156000., 13536700., 14981496., 15924684., 14023084.,
              14581100.])}
 
-You can also access a specific array directly from the parameter name:
+You can also get a specific array directly from the parameter name:
 
 .. code-block:: python
 
@@ -239,38 +288,92 @@ You can also access a specific array directly from the parameter name:
             15060300., 13156000., 13536700., 14981496., 15924684., 14023084.,
             14581100.])
 
-Note however that this is NOT typically how you would interact with presample packages.
-
-
-.. _using_package:
-
-Using a presample package in a model
-------------------------------------
-
-The more typical way to access parameter data for use in a model is one observation at a time.
-
-This is done via the ``PackagesDataLoader``.
-
-A ``PackagesDataLoader`` is instantiated with a list of presamples package paths. In our simple example, we just have one path:
+Note that the values from **all** columns are returned, which makes the ``PresamplePackages`` a useful interface
+for models that accept arrays as inputs:
 
 .. code-block:: python
 
-    >>> ag_loader = presamples.PackagesDataLoader([ag_fp])
+    >>> fert_per_kg(
+            fert_kg_per_km2=package.parameters['fert consumption [kg/km2]'],
+            land_ha=package.parameters['land [ha]'],
+            cereal_t=package.parameters['cereal production [t]']
+        )
+    array([208.89781567, 187.55496749, 169.88106058, 202.93599925,
+           158.05298607, 202.26874876, 193.85817388, 178.71973075,
+           176.8157259 , 222.98038423, 225.78597129, 261.59013441,
+           316.48831014])
+
+.. _loading_package:
+
+Loading packages for use one column at a time
+---------------------------------------------
+
+Presamples also allows accessing parameter data one observation at a time. This is useful to feed data from the presample
+arrays in Monte Carlo Simulations.
+
+This is done via the ``PackagesDataLoader``. A ``PackagesDataLoader`` is instantiated with a list of presamples package
+paths. In our simple example, we just have one path:
+
+.. code-block:: python
+
+    >>> ag_loader = presamples.PackagesDataLoader([pp_path])
 
 One of the important things the ``PackagesDataLoader`` does in create an ``Indexer`` for each presamples package. This indexer
 simply returns an integer representing the column number of the presamples array from which data should be taken.
-By default, the ``Indexer`` returns indices at random (useful for e.g. Monte Carlo simulations). However, it can also return
-values sequentially (see XXX).
+By default, the ``Indexer`` returns indices at random. An ``Indexer`` can also be seeded for reproducibility (see
+:ref:`seeded_indexers`), and can also return values sequentially (see :ref:`sequential_indexers`).
+
+The ``PackagesDataLoader`` has an interface to access named parameters, one observation at a time:
+
+.. code-block:: python
+
+    >>> ag_loader.parameters['land [ha]']
+    17833000.0
+
+It is also possible to return values for all parameters using the ``consolidated_arrays`` property:
+
+.. code-block:: python
+
+    >>> ag_loader.parameters.consolidated_array
+    array([4.91972000e+07, 5.76301666e+01, 1.78330000e+07])
+
+The order of the values is identical to the order of names:
+.. code-block:: python
+
+    >>> ag_loader.parameters.names
+    ['cereal production [t]', 'fert consumption [kg/km2]', 'land [ha]']
+
+
+The array is considered "consolidated" because it uses values from all packages passed to the ``PackagesDataLoader``. In
+this simple example, only one was passed, so not much was consolidated, but the interest of consolidating is explained in
+:ref:`override_parameter_values`.
+
+To move to the next (random) observation:
+
+.. code-block:: python
+
+    >>> ag_loader.update_package_indices()
+    >>> ag_loader.parameters.consolidated_array
+    array([5.33611000e+07, 1.15822293e+02, 1.45811000e+07])
+
+The index value of each package's ``Indexer`` can be returned using the ``consolidated_index``:
 
 .. code-block:: python
 
     >>> for _ in range(4):
-    ...     ag_loader.update_sample_indices()
-    ...     print("index:", ag_loader.parameters[0].index, "values:", ag_loader.parameters[0].array)
-    index: 6 values: [4.9691900e+07 6.3964071e+01 1.5060300e+07]
-    index: 5 values: [5.60304000e+07 6.86041448e+01 1.65197000e+07]
-    index: 9 values: [5.17991000e+07 7.70963275e+01 1.49814960e+07]
-    index: 0 values: [4.91972000e+07 5.76301666e+01 1.78330000e+07]
+    ...     print(
+    ...         "indices:",
+    ...         ag_loader.parameters.consolidated_indices,
+    ...         "values:",
+    ...         ag_loader.parameters.consolidated_array
+    ...     )
+    ...     ag_loader.update_package_indices() # Move to the next (random) index
+    indices: [12, 12, 12] values: [5.33611000e+07 1.15822293e+02 1.45811000e+07]
+    indices: [8, 8, 8] values: [4.76672000e+07 6.22626679e+01 1.35367000e+07]
+    indices: [5, 5, 5] values: [5.60304000e+07 6.86041448e+01 1.65197000e+07]
+    indices: [0, 0, 0] values: [4.91972000e+07 5.76301666e+01 1.78330000e+07]
+
+The indices are all the same because the ``PackagesDataLoader`` was populated with a single presamples package.
 
 To use these in our model described in the simple_example_ section:
 
@@ -278,40 +381,42 @@ To use these in our model described in the simple_example_ section:
 
     >>> for run_nb in range(5): # Run the model 5 times
     ...     print("Run number:", run_nb)
-    ...     # Calculate the model output using sampled parameter values
+    ...
+    ...     # Update the index, i.e. move to the next random index
+    ...     ag_loader.update_package_indices()
+    # Calculate the model output using sampled parameter values
     ...     fertilizer_amount = fert_per_kg(
-    ...         fert_kg_per_km2=ag_loader.parameters[0]['fert consumption [kg/km2]'],
-    ...         land_ha=ag_loader.parameters[0]['fert consumption [kg/km2]'],
-    ...         cereal_t=ag_loader.parameters[0]['cereal production [t]']
+    ...         fert_kg_per_km2=ag_loader.parameters['fert consumption [kg/km2]'],
+    ...         land_ha=ag_loader.parameters['fert consumption [kg/km2]'],
+    ...         cereal_t=ag_loader.parameters['cereal production [t]']
     ...         )
     ...     # print the sampled column index and the model output for each run
-    ...     print("\tindex:", ag_loader.parameters[0].index)
+    ...     print("\tindices:", ag_loader.parameters.consolidated_indices)
     ...     print("\tresult:", 	'{:.2e}'.format(fertilizer_amount))
-    ...     # Update the index, i.e. move to the next random index
-    ...     ag_loader.update_sample_indices()
     Run number: 0
-        index: 1
+        indices: [1, 1, 1]
         result: 6.84e-04
     Run number: 1
-        index: 2
-        result: 5.86e-04
+        indices: [4, 4, 4]
+        result: 4.60e-04
     Run number: 2
-        index: 1
-        result: 6.84e-04
+        indices: [9, 9, 9]
+        result: 1.15e-03
     Run number: 3
-        index: 10
-        result: 1.33e-03
+        indices: [5, 5, 5]
+        result: 8.40e-04
     Run number: 4
-        index: 3
-        result: 7.87e-04
+        indices: [9, 9, 9]
+        result: 1.15e-03
 
 .. _storing_model_results:
 
 Storing a model's output as a presample package
 -----------------------------------------------
 
-The calculated model output (kg fertilizer per kg cereal) may be an input to another model. It would be possible to store
-this output as another presample package which can then be used directly in that second model.
+The calculated model output (in the example, kg fertilizer per kg cereal) may be an input to another model.
+It would be possible to store the calculated output of our model as yet another presample package, and to use this
+directly in the other model.
 
 While this example is simple, it is rather obvious that this can be a great advantage for larger models that take take
 a lot of computing resources.
@@ -321,42 +426,22 @@ a lot of computing resources.
     >>> iterations = 100 # Number of iterations to store.
     >>> model_output = np.zeros(shape=(1, iterations))
     >>> for i in range(iterations):
+    ...     ag_loader.update_package_indices()
     ...     model_output[0, i] = fert_per_kg(
-    ...         fert_kg_per_km2=ag_loader.parameters[0]['fert consumption [kg/km2]'],
-    ...         land_ha=ag_loader.parameters[0]['fert consumption [kg/km2]'],
-    ...         cereal_t=ag_loader.parameters[0]['cereal production [t]']
-    ...         )
-    ...     ag_loader.update_sample_indices()
+    ...         fert_kg_per_km2=ag_loader.parameters['fert consumption [kg/km2]'],
+    ...         land_ha=ag_loader.parameters['fert consumption [kg/km2]'],
+    ...         cereal_t=ag_loader.parameters['cereal production [t]']
+    ...     )
+    >>> model_output
+    array([[0.00133493, 0.00078676, 0.00081327, ..., 0.00078676, 0.00058567,
+            0.00084508  ]])
+
     >>> ag_result_pp_id, ag_result_pp_fp = presamples.create_presamples_package(
-    ...     parameter_data = [(model_output, [''], "Agri model output baseline")]
+    ...     parameter_data = [(model_output, ['fert_input_per_kg_cereal'], "Agri model output baseline")],
+            name="baseline_model_output"
     ... )
 
 This presample package can then be accessed or used as described above.
-
-.. _storing_resource:
-
-Storing a presample resource
------------------------------
-Presamples allows an easy management of presample packages using ``PresampleResource``.
-
-.. code-block:: python
-
-    >>> pr = presamples.PresampleResource.create(path=pp_path, name="Ag model input data")
-
-The resource has a few useful properties, such as ``name`` and ``path``.
-
-One can then retrieve a presample resource based on the name:
-
-.. code-block:: python
-
-    >>> pr_retrieved = presamples.PresampleResource.get(presamples.PresampleResource.name=="Ag model input data")
-
-and then use the associated presample package:
-
-.. code-block:: python
-
-    >>> new_loader = presamples.PackagesDataLoader([pr_retrieved.path])
-
 
 .. _seeded_indexers:
 
@@ -376,30 +461,51 @@ Reusing the original data, we simply pass a seed when using ``create_presamples_
     ...     seed=42
     ... )
 
-    # Create a first loader and print indices and values
-    >>> ag_loader_seeded_pp = presamples.PackagesDataLoader([ag_fp_seeded])
-    >>> for _ in range(4):
-    ...     print("index:", ag_loader_seeded.parameters[0].index, "values:", ag_loader_seeded.parameters[0].array)
-    ...     ag_loader_seeded.update_sample_indices()
-    index: 5 values: [5.60304000e+07 6.86041448e+01 1.65197000e+07]
-    index: 10 values: [6.64057010e+07 9.41524221e+01 1.59246840e+07]
-    index: 8 values: [4.76672000e+07 6.22626679e+01 1.35367000e+07]
-    index: 4 values: [4.80053000e+07 4.69949459e+01 1.61451000e+07]
+We can test that this worked by creating two ``PackagesDataLoader`` objects and making sure they return samples in the
+same order:
 
-    # Create a second loader and print indices and values
-    >>> ag_loader_seeded_pp_2 = presamples.PackagesDataLoader([ag_fp_seeded])
+.. code-block:: python
+
+    # Create a first loader and print indices and values
+    >>> ag_loader_seeded_1 = presamples.PackagesDataLoader([ag_fp_seeded])
+    >>> ag_loader_seeded_2 = presamples.PackagesDataLoader([ag_fp_seeded])
+    >>> ag_loader_seeded_1 is ag_loader_seeded_2
+    False
+    >>> ag_loader_seeded_1 == ag_loader_seeded_2
+    False
+
+The two loaders are distinct, and yet:
+
     >>> for _ in range(4):
-    ...     print("index:", ag_loader_seeded_2.parameters[0].index, "values:", ag_loader_seeded_2.parameters[0].array)
-    ...     ag_loader_seeded_2.update_sample_indices()
-    index: 5 values: [5.60304000e+07 6.86041448e+01 1.65197000e+07]
-    index: 10 values: [6.64057010e+07 9.41524221e+01 1.59246840e+07]
-    index: 8 values: [4.76672000e+07 6.22626679e+01 1.35367000e+07]
-    index: 4 values: [4.80053000e+07 4.69949459e+01 1.61451000e+07]
+    ...     ag_loader_seeded_1.update_package_indices()
+    ...     print(
+    ...         "indices:",
+    ...         ag_loader_seeded_1.parameters.consolidated_indices,
+    ...         "values:",
+    ...         ag_loader_seeded_1.parameters.consolidated_array
+    ...     )
+    indices: [5, 5, 5] values: [5.60304000e+07 6.86041448e+01 1.65197000e+07]
+    indices: [10, 10, 10] values: [6.64057010e+07 9.41524221e+01 1.59246840e+07]
+    indices: [8, 8, 8] values: [4.76672000e+07 6.22626679e+01 1.35367000e+07]
+    indices: [4, 4, 4] values: [4.80053000e+07 4.69949459e+01 1.61451000e+07]
+
+    >>> for _ in range(4):
+    ...     ag_loader_seeded_2.update_package_indices()
+    ...     print(
+    ...         "indices:",
+    ...         ag_loader_seeded_2.parameters.consolidated_indices,
+    ...         "values:",
+    ...         ag_loader_seeded_2.parameters.consolidated_array
+    ...     )
+    indices: [5, 5, 5] values: [5.60304000e+07 6.86041448e+01 1.65197000e+07]
+    indices: [10, 10, 10] values: [6.64057010e+07 9.41524221e+01 1.59246840e+07]
+    indices: [8, 8, 8] values: [4.76672000e+07 6.22626679e+01 1.35367000e+07]
+    indices: [4, 4, 4] values: [4.80053000e+07 4.69949459e+01 1.61451000e+07]
 
 .. _sequential_indexers:
 
 Creating presample packages with sequential indexers
-----------------------------------------------------
+-----------------------------------------------------
 
 It can often be useful to sample values sequentially. To do so, pass ``seed=sequential`` when creating the presamples package.
 
@@ -411,13 +517,17 @@ It can often be useful to sample values sequentially. To do so, pass ``seed=sequ
     ... )
     >>> ag_loader_seq = presamples.PackagesDataLoader([ag_fp_seq])
     >>> for _ in range(4):
-    ...     print("index:", ag_loader_seq.parameters[0].index, "values:", ag_loader_seq.parameters[0].array)
-    ...     ag_loader_seq.update_sample_indices()
-    index: 0 values: [4.91972000e+07 5.76301666e+01 1.78330000e+07]
-    index: 1 values: [5.07782000e+07 5.89276106e+01 1.61617000e+07]
-    index: 2 values: [5.09624000e+07 5.46327748e+01 1.58468000e+07]
-    index: 3 values: [4.85773000e+07 6.18212787e+01 1.59461000e+07]
-
+    ...     print(
+    ...         "indices:",
+    ...         ag_loader_seq.parameters.consolidated_indices,
+    ...         "values:",
+    ...         ag_loader_seq.parameters.consolidated_array
+    ...     )
+    ...     ag_loader_seq.update_package_indices()
+    indices: [0, 0, 0] values: [4.91972000e+07 5.76301666e+01 1.78330000e+07]
+    indices: [1, 1, 1] values: [5.07782000e+07 5.89276106e+01 1.61617000e+07]
+    indices: [2, 2, 2] values: [5.09624000e+07 5.46327748e+01 1.58468000e+07]
+    indices: [3, 3, 3] values: [4.85773000e+07 6.18212787e+01 1.59461000e+07]
 
 
 .. _override_parameter_values:
@@ -425,11 +535,181 @@ It can often be useful to sample values sequentially. To do so, pass ``seed=sequ
 Using presamples to override input values
 -----------------------------------------
 
-ON HOLD, See `<https://github.com/PascalLesage/presamples/issues/56>`_
+Multiple presamples packages can be passed to a single ``DataPackageLoader``. When a named parameted is present in more
+than one presamples package, only the value in the last package to have the named parameter is used.  This allows for
+easily updating input data.
+
+In our example, say we want to fix the fertilizer use parameter to an amount representing a specific scenario:
+
+.. code-block:: python
+
+    >>> new_fertilizer_amount = np.array([60]).reshape(1,1) # The array MUST have one row, as we only have one parameter
+    >>> fert_scenario_id, fert_scenario_path = presamples.create_presamples_package(
+    ...     parameter_data=[new_fertilizer_amount, ['fert consumption [kg/km2]'], 'ag scenario 1']),
+    ...     name="Scenario 1 agri data - presample package"
+    ... )
+
+We can now create a loader where both the baseline and the scenario packages are passed:
+
+.. code-block:: python
+
+    >>> ag_loader_scenario = presamples.PackagesDataLoader([pp_path, fert_scenario_loader])
+
+We can see that the original values for fertilizer use have been replaced by those in the new package.
+
+.. code-block:: python
+
+    >>> for _ in range(4):
+    ...     print(
+    ...         "indices:",
+    ...         ag_loader_scenario.parameters.consolidated_indices,
+    ...         "values:",
+    ...         ag_loader_scenario.parameters.consolidated_array
+    ...     )
+    ...     ag_loader_scenario.update_package_indices()
+    indices: [6, 0, 6] values: [4.96919e+07 6.00000e+01 1.50603e+07]
+    indices: [11, 0, 11] values: [5.1535801e+07 6.0000000e+01 1.4023084e+07]
+    indices: [1, 0, 1] values: [5.07782e+07 6.00000e+01 1.61617e+07]
+    indices: [11, 0, 11] values: [5.1535801e+07 6.0000000e+01 1.4023084e+07]
+
+Notice that the index for the second parameter ('fert consumption [kg/km2]') is always 0: this is because the package
+for this named parameter only has one column.
+
+You can pass as many packages as required, and each package can have any number of named parameters and observations
+(columns).
+
+.. important::
+  When passing multiple presamples package paths to a single ``DataPackageLoader``, named parameters get their values and
+  indices from the last presamples package that contains data on this named parameter.
+
+
+.. _storing_resource:
+
+Storing a presample resource
+-----------------------------
+In order to facilitate their retrieval for reuse, references to presamples packages can be stored in a database
+``campaigns.db``. Interaction with this database is based on the `Peewee ORM <http://docs.peewee-orm.com/en/latest/>`_.
+
+The first table of this database is the ``PresampleResource`` table, used to store references to presamples packages.
+
+To store a reference to a presample package in the database:
+
+.. code-block:: python
+
+    >>> pr_baseline = presamples.PresampleResource.create(
+    ...     name="Baseline agri data",
+    ...     path=pp_path
+    ... )
+
+The resource has a few useful properties, such as ``name`` and ``path``.
+
+One can then retrieve a presample resource based on the name:
+
+.. code-block:: python
+
+    >>> pr_baseline_retrieved = presamples.PresampleResource.get(
+    ...     presamples.PresampleResource.name=="Baseline agri data"
+    ... )
+    >>> pr_baseline == pr_baseline_retrieved
+    True
+
+and then use the associated presample package:
+
+.. code-block:: python
+
+    >>> other_loader = presamples.PackagesDataLoader([pr_baseline.path])
+
 
 .. _managing_using_campaigns:
 
 Using ``Campaigns`` to manage sets of presample packages
 --------------------------------------------------------
 
-ON HOLD until override issue is fixed.
+The ``Campaign`` database also has a table called ``Campaign``, used to store information about ordered collections
+of ``PresampleResources``.
+
+To create a new campaign:
+
+.. code-block:: python
+
+    >>> ag_campaign_baseline = presamples.Campaign.create(name="Agricultural baseline campaign")
+    >>> ag_campaign_baseline.save()
+    1
+
+The 1 indicates that one row was changed in the ``Campaign`` table.
+
+We can add our samples of baseline values using the ``PresampleResource`` that was created earlier:
+
+.. code-block:: python
+
+    >>> ag_campaign_baseline.add_presample_resource(pr_baseline)
+
+    >>> ag_campaign_baseline #Get some information on the campaign
+    <Campaign: Campaign Agricultural baseline campaign with no parent and 1 packages>
+
+    >>> [p.name for p in ag_campaign_baseline.packages] # List packages used in campaign
+    ['Baseline agri data']
+
+A ``Campaign`` can be passed directly to a ``PackagesDataLoader``:
+
+.. code-block:: python
+
+    >>> loader = presamples.PackagesDataLoader(ag_campaign_baseline)
+    >>> loader.parameters.consolidated_array
+    array([6.64057010e+07, 9.41524221e+01, 1.59246840e+07])
+
+More interestingly, a ``Campaign`` can point to multiple ``PresampleResources`` in the desired order. Let's add the
+scenario data we had above to a ``PresampleResource``:
+
+.. code-block:: python
+
+    >>> pr_scenario = presamples.PresampleResource.create(
+    ...     path=fert_scenario_path,
+    ...     name="Scenario 1 agri data"
+    ... )
+
+Next we create a *child* Campaign based on the baseline campaign we created above. This child campaign
+will automatically point to all the resources of the parent Campaign. Note that you can have an arbitrary
+number of descendents.
+
+.. code-block:: python
+
+    >>> ag_campaign_scenario1 = ag_campaign_baseline.add_child("Agricultural scenario 1 campaign") # Create a child campaign
+    >>> ag_campaign_scenario1.save()
+    1
+    >>> ag_campaign_scenario1.add_presample_resource(pr_scenario) # Add the scenario presample resource
+
+The ``ag_scenario`` ``Campaign`` has the baseline data as parent (it will use all its presample packages) and another
+package.
+
+.. code-block:: python
+
+    >>> ag_campaign_scenario1
+    <Campaign: Campaign Agricultural scenario 1 campaign with parent Agricultural baseline campaign and 2 packages>
+
+    >>> [p.name for p in ag_campaign_scenario1.ancestors]
+    ['Agricultural baseline campaign']
+
+    >>> [p.name for p in ag_campaign_scenario1.packages]
+    ['Baseline agri data', 'Scenario 1 agri data']
+
+Using the campaign in a ``PackagesDataLoader`` will call the presample packages in the expected order, i.e. from the
+package with baseline data (added first) to the scenario data (added after):
+
+.. code-block:: python
+
+    >>> loader_scenario = presamples.PackagesDataLoader(ag_campaign_scenario1) # Load
+    >>> for _ in range(4): # Check values for 4 iterations
+    ...     loader_scenario.update_package_indices()
+    ...     print(
+    ...         "Indices:",
+    ...         loader_scenario.parameters.consolidated_indices,
+    ...         "Values: ",
+    ...         loader_scenario.parameters.consolidated_array
+    ...     )
+    Indices: [9, 0, 9] Values:  [5.1799100e+07 6.0000000e+01 1.4981496e+07]
+    Indices: [6, 0, 6] Values:  [4.96919e+07 6.00000e+01 1.50603e+07]
+    Indices: [2, 0, 2] Values:  [5.09624e+07 6.00000e+01 1.58468e+07]
+    Indices: [2, 0, 2] Values:  [5.09624e+07 6.00000e+01 1.58468e+07]
+
+The scenario data overwrote the fertiliser use data on each iteration.

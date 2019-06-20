@@ -86,13 +86,13 @@
 <li class="toctree-l2"><a class="reference internal" href="#the-objectives-of-presamples">The objectives of presamples</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#simple-example-fertilizer-inputs-to-cereal-production-in-canada">Simple example: Fertilizer inputs to cereal production in Canada</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#creating-presample-packages-for-data-inputs">Creating presample packages for data inputs</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#accessing-a-presamples-package-for-inspection">Accessing a presamples package for inspection</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#using-a-presample-package-in-a-model">Using a presample package in a model</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#direct-interface-to-presamples-package">Direct interface to presamples package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#loading-packages-for-use-one-column-at-a-time">Loading packages for use one column at a time</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#storing-a-model-s-output-as-a-presample-package">Storing a model’s output as a presample package</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#storing-a-presample-resource">Storing a presample resource</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#creating-presample-packages-with-seeded-indexers">Creating presample packages with seeded indexers</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#creating-presample-packages-with-sequential-indexers">Creating presample packages with sequential indexers</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#using-presamples-to-override-input-values">Using presamples to override input values</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#storing-a-presample-resource">Storing a presample resource</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#using-campaigns-to-manage-sets-of-presample-packages">Using <code class="docutils literal notranslate"><span class="pre">Campaigns</span></code> to manage sets of presample packages</a></li>
 </ul>
 </li>
@@ -168,13 +168,13 @@
             
   <div class="section" id="quickstart">
 <span id="id1"></span><h1>Quickstart<a class="headerlink" href="#quickstart" title="Permalink to this headline">¶</a></h1>
-<p>This section provides a brief overview of the use of presamples via a simple example:</p>
+<p>This section provides a brief overview of the use of presamples for named parameters via a simple example.</p>
 <ul class="simple">
 <li><p><a class="reference internal" href="#objectives"><span class="std std-ref">The objectives of presamples</span></a></p></li>
 <li><p><a class="reference internal" href="#simple-example"><span class="std std-ref">Simple example: Fertilizer inputs to cereal production in Canada</span></a></p></li>
 <li><p><a class="reference internal" href="#creating-presamples"><span class="std std-ref">Creating presample packages for data inputs</span></a></p></li>
-<li><p><a class="reference internal" href="#accessing-package"><span class="std std-ref">Accessing a presamples package for inspection</span></a></p></li>
-<li><p><a class="reference internal" href="#using-package"><span class="std std-ref">Using a presample package in a model</span></a></p></li>
+<li><p><a class="reference internal" href="#accessing-package"><span class="std std-ref">Direct interface to presamples package</span></a></p></li>
+<li><p><a class="reference internal" href="#loading-package"><span class="std std-ref">Loading packages for use one column at a time</span></a></p></li>
 <li><p><a class="reference internal" href="#storing-model-results"><span class="std std-ref">Storing a model’s output as a presample package</span></a></p></li>
 <li><p><a class="reference internal" href="#storing-resource"><span class="std std-ref">Storing a presample resource</span></a></p></li>
 <li><p><a class="reference internal" href="#seeded-indexers"><span class="std std-ref">Creating presample packages with seeded indexers</span></a></p></li>
@@ -292,7 +292,8 @@ data (scenarios) without actually making changes to the baseline data.</p>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">ag_names</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;cereal production [t]&#39;</span><span class="p">,</span> <span class="s1">&#39;fert consumption [kg/km2]&#39;</span><span class="p">,</span> <span class="s1">&#39;land [ha]&#39;</span><span class="p">]</span>
 
 <span class="gp">&gt;&gt;&gt; </span><span class="n">pp_id</span><span class="p">,</span> <span class="n">pp_path</span> <span class="o">=</span> <span class="n">presamples</span><span class="o">.</span><span class="n">create_presamples_package</span><span class="p">(</span>
-<span class="gp">... </span>    <span class="n">parameter_data</span> <span class="o">=</span> <span class="p">[(</span><span class="n">ag_sample_arr</span><span class="p">,</span> <span class="n">ag_names</span><span class="p">,</span> <span class="s2">&quot;Agri baseline data&quot;</span><span class="p">)]</span>
+<span class="gp">... </span>    <span class="n">parameter_data</span> <span class="o">=</span> <span class="p">[(</span><span class="n">ag_sample_arr</span><span class="p">,</span> <span class="n">ag_names</span><span class="p">,</span> <span class="s2">&quot;Agri baseline data&quot;</span><span class="p">)],</span>
+<span class="gp">... </span>    <span class="n">name</span><span class="o">=</span><span class="s2">&quot;Baseline agri data - presample package&quot;</span>
 <span class="gp">... </span><span class="p">)</span>
 </pre></div>
 </div>
@@ -301,56 +302,95 @@ data (scenarios) without actually making changes to the baseline data.</p>
 <li><p>It stores the samples to a numpy array and the parameter names as a json file to disk, at the location <code class="docutils literal notranslate"><span class="pre">pp_path</span></code></p></li>
 <li><p>It generates a file <code class="docutils literal notranslate"><span class="pre">datapackage.json</span></code> that contains metadata on the presamples package.</p></li>
 </ol>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">os</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">os</span><span class="o">.</span><span class="n">listdir</span><span class="p">(</span><span class="n">pp_path</span><span class="p">)</span>
+<span class="go">[&#39;datapackage.json&#39;,</span>
+<span class="go"> &#39;dbc8f4abb93540f9a1ab040b8923672f.0.names.json&#39;,</span>
+<span class="go"> &#39;dbc8f4abb93540f9a1ab040b8923672f.0.samples.npy&#39;]</span>
+</pre></div>
+</div>
 <p>The datapackage has the following structure:</p>
-<div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
-  <span class="nt">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;f53d306db86a41d79e68d2181ca32bea&quot;</span><span class="p">,</span>
-  <span class="nt">&quot;id&quot;</span><span class="p">:</span> <span class="s2">&quot;f53d306db86a41d79e68d2181ca32bea&quot;</span><span class="p">,</span>
-  <span class="nt">&quot;profile&quot;</span><span class="p">:</span> <span class="s2">&quot;data-package&quot;</span><span class="p">,</span>
-  <span class="nt">&quot;seed&quot;</span><span class="p">:</span> <span class="kc">null</span><span class="p">,</span>
-  <span class="nt">&quot;resources&quot;</span><span class="p">:</span> <span class="p">[</span>
-    <span class="p">{</span>
-      <span class="nt">&quot;samples&quot;</span><span class="p">:</span> <span class="p">{</span>
-        <span class="nt">&quot;filepath&quot;</span><span class="p">:</span> <span class="s2">&quot;f53d306db86a41d79e68d2181ca32bea.0.samples.npy&quot;</span><span class="p">,</span>
-        <span class="nt">&quot;md5&quot;</span><span class="p">:</span> <span class="s2">&quot;58978441f250cadca1d5829110d23942&quot;</span><span class="p">,</span>
-        <span class="nt">&quot;shape&quot;</span><span class="p">:</span> <span class="p">[</span>
-          <span class="mi">3</span><span class="p">,</span>
-          <span class="mi">13</span>
-        <span class="p">],</span>
-        <span class="nt">&quot;dtype&quot;</span><span class="p">:</span> <span class="s2">&quot;float64&quot;</span><span class="p">,</span>
-        <span class="nt">&quot;format&quot;</span><span class="p">:</span> <span class="s2">&quot;npy&quot;</span><span class="p">,</span>
-        <span class="nt">&quot;mediatype&quot;</span><span class="p">:</span> <span class="s2">&quot;application/octet-stream&quot;</span>
-      <span class="p">},</span>
-      <span class="nt">&quot;names&quot;</span><span class="p">:</span> <span class="p">{</span>
-        <span class="nt">&quot;filepath&quot;</span><span class="p">:</span> <span class="s2">&quot;f53d306db86a41d79e68d2181ca32bea.0.names.json&quot;</span><span class="p">,</span>
-        <span class="nt">&quot;md5&quot;</span><span class="p">:</span> <span class="s2">&quot;c2202d5f8fd5fd9eb11e3cd528b6b14d&quot;</span><span class="p">,</span>
-        <span class="nt">&quot;format&quot;</span><span class="p">:</span> <span class="s2">&quot;json&quot;</span><span class="p">,</span>
-        <span class="nt">&quot;mediatype&quot;</span><span class="p">:</span> <span class="s2">&quot;application/json&quot;</span>
-      <span class="p">},</span>
-      <span class="nt">&quot;profile&quot;</span><span class="p">:</span> <span class="s2">&quot;data-resource&quot;</span><span class="p">,</span>
-      <span class="nt">&quot;label&quot;</span><span class="p">:</span> <span class="s2">&quot;Canadian ag data from World Bank&quot;</span><span class="p">,</span>
-      <span class="nt">&quot;index&quot;</span><span class="p">:</span> <span class="mi">0</span>
-    <span class="p">}</span>
-  <span class="p">],</span>
-  <span class="nt">&quot;ncols&quot;</span><span class="p">:</span> <span class="mi">13</span>
-<span class="p">}</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">json</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">pp_path</span><span class="o">/</span><span class="s1">&#39;datapackage.json&#39;</span><span class="p">,</span> <span class="s1">&#39;rb&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+<span class="gp">... </span>    <span class="n">datapackage</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">datapackage</span><span class="p">,</span> <span class="n">indent</span><span class="o">=</span><span class="mi">4</span><span class="p">))</span>
+<span class="go">{</span>
+<span class="go">    &quot;name&quot;: &quot;Baseline agri data - presample package&quot;,</span>
+<span class="go">    &quot;id&quot;: &quot;dbc8f4abb93540f9a1ab040b8923672f&quot;,</span>
+<span class="go">    &quot;profile&quot;: &quot;data-package&quot;,</span>
+<span class="go">    &quot;seed&quot;: null,</span>
+<span class="go">    &quot;resources&quot;: [</span>
+<span class="go">        {</span>
+<span class="go">            &quot;samples&quot;: {</span>
+<span class="go">                &quot;filepath&quot;: &quot;dbc8f4abb93540f9a1ab040b8923672f.0.samples.npy&quot;,</span>
+<span class="go">                &quot;md5&quot;: &quot;58978441f250cadca1d5829110d23942&quot;,</span>
+<span class="go">                &quot;shape&quot;: [</span>
+<span class="go">                    3,</span>
+<span class="go">                    13</span>
+<span class="go">                ],</span>
+<span class="go">                &quot;dtype&quot;: &quot;float64&quot;,</span>
+<span class="go">                &quot;format&quot;: &quot;npy&quot;,</span>
+<span class="go">                &quot;mediatype&quot;: &quot;application/octet-stream&quot;</span>
+<span class="go">            },</span>
+<span class="go">            &quot;names&quot;: {</span>
+<span class="go">                &quot;filepath&quot;: &quot;dbc8f4abb93540f9a1ab040b8923672f.0.names.json&quot;,</span>
+<span class="go">                &quot;md5&quot;: &quot;c2202d5f8fd5fd9eb11e3cd528b6b14d&quot;,</span>
+<span class="go">                &quot;format&quot;: &quot;json&quot;,</span>
+<span class="go">                &quot;mediatype&quot;: &quot;application/json&quot;</span>
+<span class="go">            },</span>
+<span class="go">            &quot;profile&quot;: &quot;data-resource&quot;,</span>
+<span class="go">            &quot;label&quot;: &quot;Agri baseline data&quot;,</span>
+<span class="go">            &quot;index&quot;: 0</span>
+<span class="go">        }</span>
+<span class="go">    ],</span>
+<span class="go">    &quot;ncols&quot;: 13</span>
+<span class="go">}</span>
 </pre></div>
 </div>
 <p>See the <a class="reference internal" href="tech_ref.html#tech-ref"><span class="std std-ref">Technical reference</span></a> for more detail and for a list of other arguments.</p>
 </div>
-<div class="section" id="accessing-a-presamples-package-for-inspection">
-<span id="accessing-package"></span><h2>Accessing a presamples package for inspection<a class="headerlink" href="#accessing-a-presamples-package-for-inspection" title="Permalink to this headline">¶</a></h2>
-<p>To obtain information on a presamples package:</p>
+<div class="section" id="direct-interface-to-presamples-package">
+<span id="accessing-package"></span><h2>Direct interface to presamples package<a class="headerlink" href="#direct-interface-to-presamples-package" title="Permalink to this headline">¶</a></h2>
+<p>To interact directly with a single presamples package :</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">package</span> <span class="o">=</span> <span class="n">presamples</span><span class="o">.</span><span class="n">PresamplesPackage</span><span class="p">(</span><span class="n">pp_path</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>The package can return multiple properties, such as:</p>
-<blockquote>
-<div><ul class="simple">
-<li><p>information contained in datapackage.json (<code class="docutils literal notranslate"><span class="pre">package.metadata</span></code>)</p></li>
-<li><p>a ParametersMapping object (<code class="docutils literal notranslate"><span class="pre">package.parameters</span></code>), which can be used to access parameter names (keys), presample arrays (values) or both (items):</p></li>
-</ul>
-</div></blockquote>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">names</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">package</span><span class="o">.</span><span class="n">parameters</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+<p>The entire content of the <code class="docutils literal notranslate"><span class="pre">datapackage.json</span></code> file is returned by <code class="docutils literal notranslate"><span class="pre">package.metadata</span></code>.</p>
+<p>The package can also be used to directly return several properties contained in the datapackage, for example:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">package</span><span class="o">.</span><span class="n">name</span>  <span class="c1"># Name passed as optional argument in ``create_presamples_package``</span>
+<span class="go">&#39;Agri example - baseline data&#39;</span>
+
+<span class="gp">&gt;&gt;&gt; </span><span class="n">package</span><span class="o">.</span><span class="n">ncols</span> <span class="c1"># Number of columns, i.e. number of observations stored in the presamples array</span>
+<span class="go">13</span>
+
+<span class="gp">&gt;&gt;&gt; </span><span class="n">package</span><span class="o">.</span><span class="n">id</span>
+<span class="go">&#39;2a31aa637f564618bf5e606333ffb7fc&#39;</span>
+</pre></div>
+</div>
+<p>Accessing the package’s <code class="docutils literal notranslate"><span class="pre">resources</span></code> provides metadata on the stored data and filepaths to access it.
+<code class="docutils literal notranslate"><span class="pre">packages.resources</span></code> returns a list with as many resources as were passed in <code class="docutils literal notranslate"><span class="pre">create_presamples_package</span></code>. In our
+simple example, only one set of parameter data was passed, so <code class="docutils literal notranslate"><span class="pre">packages.resources</span></code> only contains one element.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">package</span><span class="o">.</span><span class="n">resources</span> <span class="c1"># List of resources, in simple example there is one</span>
+<span class="go">[{&#39;samples&#39;: {&#39;filepath&#39;: &#39;dbc8f4abb93540f9a1ab040b8923672f.0.samples.npy&#39;,</span>
+<span class="go">   &#39;md5&#39;: &#39;58978441f250cadca1d5829110d23942&#39;,</span>
+<span class="go">   &#39;shape&#39;: [3, 13],</span>
+<span class="go">   &#39;dtype&#39;: &#39;float64&#39;,</span>
+<span class="go">   &#39;format&#39;: &#39;npy&#39;,</span>
+<span class="go">   &#39;mediatype&#39;: &#39;application/octet-stream&#39;},</span>
+<span class="go">  &#39;names&#39;: {&#39;filepath&#39;: &#39;dbc8f4abb93540f9a1ab040b8923672f.0.names.json&#39;,</span>
+<span class="go">   &#39;md5&#39;: &#39;c2202d5f8fd5fd9eb11e3cd528b6b14d&#39;,</span>
+<span class="go">   &#39;format&#39;: &#39;json&#39;,</span>
+<span class="go">   &#39;mediatype&#39;: &#39;application/json&#39;},</span>
+<span class="go">  &#39;profile&#39;: &#39;data-resource&#39;,</span>
+<span class="go">  &#39;label&#39;: &#39;Agri baseline data&#39;,</span>
+<span class="go">  &#39;index&#39;: 0}]</span>
+</pre></div>
+</div>
+<p>The PresamplesPackage also provides a <code class="docutils literal notranslate"><span class="pre">ParametersMapping</span></code> interface to access named parameter data:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">package</span><span class="o">.</span><span class="n">parameters</span>
+<span class="go">&lt;presamples.package_interface.ParametersMapping at 0x2136d4de5f8&gt;</span>
+
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">list</span><span class="p">(</span><span class="n">package</span><span class="o">.</span><span class="n">parameters</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
 <span class="go">[&#39;cereal production [t]&#39;, &#39;fert consumption [kg/km2]&#39;, &#39;land [ha]&#39;]</span>
 
 <span class="gp">&gt;&gt;&gt; </span><span class="nb">list</span><span class="p">(</span><span class="n">package</span><span class="o">.</span><span class="n">parameters</span><span class="o">.</span><span class="n">values</span><span class="p">())</span> <span class="c1"># Note that the arrays are memory mapped</span>
@@ -378,105 +418,141 @@ data (scenarios) without actually making changes to the baseline data.</p>
 <span class="go">         14581100.])}</span>
 </pre></div>
 </div>
-<p>You can also access a specific array directly from the parameter name:</p>
+<p>You can also get a specific array directly from the parameter name:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">package</span><span class="o">.</span><span class="n">parameters</span><span class="p">[</span><span class="s1">&#39;land [ha]&#39;</span><span class="p">]</span>
 <span class="go">memmap([17833000., 16161700., 15846800., 15946100., 16145100., 16519700.,</span>
 <span class="go">        15060300., 13156000., 13536700., 14981496., 15924684., 14023084.,</span>
 <span class="go">        14581100.])</span>
 </pre></div>
 </div>
-<p>Note however that this is NOT typically how you would interact with presample packages.</p>
+<p>Note that the values from <strong>all</strong> columns are returned, which makes the <code class="docutils literal notranslate"><span class="pre">PresamplePackages</span></code> a useful interface
+for models that accept arrays as inputs:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">fert_per_kg</span><span class="p">(</span>
+<span class="go">        fert_kg_per_km2=package.parameters[&#39;fert consumption [kg/km2]&#39;],</span>
+<span class="go">        land_ha=package.parameters[&#39;land [ha]&#39;],</span>
+<span class="go">        cereal_t=package.parameters[&#39;cereal production [t]&#39;]</span>
+<span class="go">    )</span>
+<span class="go">array([208.89781567, 187.55496749, 169.88106058, 202.93599925,</span>
+<span class="go">       158.05298607, 202.26874876, 193.85817388, 178.71973075,</span>
+<span class="go">       176.8157259 , 222.98038423, 225.78597129, 261.59013441,</span>
+<span class="go">       316.48831014])</span>
+</pre></div>
 </div>
-<div class="section" id="using-a-presample-package-in-a-model">
-<span id="using-package"></span><h2>Using a presample package in a model<a class="headerlink" href="#using-a-presample-package-in-a-model" title="Permalink to this headline">¶</a></h2>
-<p>The more typical way to access parameter data for use in a model is one observation at a time.</p>
-<p>This is done via the <code class="docutils literal notranslate"><span class="pre">PackagesDataLoader</span></code>.</p>
-<p>A <code class="docutils literal notranslate"><span class="pre">PackagesDataLoader</span></code> is instantiated with a list of presamples package paths. In our simple example, we just have one path:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">ag_loader</span> <span class="o">=</span> <span class="n">presamples</span><span class="o">.</span><span class="n">PackagesDataLoader</span><span class="p">([</span><span class="n">ag_fp</span><span class="p">])</span>
+</div>
+<div class="section" id="loading-packages-for-use-one-column-at-a-time">
+<span id="loading-package"></span><h2>Loading packages for use one column at a time<a class="headerlink" href="#loading-packages-for-use-one-column-at-a-time" title="Permalink to this headline">¶</a></h2>
+<p>Presamples also allows accessing parameter data one observation at a time. This is useful to feed data from the presample
+arrays in Monte Carlo Simulations.</p>
+<p>This is done via the <code class="docutils literal notranslate"><span class="pre">PackagesDataLoader</span></code>. A <code class="docutils literal notranslate"><span class="pre">PackagesDataLoader</span></code> is instantiated with a list of presamples package
+paths. In our simple example, we just have one path:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">ag_loader</span> <span class="o">=</span> <span class="n">presamples</span><span class="o">.</span><span class="n">PackagesDataLoader</span><span class="p">([</span><span class="n">pp_path</span><span class="p">])</span>
 </pre></div>
 </div>
 <p>One of the important things the <code class="docutils literal notranslate"><span class="pre">PackagesDataLoader</span></code> does in create an <code class="docutils literal notranslate"><span class="pre">Indexer</span></code> for each presamples package. This indexer
 simply returns an integer representing the column number of the presamples array from which data should be taken.
-By default, the <code class="docutils literal notranslate"><span class="pre">Indexer</span></code> returns indices at random (useful for e.g. Monte Carlo simulations). However, it can also return
-values sequentially (see XXX).</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">4</span><span class="p">):</span>
-<span class="gp">... </span>    <span class="n">ag_loader</span><span class="o">.</span><span class="n">update_sample_indices</span><span class="p">()</span>
-<span class="gp">... </span>    <span class="k">print</span><span class="p">(</span><span class="s2">&quot;index:&quot;</span><span class="p">,</span> <span class="n">ag_loader</span><span class="o">.</span><span class="n">parameters</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">index</span><span class="p">,</span> <span class="s2">&quot;values:&quot;</span><span class="p">,</span> <span class="n">ag_loader</span><span class="o">.</span><span class="n">parameters</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">array</span><span class="p">)</span>
-<span class="go">index: 6 values: [4.9691900e+07 6.3964071e+01 1.5060300e+07]</span>
-<span class="go">index: 5 values: [5.60304000e+07 6.86041448e+01 1.65197000e+07]</span>
-<span class="go">index: 9 values: [5.17991000e+07 7.70963275e+01 1.49814960e+07]</span>
-<span class="go">index: 0 values: [4.91972000e+07 5.76301666e+01 1.78330000e+07]</span>
+By default, the <code class="docutils literal notranslate"><span class="pre">Indexer</span></code> returns indices at random. An <code class="docutils literal notranslate"><span class="pre">Indexer</span></code> can also be seeded for reproducibility (see
+<a class="reference internal" href="#seeded-indexers"><span class="std std-ref">Creating presample packages with seeded indexers</span></a>), and can also return values sequentially (see <a class="reference internal" href="#sequential-indexers"><span class="std std-ref">Creating presample packages with sequential indexers</span></a>).</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">PackagesDataLoader</span></code> has an interface to access named parameters, one observation at a time:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">ag_loader</span><span class="o">.</span><span class="n">parameters</span><span class="p">[</span><span class="s1">&#39;land [ha]&#39;</span><span class="p">]</span>
+<span class="go">17833000.0</span>
 </pre></div>
 </div>
+<p>It is also possible to return values for all parameters using the <code class="docutils literal notranslate"><span class="pre">consolidated_arrays</span></code> property:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">ag_loader</span><span class="o">.</span><span class="n">parameters</span><span class="o">.</span><span class="n">consolidated_array</span>
+<span class="go">array([4.91972000e+07, 5.76301666e+01, 1.78330000e+07])</span>
+</pre></div>
+</div>
+<p>The order of the values is identical to the order of names:
+.. code-block:: python</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">ag_loader</span><span class="o">.</span><span class="n">parameters</span><span class="o">.</span><span class="n">names</span>
+<span class="go">[&#39;cereal production [t]&#39;, &#39;fert consumption [kg/km2]&#39;, &#39;land [ha]&#39;]</span>
+</pre></div>
+</div>
+<p>The array is considered “consolidated” because it uses values from all packages passed to the <code class="docutils literal notranslate"><span class="pre">PackagesDataLoader</span></code>. In
+this simple example, only one was passed, so not much was consolidated, but the interest of consolidating is explained in
+<a class="reference internal" href="#override-parameter-values"><span class="std std-ref">Using presamples to override input values</span></a>.</p>
+<p>To move to the next (random) observation:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">ag_loader</span><span class="o">.</span><span class="n">update_package_indices</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ag_loader</span><span class="o">.</span><span class="n">parameters</span><span class="o">.</span><span class="n">consolidated_array</span>
+<span class="go">array([5.33611000e+07, 1.15822293e+02, 1.45811000e+07])</span>
+</pre></div>
+</div>
+<p>The index value of each package’s <code class="docutils literal notranslate"><span class="pre">Indexer</span></code> can be returned using the <code class="docutils literal notranslate"><span class="pre">consolidated_index</span></code>:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">4</span><span class="p">):</span>
+<span class="gp">... </span>    <span class="k">print</span><span class="p">(</span>
+<span class="gp">... </span>        <span class="s2">&quot;indices:&quot;</span><span class="p">,</span>
+<span class="gp">... </span>        <span class="n">ag_loader</span><span class="o">.</span><span class="n">parameters</span><span class="o">.</span><span class="n">consolidated_indices</span><span class="p">,</span>
+<span class="gp">... </span>        <span class="s2">&quot;values:&quot;</span><span class="p">,</span>
+<span class="gp">... </span>        <span class="n">ag_loader</span><span class="o">.</span><span class="n">parameters</span><span class="o">.</span><span class="n">consolidated_array</span>
+<span class="gp">... </span>    <span class="p">)</span>
+<span class="gp">... </span>    <span class="n">ag_loader</span><span class="o">.</span><span class="n">update_package_indices</span><span class="p">()</span> <span class="c1"># Move to the next (random) index</span>
+<span class="go">indices: [12, 12, 12] values: [5.33611000e+07 1.15822293e+02 1.45811000e+07]</span>
+<span class="go">indices: [8, 8, 8] values: [4.76672000e+07 6.22626679e+01 1.35367000e+07]</span>
+<span class="go">indices: [5, 5, 5] values: [5.60304000e+07 6.86041448e+01 1.65197000e+07]</span>
+<span class="go">indices: [0, 0, 0] values: [4.91972000e+07 5.76301666e+01 1.78330000e+07]</span>
+</pre></div>
+</div>
+<p>The indices are all the same because the <code class="docutils literal notranslate"><span class="pre">PackagesDataLoader</span></code> was populated with a single presamples package.</p>
 <p>To use these in our model described in the <a class="reference internal" href="#simple-example">simple_example</a> section:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">for</span> <span class="n">run_nb</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">5</span><span class="p">):</span> <span class="c1"># Run the model 5 times</span>
 <span class="gp">... </span>    <span class="k">print</span><span class="p">(</span><span class="s2">&quot;Run number:&quot;</span><span class="p">,</span> <span class="n">run_nb</span><span class="p">)</span>
-<span class="gp">... </span>    <span class="c1"># Calculate the model output using sampled parameter values</span>
+<span class="gp">...</span>
+<span class="gp">... </span>    <span class="c1"># Update the index, i.e. move to the next random index</span>
+<span class="gp">... </span>    <span class="n">ag_loader</span><span class="o">.</span><span class="n">update_package_indices</span><span class="p">()</span>
+<span class="go"># Calculate the model output using sampled parameter values</span>
 <span class="gp">... </span>    <span class="n">fertilizer_amount</span> <span class="o">=</span> <span class="n">fert_per_kg</span><span class="p">(</span>
-<span class="gp">... </span>        <span class="n">fert_kg_per_km2</span><span class="o">=</span><span class="n">ag_loader</span><span class="o">.</span><span class="n">parameters</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="s1">&#39;fert consumption [kg/km2]&#39;</span><span class="p">],</span>
-<span class="gp">... </span>        <span class="n">land_ha</span><span class="o">=</span><span class="n">ag_loader</span><span class="o">.</span><span class="n">parameters</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="s1">&#39;fert consumption [kg/km2]&#39;</span><span class="p">],</span>
-<span class="gp">... </span>        <span class="n">cereal_t</span><span class="o">=</span><span class="n">ag_loader</span><span class="o">.</span><span class="n">parameters</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="s1">&#39;cereal production [t]&#39;</span><span class="p">]</span>
+<span class="gp">... </span>        <span class="n">fert_kg_per_km2</span><span class="o">=</span><span class="n">ag_loader</span><span class="o">.</span><span class="n">parameters</span><span class="p">[</span><span class="s1">&#39;fert consumption [kg/km2]&#39;</span><span class="p">],</span>
+<span class="gp">... </span>        <span class="n">land_ha</span><span class="o">=</span><span class="n">ag_loader</span><span class="o">.</span><span class="n">parameters</span><span class="p">[</span><span class="s1">&#39;fert consumption [kg/km2]&#39;</span><span class="p">],</span>
+<span class="gp">... </span>        <span class="n">cereal_t</span><span class="o">=</span><span class="n">ag_loader</span><span class="o">.</span><span class="n">parameters</span><span class="p">[</span><span class="s1">&#39;cereal production [t]&#39;</span><span class="p">]</span>
 <span class="gp">... </span>        <span class="p">)</span>
 <span class="gp">... </span>    <span class="c1"># print the sampled column index and the model output for each run</span>
-<span class="gp">... </span>    <span class="k">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\t</span><span class="s2">index:&quot;</span><span class="p">,</span> <span class="n">ag_loader</span><span class="o">.</span><span class="n">parameters</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">index</span><span class="p">)</span>
+<span class="gp">... </span>    <span class="k">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\t</span><span class="s2">indices:&quot;</span><span class="p">,</span> <span class="n">ag_loader</span><span class="o">.</span><span class="n">parameters</span><span class="o">.</span><span class="n">consolidated_indices</span><span class="p">)</span>
 <span class="gp">... </span>    <span class="k">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\t</span><span class="s2">result:&quot;</span><span class="p">,</span>  <span class="s1">&#39;{:.2e}&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">fertilizer_amount</span><span class="p">))</span>
-<span class="gp">... </span>    <span class="c1"># Update the index, i.e. move to the next random index</span>
-<span class="gp">... </span>    <span class="n">ag_loader</span><span class="o">.</span><span class="n">update_sample_indices</span><span class="p">()</span>
 <span class="go">Run number: 0</span>
-<span class="go">    index: 1</span>
+<span class="go">    indices: [1, 1, 1]</span>
 <span class="go">    result: 6.84e-04</span>
 <span class="go">Run number: 1</span>
-<span class="go">    index: 2</span>
-<span class="go">    result: 5.86e-04</span>
+<span class="go">    indices: [4, 4, 4]</span>
+<span class="go">    result: 4.60e-04</span>
 <span class="go">Run number: 2</span>
-<span class="go">    index: 1</span>
-<span class="go">    result: 6.84e-04</span>
+<span class="go">    indices: [9, 9, 9]</span>
+<span class="go">    result: 1.15e-03</span>
 <span class="go">Run number: 3</span>
-<span class="go">    index: 10</span>
-<span class="go">    result: 1.33e-03</span>
+<span class="go">    indices: [5, 5, 5]</span>
+<span class="go">    result: 8.40e-04</span>
 <span class="go">Run number: 4</span>
-<span class="go">    index: 3</span>
-<span class="go">    result: 7.87e-04</span>
+<span class="go">    indices: [9, 9, 9]</span>
+<span class="go">    result: 1.15e-03</span>
 </pre></div>
 </div>
 </div>
 <div class="section" id="storing-a-model-s-output-as-a-presample-package">
 <span id="storing-model-results"></span><h2>Storing a model’s output as a presample package<a class="headerlink" href="#storing-a-model-s-output-as-a-presample-package" title="Permalink to this headline">¶</a></h2>
-<p>The calculated model output (kg fertilizer per kg cereal) may be an input to another model. It would be possible to store
-this output as another presample package which can then be used directly in that second model.</p>
+<p>The calculated model output (in the example, kg fertilizer per kg cereal) may be an input to another model.
+It would be possible to store the calculated output of our model as yet another presample package, and to use this
+directly in the other model.</p>
 <p>While this example is simple, it is rather obvious that this can be a great advantage for larger models that take take
 a lot of computing resources.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">iterations</span> <span class="o">=</span> <span class="mi">100</span> <span class="c1"># Number of iterations to store.</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">model_output</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">iterations</span><span class="p">))</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">iterations</span><span class="p">):</span>
+<span class="gp">... </span>    <span class="n">ag_loader</span><span class="o">.</span><span class="n">update_package_indices</span><span class="p">()</span>
 <span class="gp">... </span>    <span class="n">model_output</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">fert_per_kg</span><span class="p">(</span>
-<span class="gp">... </span>        <span class="n">fert_kg_per_km2</span><span class="o">=</span><span class="n">ag_loader</span><span class="o">.</span><span class="n">parameters</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="s1">&#39;fert consumption [kg/km2]&#39;</span><span class="p">],</span>
-<span class="gp">... </span>        <span class="n">land_ha</span><span class="o">=</span><span class="n">ag_loader</span><span class="o">.</span><span class="n">parameters</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="s1">&#39;fert consumption [kg/km2]&#39;</span><span class="p">],</span>
-<span class="gp">... </span>        <span class="n">cereal_t</span><span class="o">=</span><span class="n">ag_loader</span><span class="o">.</span><span class="n">parameters</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="s1">&#39;cereal production [t]&#39;</span><span class="p">]</span>
-<span class="gp">... </span>        <span class="p">)</span>
-<span class="gp">... </span>    <span class="n">ag_loader</span><span class="o">.</span><span class="n">update_sample_indices</span><span class="p">()</span>
+<span class="gp">... </span>        <span class="n">fert_kg_per_km2</span><span class="o">=</span><span class="n">ag_loader</span><span class="o">.</span><span class="n">parameters</span><span class="p">[</span><span class="s1">&#39;fert consumption [kg/km2]&#39;</span><span class="p">],</span>
+<span class="gp">... </span>        <span class="n">land_ha</span><span class="o">=</span><span class="n">ag_loader</span><span class="o">.</span><span class="n">parameters</span><span class="p">[</span><span class="s1">&#39;fert consumption [kg/km2]&#39;</span><span class="p">],</span>
+<span class="gp">... </span>        <span class="n">cereal_t</span><span class="o">=</span><span class="n">ag_loader</span><span class="o">.</span><span class="n">parameters</span><span class="p">[</span><span class="s1">&#39;cereal production [t]&#39;</span><span class="p">]</span>
+<span class="gp">... </span>    <span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">model_output</span>
+<span class="go">array([[0.00133493, 0.00078676, 0.00081327, ..., 0.00078676, 0.00058567,</span>
+<span class="go">        0.00084508  ]])</span>
+
 <span class="gp">&gt;&gt;&gt; </span><span class="n">ag_result_pp_id</span><span class="p">,</span> <span class="n">ag_result_pp_fp</span> <span class="o">=</span> <span class="n">presamples</span><span class="o">.</span><span class="n">create_presamples_package</span><span class="p">(</span>
-<span class="gp">... </span>    <span class="n">parameter_data</span> <span class="o">=</span> <span class="p">[(</span><span class="n">model_output</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;&#39;</span><span class="p">],</span> <span class="s2">&quot;Agri model output baseline&quot;</span><span class="p">)]</span>
+<span class="gp">... </span>    <span class="n">parameter_data</span> <span class="o">=</span> <span class="p">[(</span><span class="n">model_output</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;fert_input_per_kg_cereal&#39;</span><span class="p">],</span> <span class="s2">&quot;Agri model output baseline&quot;</span><span class="p">)],</span>
+<span class="go">        name=&quot;baseline_model_output&quot;</span>
 <span class="gp">... </span><span class="p">)</span>
 </pre></div>
 </div>
 <p>This presample package can then be accessed or used as described above.</p>
-</div>
-<div class="section" id="storing-a-presample-resource">
-<span id="storing-resource"></span><h2>Storing a presample resource<a class="headerlink" href="#storing-a-presample-resource" title="Permalink to this headline">¶</a></h2>
-<p>Presamples allows an easy management of presample packages using <code class="docutils literal notranslate"><span class="pre">PresampleResource</span></code>.</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">pr</span> <span class="o">=</span> <span class="n">presamples</span><span class="o">.</span><span class="n">PresampleResource</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="n">path</span><span class="o">=</span><span class="n">pp_path</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;Ag model input data&quot;</span><span class="p">)</span>
-</pre></div>
-</div>
-<p>The resource has a few useful properties, such as <code class="docutils literal notranslate"><span class="pre">name</span></code> and <code class="docutils literal notranslate"><span class="pre">path</span></code>.</p>
-<p>One can then retrieve a presample resource based on the name:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">pr_retrieved</span> <span class="o">=</span> <span class="n">presamples</span><span class="o">.</span><span class="n">PresampleResource</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">presamples</span><span class="o">.</span><span class="n">PresampleResource</span><span class="o">.</span><span class="n">name</span><span class="o">==</span><span class="s2">&quot;Ag model input data&quot;</span><span class="p">)</span>
-</pre></div>
-</div>
-<p>and then use the associated presample package:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">new_loader</span> <span class="o">=</span> <span class="n">presamples</span><span class="o">.</span><span class="n">PackagesDataLoader</span><span class="p">([</span><span class="n">pr_retrieved</span><span class="o">.</span><span class="n">path</span><span class="p">])</span>
-</pre></div>
-</div>
 </div>
 <div class="section" id="creating-presample-packages-with-seeded-indexers">
 <span id="seeded-indexers"></span><h2>Creating presample packages with seeded indexers<a class="headerlink" href="#creating-presample-packages-with-seeded-indexers" title="Permalink to this headline">¶</a></h2>
@@ -488,26 +564,46 @@ uses of the presample package.</p>
 <span class="gp">... </span>    <span class="n">parameter_data</span> <span class="o">=</span> <span class="p">[(</span><span class="n">ag_sample_arr</span><span class="p">,</span> <span class="n">ag_names</span><span class="p">,</span> <span class="s2">&quot;Agri baseline data&quot;</span><span class="p">)],</span>
 <span class="gp">... </span>    <span class="n">seed</span><span class="o">=</span><span class="mi">42</span>
 <span class="gp">... </span><span class="p">)</span>
-
-<span class="go"># Create a first loader and print indices and values</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">ag_loader_seeded_pp</span> <span class="o">=</span> <span class="n">presamples</span><span class="o">.</span><span class="n">PackagesDataLoader</span><span class="p">([</span><span class="n">ag_fp_seeded</span><span class="p">])</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">4</span><span class="p">):</span>
-<span class="gp">... </span>    <span class="k">print</span><span class="p">(</span><span class="s2">&quot;index:&quot;</span><span class="p">,</span> <span class="n">ag_loader_seeded</span><span class="o">.</span><span class="n">parameters</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">index</span><span class="p">,</span> <span class="s2">&quot;values:&quot;</span><span class="p">,</span> <span class="n">ag_loader_seeded</span><span class="o">.</span><span class="n">parameters</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">array</span><span class="p">)</span>
-<span class="gp">... </span>    <span class="n">ag_loader_seeded</span><span class="o">.</span><span class="n">update_sample_indices</span><span class="p">()</span>
-<span class="go">index: 5 values: [5.60304000e+07 6.86041448e+01 1.65197000e+07]</span>
-<span class="go">index: 10 values: [6.64057010e+07 9.41524221e+01 1.59246840e+07]</span>
-<span class="go">index: 8 values: [4.76672000e+07 6.22626679e+01 1.35367000e+07]</span>
-<span class="go">index: 4 values: [4.80053000e+07 4.69949459e+01 1.61451000e+07]</span>
-
-<span class="go"># Create a second loader and print indices and values</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">ag_loader_seeded_pp_2</span> <span class="o">=</span> <span class="n">presamples</span><span class="o">.</span><span class="n">PackagesDataLoader</span><span class="p">([</span><span class="n">ag_fp_seeded</span><span class="p">])</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">4</span><span class="p">):</span>
-<span class="gp">... </span>    <span class="k">print</span><span class="p">(</span><span class="s2">&quot;index:&quot;</span><span class="p">,</span> <span class="n">ag_loader_seeded_2</span><span class="o">.</span><span class="n">parameters</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">index</span><span class="p">,</span> <span class="s2">&quot;values:&quot;</span><span class="p">,</span> <span class="n">ag_loader_seeded_2</span><span class="o">.</span><span class="n">parameters</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">array</span><span class="p">)</span>
-<span class="gp">... </span>    <span class="n">ag_loader_seeded_2</span><span class="o">.</span><span class="n">update_sample_indices</span><span class="p">()</span>
-<span class="go">index: 5 values: [5.60304000e+07 6.86041448e+01 1.65197000e+07]</span>
-<span class="go">index: 10 values: [6.64057010e+07 9.41524221e+01 1.59246840e+07]</span>
-<span class="go">index: 8 values: [4.76672000e+07 6.22626679e+01 1.35367000e+07]</span>
-<span class="go">index: 4 values: [4.80053000e+07 4.69949459e+01 1.61451000e+07]</span>
+</pre></div>
+</div>
+<p>We can test that this worked by creating two <code class="docutils literal notranslate"><span class="pre">PackagesDataLoader</span></code> objects and making sure they return samples in the
+same order:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Create a first loader and print indices and values</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">ag_loader_seeded_1</span> <span class="o">=</span> <span class="n">presamples</span><span class="o">.</span><span class="n">PackagesDataLoader</span><span class="p">([</span><span class="n">ag_fp_seeded</span><span class="p">])</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">ag_loader_seeded_2</span> <span class="o">=</span> <span class="n">presamples</span><span class="o">.</span><span class="n">PackagesDataLoader</span><span class="p">([</span><span class="n">ag_fp_seeded</span><span class="p">])</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">ag_loader_seeded_1</span> <span class="ow">is</span> <span class="n">ag_loader_seeded_2</span>
+<span class="bp">False</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">ag_loader_seeded_1</span> <span class="o">==</span> <span class="n">ag_loader_seeded_2</span>
+<span class="bp">False</span>
+</pre></div>
+</div>
+<p>The two loaders are distinct, and yet:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">4</span><span class="p">):</span>
+<span class="gp">... </span>    <span class="n">ag_loader_seeded_1</span><span class="o">.</span><span class="n">update_package_indices</span><span class="p">()</span>
+<span class="gp">... </span>    <span class="nb">print</span><span class="p">(</span>
+<span class="gp">... </span>        <span class="s2">&quot;indices:&quot;</span><span class="p">,</span>
+<span class="gp">... </span>        <span class="n">ag_loader_seeded_1</span><span class="o">.</span><span class="n">parameters</span><span class="o">.</span><span class="n">consolidated_indices</span><span class="p">,</span>
+<span class="gp">... </span>        <span class="s2">&quot;values:&quot;</span><span class="p">,</span>
+<span class="gp">... </span>        <span class="n">ag_loader_seeded_1</span><span class="o">.</span><span class="n">parameters</span><span class="o">.</span><span class="n">consolidated_array</span>
+<span class="gp">... </span>    <span class="p">)</span>
+<span class="go">indices: [5, 5, 5] values: [5.60304000e+07 6.86041448e+01 1.65197000e+07]</span>
+<span class="go">indices: [10, 10, 10] values: [6.64057010e+07 9.41524221e+01 1.59246840e+07]</span>
+<span class="go">indices: [8, 8, 8] values: [4.76672000e+07 6.22626679e+01 1.35367000e+07]</span>
+<span class="go">indices: [4, 4, 4] values: [4.80053000e+07 4.69949459e+01 1.61451000e+07]</span>
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">4</span><span class="p">):</span>
+<span class="gp">... </span>    <span class="n">ag_loader_seeded_2</span><span class="o">.</span><span class="n">update_package_indices</span><span class="p">()</span>
+<span class="gp">... </span>    <span class="nb">print</span><span class="p">(</span>
+<span class="gp">... </span>        <span class="s2">&quot;indices:&quot;</span><span class="p">,</span>
+<span class="gp">... </span>        <span class="n">ag_loader_seeded_2</span><span class="o">.</span><span class="n">parameters</span><span class="o">.</span><span class="n">consolidated_indices</span><span class="p">,</span>
+<span class="gp">... </span>        <span class="s2">&quot;values:&quot;</span><span class="p">,</span>
+<span class="gp">... </span>        <span class="n">ag_loader_seeded_2</span><span class="o">.</span><span class="n">parameters</span><span class="o">.</span><span class="n">consolidated_array</span>
+<span class="gp">... </span>    <span class="p">)</span>
+<span class="go">indices: [5, 5, 5] values: [5.60304000e+07 6.86041448e+01 1.65197000e+07]</span>
+<span class="go">indices: [10, 10, 10] values: [6.64057010e+07 9.41524221e+01 1.59246840e+07]</span>
+<span class="go">indices: [8, 8, 8] values: [4.76672000e+07 6.22626679e+01 1.35367000e+07]</span>
+<span class="go">indices: [4, 4, 4] values: [4.80053000e+07 4.69949459e+01 1.61451000e+07]</span>
 </pre></div>
 </div>
 </div>
@@ -520,22 +616,162 @@ uses of the presample package.</p>
 <span class="gp">... </span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">ag_loader_seq</span> <span class="o">=</span> <span class="n">presamples</span><span class="o">.</span><span class="n">PackagesDataLoader</span><span class="p">([</span><span class="n">ag_fp_seq</span><span class="p">])</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">4</span><span class="p">):</span>
-<span class="gp">... </span>    <span class="k">print</span><span class="p">(</span><span class="s2">&quot;index:&quot;</span><span class="p">,</span> <span class="n">ag_loader_seq</span><span class="o">.</span><span class="n">parameters</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">index</span><span class="p">,</span> <span class="s2">&quot;values:&quot;</span><span class="p">,</span> <span class="n">ag_loader_seq</span><span class="o">.</span><span class="n">parameters</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">array</span><span class="p">)</span>
-<span class="gp">... </span>    <span class="n">ag_loader_seq</span><span class="o">.</span><span class="n">update_sample_indices</span><span class="p">()</span>
-<span class="go">index: 0 values: [4.91972000e+07 5.76301666e+01 1.78330000e+07]</span>
-<span class="go">index: 1 values: [5.07782000e+07 5.89276106e+01 1.61617000e+07]</span>
-<span class="go">index: 2 values: [5.09624000e+07 5.46327748e+01 1.58468000e+07]</span>
-<span class="go">index: 3 values: [4.85773000e+07 6.18212787e+01 1.59461000e+07]</span>
+<span class="gp">... </span>    <span class="k">print</span><span class="p">(</span>
+<span class="gp">... </span>        <span class="s2">&quot;indices:&quot;</span><span class="p">,</span>
+<span class="gp">... </span>        <span class="n">ag_loader_seq</span><span class="o">.</span><span class="n">parameters</span><span class="o">.</span><span class="n">consolidated_indices</span><span class="p">,</span>
+<span class="gp">... </span>        <span class="s2">&quot;values:&quot;</span><span class="p">,</span>
+<span class="gp">... </span>        <span class="n">ag_loader_seq</span><span class="o">.</span><span class="n">parameters</span><span class="o">.</span><span class="n">consolidated_array</span>
+<span class="gp">... </span>    <span class="p">)</span>
+<span class="gp">... </span>    <span class="n">ag_loader_seq</span><span class="o">.</span><span class="n">update_package_indices</span><span class="p">()</span>
+<span class="go">indices: [0, 0, 0] values: [4.91972000e+07 5.76301666e+01 1.78330000e+07]</span>
+<span class="go">indices: [1, 1, 1] values: [5.07782000e+07 5.89276106e+01 1.61617000e+07]</span>
+<span class="go">indices: [2, 2, 2] values: [5.09624000e+07 5.46327748e+01 1.58468000e+07]</span>
+<span class="go">indices: [3, 3, 3] values: [4.85773000e+07 6.18212787e+01 1.59461000e+07]</span>
 </pre></div>
 </div>
 </div>
 <div class="section" id="using-presamples-to-override-input-values">
 <span id="override-parameter-values"></span><h2>Using presamples to override input values<a class="headerlink" href="#using-presamples-to-override-input-values" title="Permalink to this headline">¶</a></h2>
-<p>ON HOLD, See <a class="reference external" href="https://github.com/PascalLesage/presamples/issues/56">https://github.com/PascalLesage/presamples/issues/56</a></p>
+<p>Multiple presamples packages can be passed to a single <code class="docutils literal notranslate"><span class="pre">DataPackageLoader</span></code>. When a named parameted is present in more
+than one presamples package, only the value in the last package to have the named parameter is used.  This allows for
+easily updating input data.</p>
+<p>In our example, say we want to fix the fertilizer use parameter to an amount representing a specific scenario:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">new_fertilizer_amount</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">60</span><span class="p">])</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">)</span> <span class="c1"># The array MUST have one row, as we only have one parameter</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">fert_scenario_id</span><span class="p">,</span> <span class="n">fert_scenario_path</span> <span class="o">=</span> <span class="n">presamples</span><span class="o">.</span><span class="n">create_presamples_package</span><span class="p">(</span>
+<span class="gp">... </span>    <span class="n">parameter_data</span><span class="o">=</span><span class="p">[</span><span class="n">new_fertilizer_amount</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;fert consumption [kg/km2]&#39;</span><span class="p">],</span> <span class="s1">&#39;ag scenario 1&#39;</span><span class="p">]),</span>
+<span class="gp">... </span>    <span class="n">name</span><span class="o">=</span><span class="s2">&quot;Scenario 1 agri data - presample package&quot;</span>
+<span class="gp">... </span><span class="p">)</span>
+</pre></div>
+</div>
+<p>We can now create a loader where both the baseline and the scenario packages are passed:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">ag_loader_scenario</span> <span class="o">=</span> <span class="n">presamples</span><span class="o">.</span><span class="n">PackagesDataLoader</span><span class="p">([</span><span class="n">pp_path</span><span class="p">,</span> <span class="n">fert_scenario_loader</span><span class="p">])</span>
+</pre></div>
+</div>
+<p>We can see that the original values for fertilizer use have been replaced by those in the new package.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">4</span><span class="p">):</span>
+<span class="gp">... </span>    <span class="k">print</span><span class="p">(</span>
+<span class="gp">... </span>        <span class="s2">&quot;indices:&quot;</span><span class="p">,</span>
+<span class="gp">... </span>        <span class="n">ag_loader_scenario</span><span class="o">.</span><span class="n">parameters</span><span class="o">.</span><span class="n">consolidated_indices</span><span class="p">,</span>
+<span class="gp">... </span>        <span class="s2">&quot;values:&quot;</span><span class="p">,</span>
+<span class="gp">... </span>        <span class="n">ag_loader_scenario</span><span class="o">.</span><span class="n">parameters</span><span class="o">.</span><span class="n">consolidated_array</span>
+<span class="gp">... </span>    <span class="p">)</span>
+<span class="gp">... </span>    <span class="n">ag_loader_scenario</span><span class="o">.</span><span class="n">update_package_indices</span><span class="p">()</span>
+<span class="go">indices: [6, 0, 6] values: [4.96919e+07 6.00000e+01 1.50603e+07]</span>
+<span class="go">indices: [11, 0, 11] values: [5.1535801e+07 6.0000000e+01 1.4023084e+07]</span>
+<span class="go">indices: [1, 0, 1] values: [5.07782e+07 6.00000e+01 1.61617e+07]</span>
+<span class="go">indices: [11, 0, 11] values: [5.1535801e+07 6.0000000e+01 1.4023084e+07]</span>
+</pre></div>
+</div>
+<p>Notice that the index for the second parameter (‘fert consumption [kg/km2]’) is always 0: this is because the package
+for this named parameter only has one column.</p>
+<p>You can pass as many packages as required, and each package can have any number of named parameters and observations
+(columns).</p>
+<div class="admonition important">
+<p class="admonition-title">Important</p>
+<p>When passing multiple presamples package paths to a single <code class="docutils literal notranslate"><span class="pre">DataPackageLoader</span></code>, named parameters get their values and
+indices from the last presamples package that contains data on this named parameter.</p>
+</div>
+</div>
+<div class="section" id="storing-a-presample-resource">
+<span id="storing-resource"></span><h2>Storing a presample resource<a class="headerlink" href="#storing-a-presample-resource" title="Permalink to this headline">¶</a></h2>
+<p>In order to facilitate their retrieval for reuse, references to presamples packages can be stored in a database
+<code class="docutils literal notranslate"><span class="pre">campaigns.db</span></code>. Interaction with this database is based on the <a class="reference external" href="http://docs.peewee-orm.com/en/latest/">Peewee ORM</a>.</p>
+<p>The first table of this database is the <code class="docutils literal notranslate"><span class="pre">PresampleResource</span></code> table, used to store references to presamples packages.</p>
+<p>To store a reference to a presample package in the database:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">pr_baseline</span> <span class="o">=</span> <span class="n">presamples</span><span class="o">.</span><span class="n">PresampleResource</span><span class="o">.</span><span class="n">create</span><span class="p">(</span>
+<span class="gp">... </span>    <span class="n">name</span><span class="o">=</span><span class="s2">&quot;Baseline agri data&quot;</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="n">path</span><span class="o">=</span><span class="n">pp_path</span>
+<span class="gp">... </span><span class="p">)</span>
+</pre></div>
+</div>
+<p>The resource has a few useful properties, such as <code class="docutils literal notranslate"><span class="pre">name</span></code> and <code class="docutils literal notranslate"><span class="pre">path</span></code>.</p>
+<p>One can then retrieve a presample resource based on the name:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">pr_baseline_retrieved</span> <span class="o">=</span> <span class="n">presamples</span><span class="o">.</span><span class="n">PresampleResource</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
+<span class="gp">... </span>    <span class="n">presamples</span><span class="o">.</span><span class="n">PresampleResource</span><span class="o">.</span><span class="n">name</span><span class="o">==</span><span class="s2">&quot;Baseline agri data&quot;</span>
+<span class="gp">... </span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">pr_baseline</span> <span class="o">==</span> <span class="n">pr_baseline_retrieved</span>
+<span class="go">True</span>
+</pre></div>
+</div>
+<p>and then use the associated presample package:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">other_loader</span> <span class="o">=</span> <span class="n">presamples</span><span class="o">.</span><span class="n">PackagesDataLoader</span><span class="p">([</span><span class="n">pr_baseline</span><span class="o">.</span><span class="n">path</span><span class="p">])</span>
+</pre></div>
+</div>
 </div>
 <div class="section" id="using-campaigns-to-manage-sets-of-presample-packages">
 <span id="managing-using-campaigns"></span><h2>Using <code class="docutils literal notranslate"><span class="pre">Campaigns</span></code> to manage sets of presample packages<a class="headerlink" href="#using-campaigns-to-manage-sets-of-presample-packages" title="Permalink to this headline">¶</a></h2>
-<p>ON HOLD until override issue is fixed.</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">Campaign</span></code> database also has a table called <code class="docutils literal notranslate"><span class="pre">Campaign</span></code>, used to store information about ordered collections
+of <code class="docutils literal notranslate"><span class="pre">PresampleResources</span></code>.</p>
+<p>To create a new campaign:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">ag_campaign_baseline</span> <span class="o">=</span> <span class="n">presamples</span><span class="o">.</span><span class="n">Campaign</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;Agricultural baseline campaign&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ag_campaign_baseline</span><span class="o">.</span><span class="n">save</span><span class="p">()</span>
+<span class="go">1</span>
+</pre></div>
+</div>
+<p>The 1 indicates that one row was changed in the <code class="docutils literal notranslate"><span class="pre">Campaign</span></code> table.</p>
+<p>We can add our samples of baseline values using the <code class="docutils literal notranslate"><span class="pre">PresampleResource</span></code> that was created earlier:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">ag_campaign_baseline</span><span class="o">.</span><span class="n">add_presample_resource</span><span class="p">(</span><span class="n">pr_baseline</span><span class="p">)</span>
+
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ag_campaign_baseline</span> <span class="c1">#Get some information on the campaign</span>
+<span class="go">&lt;Campaign: Campaign Agricultural baseline campaign with no parent and 1 packages&gt;</span>
+
+<span class="gp">&gt;&gt;&gt; </span><span class="p">[</span><span class="n">p</span><span class="o">.</span><span class="n">name</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">ag_campaign_baseline</span><span class="o">.</span><span class="n">packages</span><span class="p">]</span> <span class="c1"># List packages used in campaign</span>
+<span class="go">[&#39;Baseline agri data&#39;]</span>
+</pre></div>
+</div>
+<p>A <code class="docutils literal notranslate"><span class="pre">Campaign</span></code> can be passed directly to a <code class="docutils literal notranslate"><span class="pre">PackagesDataLoader</span></code>:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">loader</span> <span class="o">=</span> <span class="n">presamples</span><span class="o">.</span><span class="n">PackagesDataLoader</span><span class="p">(</span><span class="n">ag_campaign_baseline</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">loader</span><span class="o">.</span><span class="n">parameters</span><span class="o">.</span><span class="n">consolidated_array</span>
+<span class="go">array([6.64057010e+07, 9.41524221e+01, 1.59246840e+07])</span>
+</pre></div>
+</div>
+<p>More interestingly, a <code class="docutils literal notranslate"><span class="pre">Campaign</span></code> can point to multiple <code class="docutils literal notranslate"><span class="pre">PresampleResources</span></code> in the desired order. Let’s add the
+scenario data we had above to a <code class="docutils literal notranslate"><span class="pre">PresampleResource</span></code>:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">pr_scenario</span> <span class="o">=</span> <span class="n">presamples</span><span class="o">.</span><span class="n">PresampleResource</span><span class="o">.</span><span class="n">create</span><span class="p">(</span>
+<span class="gp">... </span>    <span class="n">path</span><span class="o">=</span><span class="n">fert_scenario_path</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="n">name</span><span class="o">=</span><span class="s2">&quot;Scenario 1 agri data&quot;</span>
+<span class="gp">... </span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Next we create a <em>child</em> Campaign based on the baseline campaign we created above. This child campaign
+will automatically point to all the resources of the parent Campaign. Note that you can have an arbitrary
+number of descendents.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">ag_campaign_scenario1</span> <span class="o">=</span> <span class="n">ag_campaign_baseline</span><span class="o">.</span><span class="n">add_child</span><span class="p">(</span><span class="s2">&quot;Agricultural scenario 1 campaign&quot;</span><span class="p">)</span> <span class="c1"># Create a child campaign</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ag_campaign_scenario1</span><span class="o">.</span><span class="n">save</span><span class="p">()</span>
+<span class="go">1</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ag_campaign_scenario1</span><span class="o">.</span><span class="n">add_presample_resource</span><span class="p">(</span><span class="n">pr_scenario</span><span class="p">)</span> <span class="c1"># Add the scenario presample resource</span>
+</pre></div>
+</div>
+<p>The <code class="docutils literal notranslate"><span class="pre">ag_scenario</span></code> <code class="docutils literal notranslate"><span class="pre">Campaign</span></code> has the baseline data as parent (it will use all its presample packages) and another
+package.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">ag_campaign_scenario1</span>
+<span class="go">&lt;Campaign: Campaign Agricultural scenario 1 campaign with parent Agricultural baseline campaign and 2 packages&gt;</span>
+
+<span class="gp">&gt;&gt;&gt; </span><span class="p">[</span><span class="n">p</span><span class="o">.</span><span class="n">name</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">ag_campaign_scenario1</span><span class="o">.</span><span class="n">ancestors</span><span class="p">]</span>
+<span class="go">[&#39;Agricultural baseline campaign&#39;]</span>
+
+<span class="gp">&gt;&gt;&gt; </span><span class="p">[</span><span class="n">p</span><span class="o">.</span><span class="n">name</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">ag_campaign_scenario1</span><span class="o">.</span><span class="n">packages</span><span class="p">]</span>
+<span class="go">[&#39;Baseline agri data&#39;, &#39;Scenario 1 agri data&#39;]</span>
+</pre></div>
+</div>
+<p>Using the campaign in a <code class="docutils literal notranslate"><span class="pre">PackagesDataLoader</span></code> will call the presample packages in the expected order, i.e. from the
+package with baseline data (added first) to the scenario data (added after):</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">loader_scenario</span> <span class="o">=</span> <span class="n">presamples</span><span class="o">.</span><span class="n">PackagesDataLoader</span><span class="p">(</span><span class="n">ag_campaign_scenario1</span><span class="p">)</span> <span class="c1"># Load</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">4</span><span class="p">):</span> <span class="c1"># Check values for 4 iterations</span>
+<span class="gp">... </span>    <span class="n">loader_scenario</span><span class="o">.</span><span class="n">update_package_indices</span><span class="p">()</span>
+<span class="gp">... </span>    <span class="k">print</span><span class="p">(</span>
+<span class="gp">... </span>        <span class="s2">&quot;Indices:&quot;</span><span class="p">,</span>
+<span class="gp">... </span>        <span class="n">loader_scenario</span><span class="o">.</span><span class="n">parameters</span><span class="o">.</span><span class="n">consolidated_indices</span><span class="p">,</span>
+<span class="gp">... </span>        <span class="s2">&quot;Values: &quot;</span><span class="p">,</span>
+<span class="gp">... </span>        <span class="n">loader_scenario</span><span class="o">.</span><span class="n">parameters</span><span class="o">.</span><span class="n">consolidated_array</span>
+<span class="gp">... </span>    <span class="p">)</span>
+<span class="go">Indices: [9, 0, 9] Values:  [5.1799100e+07 6.0000000e+01 1.4981496e+07]</span>
+<span class="go">Indices: [6, 0, 6] Values:  [4.96919e+07 6.00000e+01 1.50603e+07]</span>
+<span class="go">Indices: [2, 0, 2] Values:  [5.09624e+07 6.00000e+01 1.58468e+07]</span>
+<span class="go">Indices: [2, 0, 2] Values:  [5.09624e+07 6.00000e+01 1.58468e+07]</span>
+</pre></div>
+</div>
+<p>The scenario data overwrote the fertiliser use data on each iteration.</p>
 </div>
 </div>
 

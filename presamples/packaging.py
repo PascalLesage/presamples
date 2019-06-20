@@ -236,20 +236,45 @@ def get_presample_directory(id_, overwrite=False, dirpath=None):
 
 def create_presamples_package(matrix_data=None, parameter_data=None, name=None,
         id_=None, overwrite=False, dirpath=None, seed=None):
-    """Create and populate a new presamples directory that stores presampled values for matrix data and/or named parameters.
+    """Create and populate a new presamples package
 
-    ``matrix_data`` is a list of :ref:`matrix-presamples`; parameter_data`` is a list of :ref:`parameter-presamples`. Both are allowed, but at least one type of presamples must be given. The documentation gives more details on these input arguments.
+     The presamples package minimally contains a datapackage file with metadata on the
+     datapackage itself and its associated resources (stored presample arrays and
+     identification of what the values in the arrays represent).
+
+     Parameters
+     ----------
+        matrix_data: list, optional
+            list of tuples containing raw matrix data (presamples array, indices, matrix label)
+        parameter_data: list, optional
+            list of tuples containing raw parameter data (presamples array, names, label)
+        name: str, optional
+            A human-readable name for these samples.
+        \id_: str, optional
+            Unique id for this collection of presamples. Optional, generated automatically if not set.
+        overwrite: bool, default=False
+            If True, replace an existing presamples package with the same ``\id_`` if it exists.
+        dirpath: str, optional
+            An optional directory path where presamples can be created. If None, a subdirectory in the ``project`` folder.
+        seed: {None, int, "sequential"}, optional
+            Seed used by indexer to return array columns in random order. Can be an integer, "sequential" or None.
+
+    Notes
+    ----
+    Both ``matrix_data`` and ``parameter_data`` are optional, but at least one needs to be passed.
+    The documentation gives more details on these input arguments.
 
     Both matrix and parameter data should have the same number of possible values (i.e same number of samples).
 
-    The following arguments are optional:
-    * ``name``: A human-readable name for these samples.
-    * ``id_``: Unique id for this collection of presamples. Optional, generated automatically if not set.
-    * ``overwrite``: If True, replace an existing presamples package with the same ``_id`` if it exists. Default ``False``
-    * ``dirpath``: An optional directory path where presamples can be created. Default is to create a subdirectory in the ``project`` folder.
-    * ``seed``: Seed used by indexer to return array columns in random order. Can be an integer, "sequential" or None.
+    The documentations provide more information on the format for these two arguments.
 
-    Returns ``id_`` and the absolute path of the created directory.
+    Returns
+    -------
+    id_: str
+        The unique ``id_`` of the presamples package
+    dirpath: str
+        The absolute path of the created directory.
+
 
     """
     id_ = id_ or uuid.uuid4().hex

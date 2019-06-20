@@ -84,8 +84,23 @@
 <li class="toctree-l1"><a class="reference internal" href="installing.html">Installing</a></li>
 <li class="toctree-l1"><a class="reference internal" href="quickstart.html">Quickstart</a></li>
 <li class="toctree-l1"><a class="reference internal" href="use_with_bw2.html">Using presamples with brightway2</a></li>
-<li class="toctree-l1 current"><a class="current reference internal" href="#">Technical reference</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Technical reference</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#presample-packages">Presample packages</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#description-of-the-parameter-data-argument">Description of the <code class="docutils literal notranslate"><span class="pre">parameter_data</span></code> argument</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#description-of-the-matrix-data-argument">Description of the <code class="docutils literal notranslate"><span class="pre">matrix_data</span></code> argument</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#presample-package-contents">Presample package contents</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#datapackage-json">datapackage.json</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#named-parameters">Named parameters</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#matrices">Matrices</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#loading-multiple-presample-packages">Loading multiple presample packages</a></li>
+</ul>
+</li>
 <li class="toctree-l1"><a class="reference internal" href="examples.html">Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="pubs.html">Publications</a></li>
 <li class="toctree-l1"><a class="reference internal" href="contributing.html">Contributing</a></li>
 <li class="toctree-l1"><a class="reference internal" href="contributing.html#authors">Authors</a></li>
 </ul>
@@ -154,7 +169,380 @@
             
   <div class="section" id="technical-reference">
 <span id="tech-ref"></span><h1>Technical reference<a class="headerlink" href="#technical-reference" title="Permalink to this headline">¶</a></h1>
-<p><strong>under construction</strong></p>
+<ul>
+<li><p><a class="reference internal" href="#presamplepackagechapter"><span class="std std-ref">Presample packages</span></a></p>
+<blockquote>
+<div><ul>
+<li><p><a class="reference internal" href="#presamples.packaging.create_presamples_package" title="presamples.packaging.create_presamples_package"><code class="xref py py-func docutils literal notranslate"><span class="pre">presamples.packaging.create_presamples_package()</span></code></a></p></li>
+<li><p><a class="reference internal" href="#parameter-data"><span class="std std-ref">Description of the parameter_data argument</span></a></p></li>
+<li><p><a class="reference internal" href="#matrix-data"><span class="std std-ref">Description of the matrix_data argument</span></a></p></li>
+<li><p><a class="reference internal" href="#presamplepackagecontent"><span class="std std-ref">Presample package contents</span></a></p>
+<blockquote>
+<div><ul class="simple">
+<li><p><a class="reference internal" href="#presamplepackagecontent-datapackage"><span class="std std-ref">datapackage.json</span></a></p></li>
+<li><p><a class="reference internal" href="#presamplepackagecontent-parameters"><span class="std std-ref">Named parameters</span></a></p></li>
+<li><p><a class="reference internal" href="#presamplepackagecontent-matrices"><span class="std std-ref">Matrices</span></a></p></li>
+</ul>
+</div></blockquote>
+</li>
+</ul>
+</div></blockquote>
+</li>
+<li><p><a class="reference internal" href="#loader"><span class="std std-ref">Loading multiple presample packages</span></a></p>
+<blockquote>
+<div><ul class="simple">
+<li><p><a class="reference internal" href="#presamples.loader.PackagesDataLoader" title="presamples.loader.PackagesDataLoader"><code class="xref py py-class docutils literal notranslate"><span class="pre">presamples.loader.PackagesDataLoader</span></code></a></p></li>
+<li><p><a class="reference internal" href="#presamples.loader.PackagesDataLoader.load_data" title="presamples.loader.PackagesDataLoader.load_data"><code class="xref py py-meth docutils literal notranslate"><span class="pre">presamples.loader.PackagesDataLoader.load_data()</span></code></a></p></li>
+<li><p><a class="reference internal" href="#presamples.loader.PackagesDataLoader.index_arrays" title="presamples.loader.PackagesDataLoader.index_arrays"><code class="xref py py-meth docutils literal notranslate"><span class="pre">presamples.loader.PackagesDataLoader.index_arrays()</span></code></a></p></li>
+<li><p><a class="reference internal" href="#presamples.loader.PackagesDataLoader.update_matrices" title="presamples.loader.PackagesDataLoader.update_matrices"><code class="xref py py-meth docutils literal notranslate"><span class="pre">presamples.loader.PackagesDataLoader.update_matrices()</span></code></a></p></li>
+</ul>
+</div></blockquote>
+</li>
+</ul>
+<div class="section" id="presample-packages">
+<span id="presamplepackagechapter"></span><h2>Presample packages<a class="headerlink" href="#presample-packages" title="Permalink to this headline">¶</a></h2>
+<p>Presamples packages are directories that <strong>must</strong> minimally contain a <code class="docutils literal notranslate"><span class="pre">datapackage.json</span></code> file, based on the
+<a class="reference external" href="https://frictionlessdata.io/specs/data-package/">datapackage standard</a>.
+It may contain other files, depending on the types of resources contained in the presamples package.
+The file contents are described here <a class="reference internal" href="#presamplepackagecontent"><span class="std std-ref">Presample package contents</span></a>.</p>
+<span class="target" id="presamplepackagecreation"></span><dl class="function">
+<dt id="presamples.packaging.create_presamples_package">
+<code class="sig-prename descclassname">presamples.packaging.</code><code class="sig-name descname">create_presamples_package</code><span class="sig-paren">(</span><em class="sig-param">matrix_data=None</em>, <em class="sig-param">parameter_data=None</em>, <em class="sig-param">name=None</em>, <em class="sig-param">id_=None</em>, <em class="sig-param">overwrite=False</em>, <em class="sig-param">dirpath=None</em>, <em class="sig-param">seed=None</em><span class="sig-paren">)</span><a class="headerlink" href="#presamples.packaging.create_presamples_package" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create and populate a new presamples package</p>
+<blockquote>
+<div><p>The presamples package minimally contains a datapackage file with metadata on the
+datapackage itself and its associated resources (stored presample arrays and
+identification of what the values in the arrays represent).</p>
+<blockquote>
+<div><dl class="simple">
+<dt>matrix_data: list, optional</dt><dd><p>list of tuples containing raw matrix data (presamples array, indices, matrix label)</p>
+</dd>
+<dt>parameter_data: list, optional</dt><dd><p>list of tuples containing raw parameter data (presamples array, names, label)</p>
+</dd>
+<dt>name: str, optional</dt><dd><p>A human-readable name for these samples.</p>
+</dd>
+<dt>id_: str, optional</dt><dd><p>Unique id for this collection of presamples. Optional, generated automatically if not set.</p>
+</dd>
+<dt>overwrite: bool, default=False</dt><dd><p>If True, replace an existing presamples package with the same <code class="docutils literal notranslate"><span class="pre">\id_</span></code> if it exists.</p>
+</dd>
+<dt>dirpath: str, optional</dt><dd><p>An optional directory path where presamples can be created. If None, a subdirectory in the <code class="docutils literal notranslate"><span class="pre">project</span></code> folder.</p>
+</dd>
+<dt>seed: {None, int, “sequential”}, optional</dt><dd><p>Seed used by indexer to return array columns in random order. Can be an integer, “sequential” or None.</p>
+</dd>
+</dl>
+</div></blockquote>
+</div></blockquote>
+<p class="rubric">Notes</p>
+<p>Both <code class="docutils literal notranslate"><span class="pre">matrix_data</span></code> and <code class="docutils literal notranslate"><span class="pre">parameter_data</span></code> are optional, but at least one needs to be passed.
+The documentation gives more details on these input arguments.</p>
+<p>Both matrix and parameter data should have the same number of possible values (i.e same number of samples).</p>
+<p>The documentations provide more information on the format for these two arguments.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p><ul class="simple">
+<li><p><strong>id_</strong> (<em>str</em>) – The unique <code class="docutils literal notranslate"><span class="pre">id_</span></code> of the presamples package</p></li>
+<li><p><strong>dirpath</strong> (<em>str</em>) – The absolute path of the created directory.</p></li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
+<div class="section" id="description-of-the-parameter-data-argument">
+<span id="parameter-data"></span><h3>Description of the <code class="docutils literal notranslate"><span class="pre">parameter_data</span></code> argument<a class="headerlink" href="#description-of-the-parameter-data-argument" title="Permalink to this headline">¶</a></h3>
+<p>The <code class="docutils literal notranslate"><span class="pre">parameter_data</span></code> argument in <code class="docutils literal notranslate"><span class="pre">create_presamples_package</span></code> is a list (or other iterable) of tuples containing
+the following three objects:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">samples</span></code>: are a two-dimensional numpy array, where each row contains values for a specific named parameter,
+and columns represent possible values for these parameters. It is possible to have samples arrays with only one column
+(i.e. only one observation for the named parameters), and only one row (data on only one named parameter).</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">names</span></code>: list of parameter names, as strings. The order of the names should be the same as the rows in <code class="docutils literal notranslate"><span class="pre">samples</span></code>,
+i.e. the first name corresponds to data in the first row of <code class="docutils literal notranslate"><span class="pre">samples</span></code>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">label</span></code>: a string which will be used to name the resource. The presamples package does not presently use this label.</p></li>
+</ul>
+<div class="admonition important">
+<p class="admonition-title">Important</p>
+<p>There must necessarily be as many named parameters in <code class="docutils literal notranslate"><span class="pre">names</span></code> as there are rows in <code class="docutils literal notranslate"><span class="pre">samples</span></code>.</p>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>It is possible to pass an arbitrary amount of (<code class="docutils literal notranslate"><span class="pre">samples</span></code>, <code class="docutils literal notranslate"><span class="pre">names</span></code>, <code class="docutils literal notranslate"><span class="pre">label</span></code>) tuples in <code class="docutils literal notranslate"><span class="pre">parameter_data</span></code>.
+Each will be contained in a distinct resource of the presamples package. However,</p>
+<ol class="arabic simple">
+<li><p>the names in each tuple <em>must</em> be unique, and</p></li>
+<li><p>the number of columns in each <code class="docutils literal notranslate"><span class="pre">samples</span></code> must be identical.</p></li>
+</ol>
+</div>
+<div class="admonition hint">
+<p class="admonition-title">Hint</p>
+<p>While there are no restrictions on the string, using strings that are valid names in AST evaluators can prevent
+problems down the line.</p>
+</div>
+</div>
+<div class="section" id="description-of-the-matrix-data-argument">
+<span id="matrix-data"></span><h3>Description of the <code class="docutils literal notranslate"><span class="pre">matrix_data</span></code> argument<a class="headerlink" href="#description-of-the-matrix-data-argument" title="Permalink to this headline">¶</a></h3>
+<p>The <code class="docutils literal notranslate"><span class="pre">matrix_data</span></code> argument in <code class="docutils literal notranslate"><span class="pre">create_presamples_package</span></code> is a list (or other iterable) of tuples containing
+the following three objects:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">samples</span></code>: are a two-dimensional Numpy array, where each row contains values for a specific matrix element that will
+be replaced and each column contains values for a given realization of the LCA model. It is possible to have samples
+arrays with only one column (i.e. only one observation for the matrix elements), and only one row (data on only one
+named parameter).</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">indices</span></code>:  is an iterable with row and (usually) column indices. The <em>ith</em> element of indices refers to the <em>ith</em>
+row of the samples. The exact format of indices depends on the matrix to be constructed. These indices tell us where
+exactly to insert the samples into a specific matrix.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">matrix</span> <span class="pre">label</span></code>: is a string giving the name of the matrix to be modified in the LCA class. Strings that are
+currently supported are ‘technosphere’, biosphere’ and ‘cf’.</p></li>
+</ul>
+<div class="admonition important">
+<p class="admonition-title">Important</p>
+<p>The number of rows in <code class="docutils literal notranslate"><span class="pre">samples</span></code> and <code class="docutils literal notranslate"><span class="pre">indices</span></code> must be identical.</p>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>It is possible to pass an arbitrary amount of (<code class="docutils literal notranslate"><span class="pre">samples</span></code>, <code class="docutils literal notranslate"><span class="pre">indices</span></code>, <code class="docutils literal notranslate"><span class="pre">matrix</span> <span class="pre">label</span></code>) tuples in
+<code class="docutils literal notranslate"><span class="pre">matrix_data</span></code>. Each will be contained in a distinct resource of the presamples package. However, the number of
+columns in each <code class="docutils literal notranslate"><span class="pre">samples</span></code> must be identical.</p>
+</div>
+</div>
+<div class="section" id="presample-package-contents">
+<span id="presamplepackagecontent"></span><h3>Presample package contents<a class="headerlink" href="#presample-package-contents" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="datapackage-json">
+<span id="presamplepackagecontent-datapackage"></span><h4>datapackage.json<a class="headerlink" href="#datapackage-json" title="Permalink to this headline">¶</a></h4>
+<p>Presample packages are directories that <strong>must</strong> minimally contain a <code class="docutils literal notranslate"><span class="pre">datapackage.json</span></code> file, based on the
+<a class="reference external" href="https://frictionlessdata.io/specs/data-package/">datapackage standard</a>.
+It may contain other files, depending on the types of resources contained in the presamples package.</p>
+<p>The format for the datapackage.json file is:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+  <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+  <span class="s2">&quot;id&quot;</span><span class="p">:</span> <span class="n">uuid</span> <span class="ow">or</span> <span class="nb">str</span><span class="p">,</span>
+  <span class="s2">&quot;profile&quot;</span><span class="p">:</span> <span class="s2">&quot;data-package&quot;</span><span class="p">,</span>
+  <span class="s2">&quot;seed&quot;</span><span class="p">:</span> <span class="n">Null</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="n">array_like</span> <span class="ow">or</span> <span class="s2">&quot;sequential&quot;</span>
+  <span class="s2">&quot;resources&quot;</span><span class="p">:</span> <span class="p">[],</span>
+  <span class="s2">&quot;ncols&quot;</span><span class="p">:</span> <span class="nb">int</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>There can be an arbitrary number of resources. Each resource is represented in the datapackage by a dictionary.</p>
+</div>
+<div class="section" id="named-parameters">
+<span id="presamplepackagecontent-parameters"></span><h4>Named parameters<a class="headerlink" href="#named-parameters" title="Permalink to this headline">¶</a></h4>
+<p>Resources for named parameters have the following format:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+    <span class="s2">&quot;samples&quot;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s2">&quot;filepath&quot;</span><span class="p">:</span> <span class="s2">&quot;</span><span class="si">{id}</span><span class="s2">.{data package index}.samples.npy&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;md5&quot;</span><span class="p">:</span> <span class="n">md5</span> <span class="nb">hash</span><span class="p">,,</span>
+        <span class="s2">&quot;shape&quot;</span><span class="p">:</span> <span class="p">[</span>
+            <span class="n">number</span> <span class="n">of</span> <span class="n">rows</span><span class="p">,</span>
+            <span class="n">number</span> <span class="n">of</span> <span class="n">columns</span>
+        <span class="p">],</span>
+        <span class="s2">&quot;dtype&quot;</span><span class="p">:</span> <span class="s2">&quot;float64&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;format&quot;</span><span class="p">:</span> <span class="s2">&quot;npy&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;mediatype&quot;</span><span class="p">:</span> <span class="s2">&quot;application/octet-stream&quot;</span>
+    <span class="p">},</span>
+    <span class="s2">&quot;names&quot;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s2">&quot;filepath&quot;</span><span class="p">:</span> <span class="s2">&quot;</span><span class="si">{id}</span><span class="s2">.{data package index}.names.json&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;md5&quot;</span><span class="p">:</span> <span class="n">md5</span> <span class="nb">hash</span><span class="p">,</span>
+        <span class="s2">&quot;format&quot;</span><span class="p">:</span> <span class="s2">&quot;json&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;mediatype&quot;</span><span class="p">:</span> <span class="s2">&quot;application/json&quot;</span>
+    <span class="p">},</span>
+    <span class="s2">&quot;profile&quot;</span><span class="p">:</span> <span class="s2">&quot;data-resource&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;label&quot;</span><span class="p">:</span> <span class="n">parameter</span> <span class="n">label</span><span class="p">,</span>
+    <span class="s2">&quot;index&quot;</span><span class="p">:</span> <span class="n">data</span> <span class="n">package</span> <span class="n">index</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>Where:
+- the id is based on the <code class="docutils literal notranslate"><span class="pre">\id_</span></code> argument passed to <code class="docutils literal notranslate"><span class="pre">create_presamples_package</span></code>
+- the data package index indicates the position (index) of the resource in the list of resources</p>
+</div>
+<div class="section" id="matrices">
+<span id="presamplepackagecontent-matrices"></span><h4>Matrices<a class="headerlink" href="#matrices" title="Permalink to this headline">¶</a></h4>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+    <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="n">matrix</span> <span class="nb">type</span> <span class="p">(</span><span class="n">technosphere</span><span class="p">,</span> <span class="n">biosphere</span><span class="p">,</span> <span class="n">cfs</span><span class="p">),</span>
+    <span class="s2">&quot;samples&quot;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s2">&quot;filepath&quot;</span><span class="p">:</span> <span class="s2">&quot;</span><span class="si">{id}</span><span class="s2">.{data package index}.samples.npy&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;md5&quot;</span><span class="p">:</span> <span class="n">md5</span> <span class="nb">hash</span><span class="p">,</span>
+        <span class="s2">&quot;shape&quot;</span><span class="p">:</span> <span class="p">[</span>
+            <span class="n">number</span> <span class="n">of</span> <span class="n">rows</span><span class="p">,</span>
+            <span class="n">number</span> <span class="n">of</span> <span class="n">columns</span>
+        <span class="p">],</span>
+    <span class="s2">&quot;dtype&quot;</span><span class="p">:</span> <span class="s2">&quot;float32&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;format&quot;</span><span class="p">:</span> <span class="s2">&quot;npy&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;mediatype&quot;</span><span class="p">:</span> <span class="s2">&quot;application/octet-stream&quot;</span>
+    <span class="p">},</span>
+    <span class="s2">&quot;index&quot;</span><span class="p">:</span> <span class="n">data</span> <span class="n">package</span> <span class="n">index</span><span class="p">,</span>
+    <span class="s2">&quot;indices&quot;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s2">&quot;filepath&quot;</span><span class="p">:</span> <span class="s2">&quot;</span><span class="si">{id}</span><span class="s2">.{data package index}.indices.npy&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;md5&quot;</span><span class="p">:</span> <span class="n">md5</span> <span class="nb">hash</span><span class="p">,</span>
+        <span class="s2">&quot;format&quot;</span><span class="p">:</span> <span class="s2">&quot;npy&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;mediatype&quot;</span><span class="p">:</span> <span class="s2">&quot;application/octet-stream&quot;</span>
+    <span class="p">},</span>
+    <span class="s2">&quot;profile&quot;</span><span class="p">:</span> <span class="s2">&quot;data-resource&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;row from label&quot;</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">e</span><span class="o">.</span><span class="n">g</span><span class="o">.</span> <span class="s2">&quot;input&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;row to label&quot;</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">e</span><span class="o">.</span><span class="n">g</span><span class="o">.</span> <span class="s2">&quot;row&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;row dict&quot;</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">e</span><span class="o">.</span><span class="n">g</span><span class="o">.</span> <span class="s2">&quot;_biosphere_dict&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;col from label&quot;</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">e</span><span class="o">.</span><span class="n">g</span><span class="o">.</span> <span class="s2">&quot;output&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;col to label&quot;</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">e</span><span class="o">.</span><span class="n">g</span><span class="o">.</span> <span class="s2">&quot;col&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;col dict&quot;</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">e</span><span class="o">.</span><span class="n">g</span><span class="o">.</span> <span class="s2">&quot;_activity_dict&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;matrix&quot;</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">e</span><span class="o">.</span><span class="n">g</span><span class="o">.</span> <span class="s2">&quot;biosphere_matrix&quot;</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>The last elements (“row from label”, “row to label”, etc.) are used by the <code class="docutils literal notranslate"><span class="pre">presamples.loader.PackagesDataLoader.index_arrays</span></code>
+method to map the resource elements to the LCA matrices.</p>
+</div>
+</div>
+</div>
+<div class="section" id="loading-multiple-presample-packages">
+<span id="loader"></span><h2>Loading multiple presample packages<a class="headerlink" href="#loading-multiple-presample-packages" title="Permalink to this headline">¶</a></h2>
+<p>Loading multiple presample packages for use in models requiring one value at a time is done using the
+<code class="docutils literal notranslate"><span class="pre">PackagesDataLoader</span></code> class.</p>
+<dl class="class">
+<dt id="presamples.loader.PackagesDataLoader">
+<em class="property">class </em><code class="sig-prename descclassname">presamples.loader.</code><code class="sig-name descname">PackagesDataLoader</code><span class="sig-paren">(</span><em class="sig-param">dirpaths</em>, <em class="sig-param">seed=None</em>, <em class="sig-param">lca=None</em><span class="sig-paren">)</span><a class="headerlink" href="#presamples.loader.PackagesDataLoader" title="Permalink to this definition">¶</a></dt>
+<dd><p>Load set of presample packages and ready underlying data for use</p>
+<p>Named parameters found in presample packages will be assembled into a
+<code class="docutils literal notranslate"><span class="pre">ConsolidatedIndexedParameterMapping</span></code>, accessed through the <code class="docutils literal notranslate"><span class="pre">parameters</span></code>
+property.</p>
+<p>Matrix data found in presample packages are readied to be mapped and
+inserted into LCA matrices using the corresponding methods.</p>
+<p>In both cases, elements (named parameter or matrix element) repeated in
+multiple presample packages will take the value (and the <code class="docutils literal notranslate"><span class="pre">Indexer</span></code>)
+of the last presample package in the list that contains data on the element.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>dirpaths</strong> (<em>iterable of paths to presample packages</em>) – See notes below for information on expected contents of directories.</p></li>
+<li><p><strong>seed</strong> (<em>{None</em><em>, </em><em>int</em><em>, </em><em>array_like</em><em>, </em><em>&quot;sequential&quot;}</em><em>, </em><em>optional</em>) – Seed value to use for index RNGs. Default is to use the seed values in
+each package, only specify this if you want to override the default.</p></li>
+<li><p><strong>lca</strong> (<em>Brightway2 LCA object</em>) – Used when <code class="docutils literal notranslate"><span class="pre">PackagesDataLoader</span></code> instantiated from LCA (or
+MonteCarloLCA) object.</p></li>
+</ul>
+</dd>
+</dl>
+<p class="rubric">Notes</p>
+<ol class="arabic simple">
+<li><p>Accessing and using loaded named parameters</p></li>
+</ol>
+<p>The returned <code class="docutils literal notranslate"><span class="pre">PackagesDataLoader</span></code> instance allows access to loaded
+parameter data via the <code class="docutils literal notranslate"><span class="pre">parameters</span></code> property.</p>
+<ol class="arabic simple" start="2">
+<li><p>Using loaded matrix data in LCA</p></li>
+</ol>
+<p>When used for LCA within the Brightway2 framework, the
+<code class="docutils literal notranslate"><span class="pre">PackagesDataLoader</span></code> instance is an attribute of the <code class="docutils literal notranslate"><span class="pre">LCA</span></code>
+(or <code class="docutils literal notranslate"><span class="pre">MonteCarloLCA</span></code>) instance. The <code class="docutils literal notranslate"><span class="pre">LCA</span></code> instance will call the method
+<code class="docutils literal notranslate"><span class="pre">index_arrays</span></code> in order to identify the matrix indices of values that
+will be overwritten, and the <code class="docutils literal notranslate"><span class="pre">update_matrices</span></code> method to update values.</p>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>Note that we currently assume that all index values will be present in
+the built matrix. Silent errors or losses in efficiency could happen if
+this assumption does not hold!</p>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="presamples.loader.PackagesDataLoader.load_data">
+<em class="property">classmethod </em><code class="sig-prename descclassname">PackagesDataLoader.</code><code class="sig-name descname">load_data</code><span class="sig-paren">(</span><em class="sig-param">dirpath</em>, <em class="sig-param">seed=None</em><span class="sig-paren">)</span><a class="headerlink" href="#presamples.loader.PackagesDataLoader.load_data" title="Permalink to this definition">¶</a></dt>
+<dd><p>Load data and metadata from a directory containing a presamples package</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>dirpath</strong> (<em>str</em><em> or </em><em>Pathlike object</em>) – path to a presamples package</p></li>
+<li><p><strong>seed</strong> (<em>{None</em><em>, </em><em>int</em><em>, </em><em>array_like</em><em>, </em><em>&quot;sequential&quot;}</em><em>, </em><em>optional</em>) – Only specify this if you want to override seed value in
+presamples package.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Dictionary with loaded data</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>dict</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="presamples.loader.PackagesDataLoader.index_arrays">
+<code class="sig-prename descclassname">PackagesDataLoader.</code><code class="sig-name descname">index_arrays</code><span class="sig-paren">(</span><em class="sig-param">lca</em><span class="sig-paren">)</span><a class="headerlink" href="#presamples.loader.PackagesDataLoader.index_arrays" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add row and column values to the indices.</p>
+<p>As this function can be called multiple times, we check for each element
+if it has already been called, and whether the required mapping
+dictionary is present.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="presamples.loader.PackagesDataLoader.update_matrices">
+<code class="sig-prename descclassname">PackagesDataLoader.</code><code class="sig-name descname">update_matrices</code><span class="sig-paren">(</span><em class="sig-param">lca=None</em>, <em class="sig-param">matrices=None</em>, <em class="sig-param">advance_indices=True</em><span class="sig-paren">)</span><a class="headerlink" href="#presamples.loader.PackagesDataLoader.update_matrices" title="Permalink to this definition">¶</a></dt>
+<dd><p>Update the LCA instance matrices from presamples</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="presamples.loader.PackagesDataLoader.parameters">
+<em class="property">property </em><code class="sig-prename descclassname">PackagesDataLoader.</code><code class="sig-name descname">parameters</code><a class="headerlink" href="#presamples.loader.PackagesDataLoader.parameters" title="Permalink to this definition">¶</a></dt>
+<dd><p>Consolidated access to all named parameters</p>
+<p>See <code class="docutils literal notranslate"><span class="pre">ConsolidatedIndexedParameterMapping</span></code> for notes on consolidation.</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="presamples.loader.ConsolidatedIndexedParameterMapping">
+<em class="property">class </em><code class="sig-prename descclassname">presamples.loader.</code><code class="sig-name descname">ConsolidatedIndexedParameterMapping</code><span class="sig-paren">(</span><em class="sig-param">list_IPM</em><span class="sig-paren">)</span><a class="headerlink" href="#presamples.loader.ConsolidatedIndexedParameterMapping" title="Permalink to this definition">¶</a></dt>
+<dd><p>Interface for consolidated named parameters in set of presample packages</p>
+<p>Map all named parameters in a list of IndexedParameterMapping objects to
+presample arrays and Indexers identified in the <strong>last</strong> presample package
+that contains data on the named parameter.</p>
+<p>This allows named parameters to be overwritten by successive presample
+packages.</p>
+<p>Typically used directly by the <code class="docutils literal notranslate"><span class="pre">PackagesDataLoader</span></code></p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>list_IPM</strong> (<em>iterable of IndexedParameterMapping objects</em>) – </p></li>
+<li><p><strong>IndexedParameterMapping</strong><strong> (</strong><strong>IPM</strong><strong>) </strong><strong>objects are typically created by a</strong> (<em>The</em>) – </p></li>
+<li><p><strong>instance. The order of the IPMs is crucial</strong><strong>, </strong><strong>as named</strong> (<a class="reference internal" href="#presamples.loader.PackagesDataLoader" title="presamples.loader.PackagesDataLoader"><em>PackagesDataLoader</em></a>) – </p></li>
+<li><p><strong>in later IPMs overwrites data from earlier IMPs.</strong> (<em>parameters</em>) – </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><dl>
+<dt>The CIPM instance can be used to access the following properties:</dt><dd><p><code class="docutils literal notranslate"><span class="pre">names</span></code>: names of all <em>n</em> named parameters
+<code class="docutils literal notranslate"><span class="pre">ipm_mapper</span></code>: dict {parameter name: IndexedParameterMapping},</p>
+<blockquote>
+<div><p>identifying the IndexedParameterMapping used for a given
+named parameter.</p>
+</div></blockquote>
+<dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">consolidated_array</span></code>: array of shape (n,) values, giving access</dt><dd><p>to the values for the <em>n</em> named parameters</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">consolidated_index</span></code>: array of shape (n,) values, giving access</dt><dd><p>to the index values for the <em>n</em> named parameters in their
+respective IndexedParameterMapping</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">ids</span></code>: dict of format {named parameters: ids}, where <code class="docutils literal notranslate"><span class="pre">ids</span></code></dt><dd><p>are tuples of (presamples package path, presamples package name,
+name of parameter). <code class="docutils literal notranslate"><span class="pre">ids</span></code> only contains information about the
+<em>last</em> presamples package with data on the named parameter.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">replaced</span></code>: dict of format {named parameters: ids of presample</dt><dd><p>packages that were overwritten}</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><code class="docutils literal notranslate"><span class="pre">ConsolidatedIndexedParameterMapping</span></code> (CIPM) instance</p>
+</dd>
+</dl>
+<p class="rubric">Notes</p>
+<p>The ConsolidatedIndexedParameterMapping objects are typically instantiated
+via a PackagesDataLoader object.
+To directly instantiate a ConsolidatedIndexedParameterMapping object, the
+underlying IndexedParameterMapping (IPM) objects need to be created from
+the presample package information.</p>
+</dd></dl>
+
+</div>
 </div>
 
 

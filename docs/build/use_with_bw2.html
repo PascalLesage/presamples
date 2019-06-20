@@ -95,6 +95,7 @@
 </li>
 <li class="toctree-l1"><a class="reference internal" href="tech_ref.html">Technical reference</a></li>
 <li class="toctree-l1"><a class="reference internal" href="examples.html">Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="pubs.html">Publications</a></li>
 <li class="toctree-l1"><a class="reference internal" href="contributing.html">Contributing</a></li>
 <li class="toctree-l1"><a class="reference internal" href="contributing.html#authors">Authors</a></li>
 </ul>
@@ -165,6 +166,23 @@
 <span id="use-with-bw2"></span><h1>Using presamples with brightway2<a class="headerlink" href="#using-presamples-with-brightway2" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="introduction">
 <h2>Introduction<a class="headerlink" href="#introduction" title="Permalink to this headline">¶</a></h2>
+<p>The presamples package was initially developed for LCA models built using the
+<a class="reference external" href="https://brightwaylca.org/">Brightway2 framework</a>. It can efficiently replace values in the different matrices used in
+LCA. This can allow you to do many things, among others:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>Replace randomly sampled values with arrays of correlated values (e.g. to make sure fuel combustion emissions and</p></li>
+</ul>
+<p>fuel consumption are correlated);
+- Create and easily reuse sets of presample packages representing different scenarios;
+- Include arrays of measured in LCA calculations;
+- Use aggregated datasets in simplified tools and include their uncertainties by storing and using previously
+calculated arrays of aggregated LCI (or LCIA) results;
+- Create under-specified and very uncertain baseline models that can be easily updated with more specific data for
+the evaluation of scenarios.</p>
+</div></blockquote>
+<p>This section will provide an overview of the most common operations via simple examples. See the <a class="reference internal" href="examples.html#examples"><span class="std std-ref">Examples</span></a> section
+for more detailed use cases.</p>
 </div>
 <div class="section" id="passing-matrix-data-to-presample-creation">
 <h2>Passing matrix data to presample creation<a class="headerlink" href="#passing-matrix-data-to-presample-creation" title="Permalink to this headline">¶</a></h2>

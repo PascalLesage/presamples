@@ -94,12 +94,12 @@ class PresamplesPackage:
     @property
     def parameters(self):
         if not hasattr(self, "_parameters"):
-            self._parameters = ParametersMapping(self.path, self.resources, self.name, self.indexer)
+            self._parameters = ParametersMapping(self.path, self.resources, self.name)
         return self._parameters
 
 
 class ParametersMapping(Mapping):
-    def __init__(self, path, resources, package_name, sample_index=0):
+    def __init__(self, path, resources, package_name):
         name_lists = [
             json.load(open(path / obj['names']['filepath'])) for obj in resources
             if obj.get('names')

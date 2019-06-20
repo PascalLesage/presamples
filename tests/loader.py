@@ -102,11 +102,11 @@ def parameters_fixture_3():
 def test_init(package):
     mp = PackagesDataLoader([package])
     assert not mp.empty
-    assert len(mp.matrix_data) == 1
-    assert 'id' in mp.matrix_data[0]
-    assert 'name' in mp.matrix_data[0]
-    assert len(mp.matrix_data[0]['matrix-data']) == 1
-    resources = mp.matrix_data[0]['matrix-data'][0]
+    assert len(mp.matrix_data_loaded) == 1
+    assert 'id' in mp.matrix_data_loaded[0]
+    assert 'name' in mp.matrix_data_loaded[0]
+    assert len(mp.matrix_data_loaded[0]['matrix-data']) == 1
+    resources = mp.matrix_data_loaded[0]['matrix-data'][0]
     assert resources['type'] == 'mock'
     assert resources['matrix'] == 'matrix'
     for key in ('row from label', 'row to label', 'row dict',
@@ -228,45 +228,45 @@ def test_update_matrices_one_dimensional():
 def test_index_arrays(package):
     mp = PackagesDataLoader([package])
     lca = MockLCA()
-    assert 'indexed' not in mp.matrix_data[0]['matrix-data'][0]
+    assert 'indexed' not in mp.matrix_data_loaded[0]['matrix-data'][0]
     mp.index_arrays(lca)
     expected = [(1, 1, 2, 3), (1, 2, 2, 6), (2, 3, 4, 9)]
-    assert mp.matrix_data[0]['matrix-data'][0]['indices'].tolist() == expected
-    assert mp.matrix_data[0]['matrix-data'][0]['indexed']
+    assert mp.matrix_data_loaded[0]['matrix-data'][0]['indices'].tolist() == expected
+    assert mp.matrix_data_loaded[0]['matrix-data'][0]['indexed']
 
 def test_index_arrays_already_indexed(package):
     mp = PackagesDataLoader([package])
     lca = MockLCA()
-    assert 'indexed' not in mp.matrix_data[0]['matrix-data'][0]
+    assert 'indexed' not in mp.matrix_data_loaded[0]['matrix-data'][0]
     expected = [(1, 1, 1, 1), (1, 2, 1, 2), (2, 3, 2, 3)]
-    assert mp.matrix_data[0]['matrix-data'][0]['indices'].tolist() == expected
+    assert mp.matrix_data_loaded[0]['matrix-data'][0]['indices'].tolist() == expected
     mp.index_arrays(lca)
     expected = [(1, 1, 2, 3), (1, 2, 2, 6), (2, 3, 4, 9)]
-    assert mp.matrix_data[0]['matrix-data'][0]['indices'].tolist() == expected
-    assert mp.matrix_data[0]['matrix-data'][0]['indexed']
+    assert mp.matrix_data_loaded[0]['matrix-data'][0]['indices'].tolist() == expected
+    assert mp.matrix_data_loaded[0]['matrix-data'][0]['indexed']
     lca.row_dict = {x: 0 for x in range(5)}
     lca.col_dict = {x: 0 for x in range(5)}
     mp.index_arrays(lca)
-    assert mp.matrix_data[0]['matrix-data'][0]['indices'].tolist() == expected
+    assert mp.matrix_data_loaded[0]['matrix-data'][0]['indices'].tolist() == expected
 
 def test_index_arrays_missing_row_dict(package):
     mp = PackagesDataLoader([package])
     lca = MockLCA()
     del lca.row_dict
     expected = [(1, 1, 1, 1), (1, 2, 1, 2), (2, 3, 2, 3)]
-    assert mp.matrix_data[0]['matrix-data'][0]['indices'].tolist() == expected
+    assert mp.matrix_data_loaded[0]['matrix-data'][0]['indices'].tolist() == expected
     mp.index_arrays(lca)
 
 def test_start_with_indexer_advanced(package):
     mp = PackagesDataLoader([package])
-    assert mp.sample_indexers[0].index is not None
+    assert mp.package_indexers[0].index is not None
 
 def test_index_arrays_missing_col_dict(package):
     mp = PackagesDataLoader([package])
     lca = MockLCA()
     del lca.col_dict
     expected = [(1, 1, 1, 1), (1, 2, 1, 2), (2, 3, 2, 3)]
-    assert mp.matrix_data[0]['matrix-data'][0]['indices'].tolist() == expected
+    assert mp.matrix_data_loaded[0]['matrix-data'][0]['indices'].tolist() == expected
     mp.index_arrays(lca)
 
 def test_functionality_with_empty(tempdir):
@@ -344,19 +344,19 @@ def test_seed_functions():
         [(a, b, 'mock', dtype, frmt, metadata)],
     )
     mp = PackagesDataLoader([dirpath], 987654321)
-    sampler = mp.matrix_data[0]['matrix-data'][0]['samples']
-    indexer = mp.sample_indexers[0]
+    sampler = mp.matrix_data_loaded[0]['matrix-data'][0]['samples']
+    indexer = mp.package_indexers[0]
     assert indexer.index is not None
     first = [sampler.sample(next(indexer)).sum() for _ in range(100)]
     mp = PackagesDataLoader([dirpath], 987654321)
-    sampler = mp.matrix_data[0]['matrix-data'][0]['samples']
-    indexer = mp.sample_indexers[0]
+    sampler = mp.matrix_data_loaded[0]['matrix-data'][0]['samples']
+    indexer = mp.package_indexers[0]
     second = [sampler.sample(next(indexer)).sum() for _ in range(100)]
     assert first == second
 
     mp = PackagesDataLoader([dirpath], 12345)
-    sampler = mp.matrix_data[0]['matrix-data'][0]['samples']
-    indexer = mp.sample_indexers[0]
+    sampler = mp.matrix_data_loaded[0]['matrix-data'][0]['samples']
+    indexer = mp.package_indexers[0]
     third = [sampler.sample(next(indexer)).sum() for _ in range(100)]
     assert first != third
 
@@ -565,7 +565,7 @@ def test_consolidate_multiple_groups(mock_ipa, tempdir):
         (10, 11, 10, 11),
         (12, 13, 12, 13)
     ])
-    for x, y in zip(mp.matrix_data[0]['matrix-data'][0]['indices'], expected):
+    for x, y in zip(mp.matrix_data_loaded[0]['matrix-data'][0]['indices'], expected):
         assert np.allclose(list(x), y)
 
     expected = np.array([
@@ -574,15 +574,15 @@ def test_consolidate_multiple_groups(mock_ipa, tempdir):
         (22, 23, 22, 23),
         (30, 31, 30, 31),
     ])
-    for x, y in zip(mp.matrix_data[1]['matrix-data'][0]['indices'], expected):
+    for x, y in zip(mp.matrix_data_loaded[1]['matrix-data'][0]['indices'], expected):
         assert np.allclose(list(x), y)
 
-    assert mp.matrix_data[0]['matrix-data'][0]['samples'].two is None
-    assert '0.samples.npy' in str(mp.matrix_data[0]['matrix-data'][0]['samples'].one[0])
-    assert '1.samples.npy' in str(mp.matrix_data[0]['matrix-data'][0]['samples'].one[1])
-    assert mp.matrix_data[1]['matrix-data'][0]['samples'].two is None
-    assert '0.samples.npy' in str(mp.matrix_data[1]['matrix-data'][0]['samples'].one[0])
-    assert '1.samples.npy' in str(mp.matrix_data[1]['matrix-data'][0]['samples'].one[1])
+    assert mp.matrix_data_loaded[0]['matrix-data'][0]['samples'].two is None
+    assert '0.samples.npy' in str(mp.matrix_data_loaded[0]['matrix-data'][0]['samples'].one[0])
+    assert '1.samples.npy' in str(mp.matrix_data_loaded[0]['matrix-data'][0]['samples'].one[1])
+    assert mp.matrix_data_loaded[1]['matrix-data'][0]['samples'].two is None
+    assert '0.samples.npy' in str(mp.matrix_data_loaded[1]['matrix-data'][0]['samples'].one[0])
+    assert '1.samples.npy' in str(mp.matrix_data_loaded[1]['matrix-data'][0]['samples'].one[1])
 
 def test_accepts_campaign_as_input(package, parameters_fixture):
     pr1 = PresampleResource.create(name='one', path=package)
@@ -592,42 +592,47 @@ def test_accepts_campaign_as_input(package, parameters_fixture):
     c.add_presample_resource(pr2)
     mp = PackagesDataLoader(c)
     assert len(mp) == 2
-    assert len(mp.parameters) == 1
-    assert len(mp.matrix_data) == 1
+    assert len(mp.parameter_data_loaded) == 1
+    assert len(mp.matrix_data_loaded) == 1
 
 def test_parameters_package(package, parameters_fixture):
     mp = PackagesDataLoader([package, parameters_fixture])
     assert len(mp) == 2
-    assert len(mp.parameters) == 1
-    assert len(mp.matrix_data) == 1
+    assert len(mp.parameter_data_loaded) == 1
+    assert len(mp.matrix_data_loaded) == 1
     assert "PackagesDataLoader with 2 packages" in str(mp)
+    assert mp.parameters['E'] in range(4)
 
-    assert mp.parameters[0]['E'] in range(4)
-
-def test_update_sample_indices():
+def test_update_package_indices():
     class MockLoader(PackagesDataLoader):
         def __init__(self):
-            self.sample_indexers = [Indexer(12345)]
+            self.package_indexers = [Indexer(12345)]
 
     ml = MockLoader()
-    assert len(ml.sample_indexers) == 1
-    assert ml.sample_indexers[0].index is None
+    assert len(ml.package_indexers) == 1
+    assert ml.package_indexers[0].index is None
 
-    ml.update_sample_indices()
-    first = ml.sample_indexers[0].index
-    ml.update_sample_indices()
-    assert ml.sample_indexers[0].index != first
+    ml.update_package_indices()
+    first = ml.package_indexers[0].index
+    ml.update_package_indices()
+    assert ml.package_indexers[0].index != first
+
+def test_no_parameters_in_matrix_data(package, parameters_fixture):
+    mp = PackagesDataLoader([package, parameters_fixture])
+    assert mp.matrix_data_loaded[0].get('parameter-metadata', None) is None
+    assert mp.parameter_data_loaded[0].get('matrix-data', None) is None
 
 def test_consolidated_indexed_parameter_arrays(parameters_fixture, parameters_fixture_2, parameters_fixture_3):
     mp_1 = PackagesDataLoader([parameters_fixture])
-    assert len(mp_1.parameters) == 1 #Only one IPM
+    assert len(mp_1.parameter_data_loaded) == 1
+    assert len(mp_1.parameters) == 7
     assert mp_1.parameters.names == list("ABCDEFG")
     # Consolidated array depends on index, but is sure to be one of following:
     first_col_arr = np.array([0, 4, 8, 12, 0, 4, 8], dtype=np.float)
     possible_consolidated_arrays = [first_col_arr+scalar for scalar in range(0, 4)]
     assert any([np.array_equal(mp_1.parameters.consolidated_array, arr) for arr in possible_consolidated_arrays])
     # Values still possible after updating index
-    mp_1.update_sample_indices()
+    mp_1.update_package_indices()
     assert any([np.array_equal(mp_1.parameters.consolidated_array, arr) for arr in possible_consolidated_arrays])
     # All parameter values taken from imp at index 0
     assert all([mp_1.parameters.ipm_mapper[n] == 0 for n in mp_1.parameters.names])
@@ -636,7 +641,8 @@ def test_consolidated_indexed_parameter_arrays(parameters_fixture, parameters_fi
     assert all([Path(p) == Path(parameters_fixture) for p in all_ids_paths]), "Got {}, expected {}".format(all_ids_paths, parameters_fixture)
 
     mp_2 = PackagesDataLoader([parameters_fixture, parameters_fixture_2])
-    assert len(mp_2.parameters) == 2
+    assert len(mp_2.parameter_data_loaded) == 2
+    assert len(mp_2.parameters) == 7
     assert mp_2.parameters.names == list("ABCDEFG")
     # Consolidated array depends on index, but is sure to be one of following:
     not_replaced_first_col = np.array([8, 12, 4, 8], dtype=np.float)
@@ -648,7 +654,7 @@ def test_consolidated_indexed_parameter_arrays(parameters_fixture, parameters_fi
     # Replaced named parameters have new values
     assert np.array_equal(mp_2.parameters.consolidated_array[replaced_indices], np.array([100, 200, 42]))
     # Value tests still correct after updating index
-    mp_2.update_sample_indices()
+    mp_2.update_package_indices()
     assert any([np.array_equal(mp_2.parameters.consolidated_array[not_replaced_indices], arr) for arr in possible_not_replaced_sample])
     assert np.array_equal(mp_2.parameters.consolidated_array[replaced_indices], np.array([100, 200, 42]))
 
@@ -691,7 +697,8 @@ def test_consolidated_indexed_parameter_arrays(parameters_fixture, parameters_fi
     )
 
     mp_3 = PackagesDataLoader([parameters_fixture, parameters_fixture_2, parameters_fixture_3])
-    assert len(mp_3.parameters) == 3
+    assert len(mp_3.parameter_data_loaded) == 3
+    assert len(mp_3.parameters) == 7
     assert mp_2.parameters.names == list("ABCDEFG")
     # Consolidated array depends on index, but is sure to be one of following:
     not_replaced_first_col = np.array([12, 4, 8], dtype=np.float)
@@ -706,7 +713,7 @@ def test_consolidated_indexed_parameter_arrays(parameters_fixture, parameters_fi
     # Replaced named parameters have new values
     assert np.array_equal(mp_3.parameters.consolidated_array[replaced_indices], np.array([100, 200, 300, 123]))
     # Value tests still correct after updating index
-    mp_3.update_sample_indices()
+    mp_3.update_package_indices()
     assert any([np.array_equal(mp_3.parameters.consolidated_array[not_replaced_indices], arr) for arr in
                 possible_not_replaced_sample])
     assert np.array_equal(mp_3.parameters.consolidated_array[replaced_indices], np.array([100, 200, 300, 123]))

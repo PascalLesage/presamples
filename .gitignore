@@ -2,6 +2,7 @@ syntax:glob
 dist
 docs/docs_planning
 docs/doc_structure_notes_delete
+build
 *.pyc
 *~
 MANIFEST

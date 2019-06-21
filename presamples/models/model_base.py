@@ -10,7 +10,7 @@ class ModelBase:
 
     If a subclass will create matrix presamples, then the following must be create or defined:
 
-        * ``selff.matrix_array``: Numpy array of pre-calculated samples
+        * ``self.matrix_array``: Numpy array of pre-calculated samples
         * ``self.indices``: Indices in the correct data type for the matrices to be populated.
 
     If a subclass will create parameter presamples, then the following must be create or defined:

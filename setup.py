@@ -14,6 +14,13 @@ for dirpath, dirnames, filenames in os.walk('presamples'):
             pkg = pkg.replace(os.path.altsep, '.')
         packages.append(pkg)
 
+f = open('README.md')
+readme = f.read()
+f.close()
+
+f = open('LICENSE')
+license_text = f.read()
+f.close()
 
 def package_files(directory):
     paths = []
@@ -25,11 +32,10 @@ def package_files(directory):
 
 setup(
     name='presamples',
-    version="0.2.3",
+    version="0.2.5",
     packages=packages,
     author="Pascal Lesage",
     author_email="pascal.lesage@polymtl.ca",
-    license=open('LICENSE').read(),
     install_requires=[
         'bw2calc',
         'bw2data',
@@ -39,9 +45,10 @@ setup(
         'stats_arrays',
         'wrapt',
     ],
-    url="https://brightwaylca.org/",
-    long_description=open('README.rst').read(),
-    description='Creation and use of presampled values in Monte Carlo for Brightway LCA framework',
+    url="https://github.com/PascalLesage/presamples",
+    long_description=readme,
+    long_description_content_type="text/markdown",
+    description='Package to write, load, manage and verify numerical arrays, called presamples.',
     classifiers=[
         'Intended Audience :: End Users/Desktop',
         'Intended Audience :: Developers',

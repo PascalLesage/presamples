@@ -1,3 +1,11 @@
+# 0.2.5 (2019-06-21)
+
+Like 0.2.4, but rereleased due to readme issues
+
+# 0.2.4 (2019-06-21)
+
+Change `DataPackageLoader.parameters` to `ConsolidatedIndexedParameterMapping`
+
 # 0.2.3 (2018-11-13)
 
 Update for API changes in `bw2parameters`.

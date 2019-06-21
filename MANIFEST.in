@@ -1,5 +1,6 @@
 recursive-include *.py
 include pytest.ini
 include LICENSE
+include *.png
 include *.md
 include *.txt

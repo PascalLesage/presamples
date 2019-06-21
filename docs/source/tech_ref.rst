@@ -192,23 +192,58 @@ Matrices
         "matrix": str, e.g. "biosphere_matrix"
     }
 
-The last elements ("row from label", "row to label", etc.) are used by the ``presamples.loader.PackagesDataLoader.index_arrays``
+The last elements ("row from label", "row to label", etc.) are used by the :meth:`presamples.loader.PackagesDataLoader.index_arrays`
 method to map the resource elements to the LCA matrices.
 
 .. _loader:
 
 Loading multiple presample packages
------------------------------------
+-------------------------------------
 
 Loading multiple presample packages for use in models requiring one value at a time is done using the
 ``PackagesDataLoader`` class.
 
 .. autoclass:: presamples.loader.PackagesDataLoader
 
+When creating a ``PackagesDataLoader`` instance, parameter and matrix data automatically loaded by invoking the method
+``load_data`` to each path in ``dirpaths``:
+
 .. automethod:: presamples.loader.PackagesDataLoader.load_data
+
+Loaded data can then be parsed for accessing *consolidated* parameters or for injecting data in LCA matrices.
+
+.. _loader_param:
+
+Using named parameters in ``PackagesDataLoader``
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+With ``load_data``, all presample packages are loaded. However, to ensure that only the **last** presample package with
+data on a specific named parameter is used, parameters are *consolidated*. The consolidated parameters are available
+via the ``parameters`` property. ``parameters`` points to a ``ConsolidatedIndexedParameterMapping`` object.
+
+.. autoclass:: presamples.loader.ConsolidatedIndexedParameterMapping
+   :members:
+
+
+
+.. _loader_lca:
+
+Using ``PackagesDataLoader`` with LCA
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Brightway ``LCA`` (and ``MonteCarloLCA``) objects can seamlessly integrate presample packages.
+
+.. code-block:: python
+
+   >>> from brightway2 import LCA
+   >>> lca = LCA(demand={product:1}, presamples=[pp_path1, pp_path2, pp_path3])
+
+This instantiates a ``PackagesDataLoader`` as described above.
+
+It then indexes arrays:
 
 .. automethod:: presamples.loader.PackagesDataLoader.index_arrays
 
+Finally, data from the correct columns in the presamples arrays are inserted in the LCA matrices:
+
 .. automethod:: presamples.loader.PackagesDataLoader.update_matrices
 
-.. autoproperty:: presamples.loader.PackagesDataLoader.parameters

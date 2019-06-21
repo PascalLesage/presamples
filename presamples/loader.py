@@ -62,10 +62,16 @@ class PackagesDataLoader:
 
     Warning
     -------
-    Note that we currently assume that all index values will be present in
-    the built matrix. Silent errors or losses in efficiency could happen if
-    this assumption does not hold!
+    The order of the passed presample package dirpaths is key! Every matrix
+    element or named parameter that is repeated in multiple presample
+    packages will take the value of the *last* presample package that is passed.
+    All former values will not be used.
 
+    Warning
+    -------
+    Note that we currently assume that all index values in matrix data will be
+    present in the built matrices of the LCA instance. Silent errors or losses
+    in efficiency could happen if this assumption does not hold.
     """
     def __init__(self, dirpaths, seed=None, lca=None):
         """Load parameter and matrix data from list presamples package paths"""
@@ -311,43 +317,40 @@ class ConsolidatedIndexedParameterMapping(Mapping):
     This allows named parameters to be overwritten by successive presample
     packages.
 
-    Typically used directly by the ``PackagesDataLoader``
+    Typically called directly from a :class:`PackagesDataLoader` instance.
 
     Parameters
     ----------
-    list_IPM : iterable of IndexedParameterMapping objects
-    The IndexedParameterMapping (IPM) objects are typically created by a
-    ``PackagesDataLoader`` instance. The order of the IPMs is crucial, as named
-    parameters in later IPMs overwrites data from earlier IMPs.
+    list_IPM : list
+        List of IndexedParameterMapping objects. The IndexedParameterMapping
+        (IPM) objects are typically created by a ``PackagesDataLoader`` instance.
 
-    Returns
-    -------
-    ``ConsolidatedIndexedParameterMapping`` (CIPM) instance
-        The CIPM instance can be used to access the following properties:
-             ``names``: names of all *n* named parameters
-             ``ipm_mapper``: dict {parameter name: IndexedParameterMapping},
-                identifying the IndexedParameterMapping used for a given
-                named parameter.
-             ``consolidated_array``: array of shape (n,) values, giving access
-                to the values for the *n* named parameters
-             ``consolidated_index``: array of shape (n,) values, giving access
-                to the index values for the *n* named parameters in their
-                respective IndexedParameterMapping
-             ``ids``: dict of format {named parameters: ids}, where ``ids``
-                are tuples of (presamples package path, presamples package name,
-                name of parameter). ``ids`` only contains information about the
-                *last* presamples package with data on the named parameter.
-             ``replaced``: dict of format {named parameters: ids of presample
-                packages that were overwritten}
+    Important
+    ---------
+        The order of the IPMs is crucial, as named parameters in later
+        IPMs overwrites data from earlier IMPs.
 
     Notes
     -----
-    The ConsolidatedIndexedParameterMapping objects are typically instantiated
-    via a PackagesDataLoader object.
-    To directly instantiate a ConsolidatedIndexedParameterMapping object, the
-    underlying IndexedParameterMapping (IPM) objects need to be created from
-    the presample package information.
+    The CIPM instance can be used to access the following properties:
+
+    - ``names``: names of all *n* named parameters
+    - ``ipm_mapper``: dict {parameter name: IndexedParameterMapping},
+      identifying the IndexedParameterMapping used for a given
+      named parameter.
+    - ``consolidated_array``: array of shape (n,) values, giving access
+      to the values for the *n* named parameters
+    - ``consolidated_index``: array of shape (n,) values, giving access
+      to the index values for the *n* named parameters in their
+      respective IndexedParameterMapping
+    - ``ids``: dict of format {named parameters: ids}, where ``ids``
+      are tuples of (presamples package path, presamples package name,
+      name of parameter). ``ids`` only contains information about the
+      *last* presamples package with data on the named parameter.
+    - ``replaced``: dict of format {named parameters: ids of presample
+      packages that were overwritten}
     """
+
     def __init__(self, list_IPM):
         """Init a ConsolidatedIndexedParameterMapping from a list of IndexedParameterMapping"""
         self.ipms = list_IPM

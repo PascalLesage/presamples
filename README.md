@@ -1,4 +1,4 @@
-# presamples ![presamples](https://github.com/PascalLesage/presamples/blob/master/docs/build/_images/presamples_logo.png)
+# presamples ![presamples](https://github.com/PascalLesage/presamples/blob/master/docs/source/presamples_logo.png)
 
 
  Package to write, load, manage and verify numerical arrays, called `presamples`.

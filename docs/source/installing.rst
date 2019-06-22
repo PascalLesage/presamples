@@ -6,7 +6,7 @@ Installing
 Installing with pip
 ----------------------------------
 
-The presamples package is hosted `on Pypi<https://pypi.org/project/presamples/>`_ and can be installed using pip:
+The presamples package is hosted `on Pypi <https://pypi.org/project/presamples/>`_ and can be installed using pip:
 
 .. code-block:: console
 
@@ -24,7 +24,7 @@ The presamples package is hosted on a conda channel and can be installed using c
 Install from github
 -----------------------------------
 
-The latest version of the presamples package is hosted on `github<https://github.com/PascalLesage/presamples/>`_ and can be installed
+The latest version of the presamples package is hosted on `github <https://github.com/PascalLesage/presamples/>`_ and can be installed
 using pip:
 
 

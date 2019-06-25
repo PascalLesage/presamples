@@ -10,6 +10,8 @@
  
  Presamples are useful anytime values for named parameters or matrix elements need to be saved and reused.
  
+ **Installation**: Via `pip` or `conda` (`conda install --channel pascallesage presamples`).
+ 
  **Documentation**: We are in the process of writing better documentation.  
  - To read our documentation "under construction", go to our [readthedocs](https://presamples.readthedocs.io/en/latest/?badge=latest) page. 
  - If you can't find what you are looking for, you can also try the Jupyter Notebook [here](https://github.com/PascalLesage/presamples/blob/master/docs/presamples%20docs%20and%20examples.ipynb)

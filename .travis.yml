@@ -14,7 +14,7 @@ before_install:
   - source activate test-environment
   - conda install -q -c conda-forge -c cmutel -c haasad bw2data bw2calc pytest pytest-cov numpy scipy stats_arrays peewee wrapt eight future=0.16.0
   - echo $(python --version)
-install: "pip install -e ."
+install: "python setup.py develop"
 script:
   - pwd; pytest --cov=presamples
 after_success:

@@ -576,23 +576,6 @@ def collapse_matrix_indices(samples, indices, kind):
     # Create new indices and arrays for unique indices rows
     # Note that rows in sample associated with repeated indices will need to be replaced
     new_indices = copy.deepcopy(indices[unique_indices])
-    """
-    print("&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&")
-    print(new_indices.dtype, indices.dtype)
-    print(new_indices.shape, indices.shape)
-    print(indices)
-    print(new_indices)
-    print(indices[0].dtype)
-    print(indices[0]['row'])
-    print(indices[0]['input'])
-    print(indices[0]['type'])
-    print(new_indices[0].dtype)
-    print(new_indices[0]['row'])
-    print(new_indices[0]['input'])
-    print(new_indices[0]['type'])
-    print("&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&")
-    1/0
-    """
     new_samples = copy.deepcopy(samples[unique_indices, :])
     # For all indices that are not unique in the original indices array, get sum
     # of sample and insert it in the new_samples array
@@ -627,9 +610,5 @@ def collapse_matrix_indices(samples, indices, kind):
                 new_indices[repeated_index]['type'] = 0
         # Then, add samples for repeated indices and place in correct location
         # in samples array
-        print("%%%%%%%%%%%%%%%%%%%%")
-        print(new_samples.shape)
         new_samples[repeated_index, :] = np.sum(to_sum, axis=0)
-        print("%%%%%%%%%%%%%%%%%%%%")
-        print(new_samples.shape)
     return new_samples, new_indices

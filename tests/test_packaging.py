@@ -217,6 +217,127 @@ def test_basic_packaging():
     create_presamples_package(parameter_data=[(s1, n1, '1'), (s2, n2, '2')])
 
 @bw2test
+def test_packaging_repeated_indices():
+    mapping.add('ABCDEF')
+    t1 = [
+        ('A', 'A', 1),
+        ('A', 'A', 0),
+        ('A', 'B', 1),
+        ('A', 'B', 1),
+        ('A', 'C', 1),
+        ('B', 'B', 0),
+        ('B', 'C', 1),
+    ]
+    t2 = np.arange(28, dtype=np.int64).reshape((7, 4))
+    b1 = [('A', 'D'), ('A', 'D'), ('B', 'E')]
+    b2 = np.arange(12, dtype=np.int64).reshape((3, 4))
+    inputs = [
+        (t2, t1, 'technosphere'),
+        (b2, b1, 'biosphere'),
+    ]
+    id_, dirpath = create_presamples_package(
+        inputs, name='foo', id_='bar', seed=42
+    )
+    assert id_ == 'bar'
+    dirpath = Path(dirpath)
+    expected = sorted([
+        'bar.0.indices.npy', 'bar.0.samples.npy',
+        'bar.1.indices.npy', 'bar.1.samples.npy',
+        'datapackage.json'
+    ])
+    assert sorted(os.listdir(dirpath)) == expected
+    expected = sorted([
+        (1, 1, MAX_SIGNED_32BIT_INT, MAX_SIGNED_32BIT_INT, 0),
+        (1, 2, MAX_SIGNED_32BIT_INT, MAX_SIGNED_32BIT_INT, 1),
+        (1, 3, MAX_SIGNED_32BIT_INT, MAX_SIGNED_32BIT_INT, 1),
+        (2, 2, MAX_SIGNED_32BIT_INT, MAX_SIGNED_32BIT_INT, 0),
+        (2, 3, MAX_SIGNED_32BIT_INT, MAX_SIGNED_32BIT_INT, 1),
+    ])
+    assert np.load(dirpath / 'bar.0.indices.npy').tolist() == expected
+    expected = np.array(
+        [
+            [4, 4, 4, 4],
+            [20, 22, 24, 26],
+            [16, 17, 18, 19],
+            [20, 21, 22, 23],
+            [24, 25, 26, 27]
+        ], dtype=np.int64)
+
+    assert np.allclose(np.load(dirpath / 'bar.0.samples.npy'), expected)
+    expected = ([
+        (1, 4, MAX_SIGNED_32BIT_INT, MAX_SIGNED_32BIT_INT),
+        (2, 5, MAX_SIGNED_32BIT_INT, MAX_SIGNED_32BIT_INT),
+    ])
+    assert np.load(dirpath / 'bar.1.indices.npy').tolist() == expected
+    expected = np.array(
+        [
+            [4, 6, 8, 10],
+            [8, 9, 10, 11],
+        ], dtype=np.int64)
+    assert np.allclose(np.load(dirpath / 'bar.1.samples.npy'), expected)
+    expected = {
+        'id': 'bar',
+        'name': 'foo',
+        'profile': 'data-package',
+        'seed': 42,
+        'ncols': 4,
+        'resources': [{
+            'profile': 'data-resource',
+            'samples': {
+                'dtype': 'int64',
+                'filepath': 'bar.0.samples.npy',
+                'md5': None,
+                'shape': [5, 4],
+                'format': 'npy',
+                'mediatype': 'application/octet-stream',
+            },
+            'indices': {
+                'filepath': 'bar.0.indices.npy',
+                'md5': None,
+                'format': 'npy',
+                'mediatype': 'application/octet-stream',
+            },
+            'index': 0,
+            'matrix': 'technosphere_matrix',
+            'row dict': '_product_dict',
+            'row from label': 'input',
+            'row to label': 'row',
+            'col dict': '_activity_dict',
+            'col from label': 'output',
+            'col to label': 'col',
+            'type': 'technosphere'
+        }, {
+            'profile': 'data-resource',
+            'samples': {
+                'dtype': 'int64',
+                'filepath': 'bar.1.samples.npy',
+                'md5': None,
+                'shape': [2, 4],
+                'format': 'npy',
+                'mediatype': 'application/octet-stream',
+            },
+            'indices': {
+                'filepath': 'bar.1.indices.npy',
+                'md5': None,
+                'format': 'npy',
+                'mediatype': 'application/octet-stream',
+            },
+            'index': 1,
+            'matrix': 'biosphere_matrix',
+            'row dict': '_biosphere_dict',
+            'row from label': 'input',
+            'row to label': 'row',
+            'col dict': '_activity_dict',
+            'col from label': 'output',
+            'col to label': 'col',
+            'type': 'biosphere'
+        }
+    ]}
+    given = json.load(open(dirpath / 'datapackage.json'))
+    update_hashes_from_given(given, expected)
+    assert given == expected
+
+@bw2test
 def test_basic_packaging_custom_directory():
     mapping.add('ABCDEF')
     t1 = [('A', 'A', 0), ('A', 'B', 1), ('B', 'C', 3)]

@@ -5,6 +5,7 @@ import numpy as np
 import os
 import shutil
 import uuid
+import copy
 
 from .errors import InconsistentSampleNumber, ShapeMismatch, NameConflicts
 from .utils import validate_presamples_dirpath, md5
@@ -320,6 +321,7 @@ def create_presamples_package(matrix_data=None, parameter_data=None, name=None,
                 "{} and {}".format(samples.shape[1], num_iterations))
 
         indices, metadata = format_matrix_data(indices, kind, *other)
+        samples, indices = collapse_matrix_indices(samples, indices, kind)
 
         if samples.shape[0] != indices.shape[0]:
             error = "Shape mismatch between samples and indices: {}, {}, {}"
@@ -539,3 +541,94 @@ def write_parameter_data(samples, names, label, dirpath, index, id_):
         "label": label,
         'index': index,
     }
+
+def collapse_matrix_indices(samples, indices, kind):
+    """Collapse samples and indices for rows referring to same matrix cell
+
+    Samples that refer to the same matrix element will have the same input and
+    output in the indices array.
+    A new indices array and corresponding samples array are generated, if needed,
+    with only unique pointers to matrix cells.
+    If all the rows containing data for the same cell are of the same type, they
+    can be simply summed.
+    If they are of mixed types, then there are two situations:
+        Technosphere and Production (losses): consolidated samples have production
+            type, and technosphere amount samples are subtracted from production
+            amount samples
+        Other mix: Unexpected, will throw ValueError
+    """
+    # Smaller array with just input and output fields, to identify repeated elements
+    io_cols = indices[['input', 'output']]
+    # Get data required to deal with repeated indices
+    # * Unique = unique (input, output) tuples
+    # * unique_indices = indices of the first occurrences of the unique values in
+    #       the original array, which will be used to create the new indices
+    # * inverse = indices to reconstruct the original array from the unique array,
+    #       which is used to identify rows in the samples array to sum
+    # * count = number of times each of the unique values comes up in the original
+    #       array, used to identify repeated indices
+    unique, unique_indices, inverse, count = np.unique(
+        io_cols, return_index=True, return_inverse=True, return_counts=True
+    )
+    if len(unique) == samples.shape[0]: # No repeated indices, nothing to do
+        return samples, indices
+    # Create new indices and arrays for unique indices rows
+    # Note that rows in sample associated with repeated indices will need to be replaced
+    new_indices = copy.deepcopy(indices[unique_indices])
+    """
+    print("&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&")
+    print(new_indices.dtype, indices.dtype)
+    print(new_indices.shape, indices.shape)
+    print(indices)
+    print(new_indices)
+    print(indices[0].dtype)
+    print(indices[0]['row'])
+    print(indices[0]['input'])
+    print(indices[0]['type'])
+    print(new_indices[0].dtype)
+    print(new_indices[0]['row'])
+    print(new_indices[0]['input'])
+    print(new_indices[0]['type'])
+    print("&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&")
+    1/0
+    """
+    new_samples = copy.deepcopy(samples[unique_indices, :])
+    # For all indices that are not unique in the original indices array, get sum
+    # of sample and insert it in the new_samples array
+    for repeated_index in np.argwhere(count>1):
+        assert len(repeated_index)==1
+        repeated_index = repeated_index[0]
+        r_indices_in_original_data = np.argwhere(inverse == repeated_index).ravel()
+        to_sum = samples[r_indices_in_original_data]
+        # If the matrix kind is technosphere, we cannot simply sum because
+        # we might be in the presence of a case where there are both production
+        # (type==0) and technosphere (type==1) exchanges.
+        # If this is the case, we will subtract the technosphere
+        # exchange amount samples from the production exchange amount samples,
+        # and store the data with production type
+        if kind == 'technosphere':
+            types = indices[r_indices_in_original_data]['type']
+            unique_types = np.unique(types)
+            # If all the same type, we can simply add, so pass for now
+            if len(unique_types) == 1:
+                pass
+            # If not all the same type, but types not production and technosphere,
+            # then we are in an unanticipated situation. Throw a ValueError.
+            elif list(unique_types) != [0, 1]:
+                raise ValueError("Repeated index {} has types {}, which has us baffled".format(
+                    repeated_index, list(unique_types)
+                ))
+            # Else, technosphere and production exchanges in presamples.
+            # Keep production and subtract technosphere
+            else:
+                sign_mod = np.array([1 if t == 0 else -1 for t in types]).reshape(-1, 1)
+                to_sum = to_sum * sign_mod
+                new_indices[repeated_index]['type'] = 0
+        # Then, add samples for repeated indices and place in correct location
+        # in samples array
+        print("%%%%%%%%%%%%%%%%%%%%")
+        print(new_samples.shape)
+        new_samples[repeated_index, :] = np.sum(to_sum, axis=0)
+        print("%%%%%%%%%%%%%%%%%%%%")
+        print(new_samples.shape)
+    return new_samples, new_indices

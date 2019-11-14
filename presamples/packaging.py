@@ -321,7 +321,8 @@ def create_presamples_package(matrix_data=None, parameter_data=None, name=None,
                 "{} and {}".format(samples.shape[1], num_iterations))
 
         indices, metadata = format_matrix_data(indices, kind, *other)
-        samples, indices = collapse_matrix_indices(samples, indices, kind)
+        if kind in ['technosphere', 'biosphere']:
+            samples, indices = collapse_matrix_indices(samples, indices, kind)
 
         if samples.shape[0] != indices.shape[0]:
             error = "Shape mismatch between samples and indices: {}, {}, {}"

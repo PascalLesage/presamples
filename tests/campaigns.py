@@ -89,6 +89,14 @@ def test_campaign_modified_autopopulate_autoupdate():
     assert dt < c.modified
 
 @bw2test
+def test_campaign_ancestors_no_error():
+    c1 = Campaign.create(name='a')
+    c2 = Campaign.create(name='b', parent=c1)
+
+    assert [_ for _ in c1.ancestors] == []
+    assert list(c1.ancestors) == []
+
+@bw2test
 def test_campaign_lineage():
     c1 = Campaign.create(name='a')
     c2 = Campaign.create(name='b', parent=c1)

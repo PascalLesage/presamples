@@ -557,6 +557,7 @@ def collapse_matrix_indices(samples, indices, kind):
             type, and technosphere amount samples are subtracted from production
             amount samples
         Other mix: Unexpected, will throw ValueError
+    Todo: substitution should also be taken care of
     """
     # Smaller array with just input and output fields, to identify repeated elements
     io_cols = indices[['input', 'output']]

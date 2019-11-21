@@ -264,7 +264,7 @@ class Campaign(ModelBase):
         # Recursive queries not supported in peewee
         # Note that quoting is SQLite specific (Postgres uses %s)
         if not self.parent_id:
-            raise StopIteration
+            return
         for obj_id in Campaign.raw('''
             WITH RECURSIVE ancestors (level, id) AS (
                 VALUES(0, ?)

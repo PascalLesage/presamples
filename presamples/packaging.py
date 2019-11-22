@@ -334,8 +334,8 @@ def create_presamples_package(matrix_data=None, parameter_data=None, name=None,
                 if len(unique) != samples.shape[0]:
                     warnings.warn(UserWarning('Multiple samples in a given array were supplied '
                                   'for the same {} matrix cell, but collapse_repeated_indices '
-                                  'was set to False. Only the last sample values '
-                                  'will be considered.'.format(kind)))
+                                  'was set to False. All samples will be stored, but only '
+                                  'the last sample values will be used.'.format(kind)))
 
         if samples.shape[0] != indices.shape[0]:
             error = "Shape mismatch between samples and indices: {}, {}, {}"
@@ -448,8 +448,8 @@ def append_presamples_package(dirpath, matrix_data=None, parameter_data=None, co
                 if len(unique) != samples.shape[0]:
                     warnings.warn(UserWarning('Multiple samples in a given array were supplied '
                                   'for the same {} matrix cell, but collapse_repeated_indices '
-                                  'was set to False. Only the last sample values '
-                                  'will be considered.'.format(kind)))
+                                  'was set to False. All samples will be stored, but only '
+                                  'the last sample values will be used.'.format(kind)))
 
 
         if samples.shape[0] != indices.shape[0]:

@@ -212,9 +212,10 @@ def test_update_matrices_technosphere_no_consolidation():
         ('C', 'D', 1)
         ]
     t2 = np.arange(5).reshape((5, 1)) + 10
-    expected_warning = 'Multiple samples in a given array were supplied for the' \
-                       ' same technosphere matrix cell, but collapse_repeated_indices' \
-                       ' was set to False. Only the last sample values will be considered.'
+
+    expected_warning = 'Multiple samples in a given array were supplied for the same technosphere ' \
+                       'matrix cell, but collapse_repeated_indices was set to False.' \
+                       ' All samples will be stored, but only the last sample values will be used.'
     with pytest.warns(UserWarning, match=expected_warning):
         _, dirpath = create_presamples_package([(t2, t1, 'technosphere')],
                                               collapse_repeated_indices=False)

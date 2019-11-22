@@ -194,9 +194,51 @@ def test_update_matrices_technosphere():
     assert lca.technosphere_matrix[0, 0] == 10
     assert lca.technosphere_matrix[0, 1] == -11
     assert lca.technosphere_matrix[1, 2] == 12
+    assert lca.technosphere_matrix[2, 3] == -27
+    assert lca.technosphere_matrix.sum() == 10 - 11 + 12 - 27
+    
+
+def test_update_matrices_technosphere_no_consolidation():
+    mapping.add('ABCDEF')
+    for x, y in enumerate('ABCDEF'):
+        assert mapping[y] == x + 1
+
+    # 0 is production, 3 is substitution
+    t1 = [
+        ('A', 'A', 0),
+        ('A', 'B', 1),
+        ('B', 'C', 3),
+        ('C', 'D', 1),
+        ('C', 'D', 1)
+        ]
+    t2 = np.arange(5).reshape((5, 1)) + 10
+    expected_warning = 'Multiple samples in a given array were supplied for the' \
+                       ' same technosphere matrix cell, but collapse_repeated_indices' \
+                       ' was set to False. Only the last sample values will be considered.'
+    with pytest.warns(UserWarning, match=expected_warning):
+        _, dirpath = create_presamples_package([(t2, t1, 'technosphere')],
+                                              collapse_repeated_indices=False)
+
+    class LCA:
+        def __init__(self):
+            self.technosphere_matrix = dok_matrix((5, 5))
+            for i in range(5):
+                 for j in range(5):
+                     self.technosphere_matrix[i, j] = 0
+            self._activity_dict = {x: x-1 for x in range(1, 7)}
+            self._product_dict = self._activity_dict
+
+    lca = LCA()
+    mp = PackagesDataLoader([dirpath])
+    mp.index_arrays(lca)
+    mp.update_matrices(lca)
+    assert lca.technosphere_matrix[0, 0] == 10
+    assert lca.technosphere_matrix[0, 1] == -11
+    assert lca.technosphere_matrix[1, 2] == 12
     assert lca.technosphere_matrix[2, 3] == -14
     assert lca.technosphere_matrix.sum() == 10 - 11 + 12 - 14
-    
+
+
 @bw2test
 def test_update_matrices_one_dimensional():
     mapping.add('ABCDEF')

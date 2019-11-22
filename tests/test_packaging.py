@@ -227,8 +227,9 @@ def test_packaging_repeated_indices():
         ('A', 'C', 1),
         ('B', 'B', 0),
         ('B', 'C', 1),
+        ('B', 'C', 3),
     ]
-    t2 = np.arange(28, dtype=np.int64).reshape((7, 4))
+    t2 = np.arange(32, dtype=np.int64).reshape((8, 4))
     b1 = [('A', 'D'), ('A', 'D'), ('B', 'E')]
     b2 = np.arange(12, dtype=np.int64).reshape((3, 4))
     inputs = [
@@ -251,7 +252,7 @@ def test_packaging_repeated_indices():
         (1, 2, MAX_SIGNED_32BIT_INT, MAX_SIGNED_32BIT_INT, 1),
         (1, 3, MAX_SIGNED_32BIT_INT, MAX_SIGNED_32BIT_INT, 1),
         (2, 2, MAX_SIGNED_32BIT_INT, MAX_SIGNED_32BIT_INT, 0),
-        (2, 3, MAX_SIGNED_32BIT_INT, MAX_SIGNED_32BIT_INT, 1),
+        (2, 3, MAX_SIGNED_32BIT_INT, MAX_SIGNED_32BIT_INT, 3),
     ])
     assert np.load(dirpath / 'bar.0.indices.npy').tolist() == expected
     expected = np.array(
@@ -260,7 +261,7 @@ def test_packaging_repeated_indices():
             [20, 22, 24, 26],
             [16, 17, 18, 19],
             [20, 21, 22, 23],
-            [24, 25, 26, 27]
+            [4, 4, 4, 4]
         ], dtype=np.int64)
 
     assert np.allclose(np.load(dirpath / 'bar.0.samples.npy'), expected)

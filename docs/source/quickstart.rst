@@ -467,8 +467,8 @@ same order:
 .. code-block:: python
 
     # Create a first loader and print indices and values
-    >>> ag_loader_seeded_1 = presamples.PackagesDataLoader([ag_fp_seeded])
-    >>> ag_loader_seeded_2 = presamples.PackagesDataLoader([ag_fp_seeded])
+    >>> ag_loader_seeded_1 = presamples.PackagesDataLoader([pp_path_seeded])
+    >>> ag_loader_seeded_2 = presamples.PackagesDataLoader([pp_path_seeded])
     >>> ag_loader_seeded_1 is ag_loader_seeded_2
     False
     >>> ag_loader_seeded_1 == ag_loader_seeded_2
@@ -515,7 +515,7 @@ It can often be useful to sample values sequentially. To do so, pass ``seed=sequ
     ...     parameter_data = [(ag_sample_arr, ag_names, "Agri baseline data")],
     ...     seed='sequential'
     ... )
-    >>> ag_loader_seq = presamples.PackagesDataLoader([ag_fp_seq])
+    >>> ag_loader_seq = presamples.PackagesDataLoader([pp_path_seq])
     >>> for _ in range(4):
     ...     print(
     ...         "indices:",
@@ -545,7 +545,7 @@ In our example, say we want to fix the fertilizer use parameter to an amount rep
 
     >>> new_fertilizer_amount = np.array([60]).reshape(1,1) # The array MUST have one row, as we only have one parameter
     >>> fert_scenario_id, fert_scenario_path = presamples.create_presamples_package(
-    ...     parameter_data=[new_fertilizer_amount, ['fert consumption [kg/km2]'], 'ag scenario 1']),
+    ...     parameter_data=[(new_fertilizer_amount, ['fert consumption [kg/km2]'], 'ag scenario 1')],
     ...     name="Scenario 1 agri data - presample package"
     ... )
 
@@ -553,7 +553,7 @@ We can now create a loader where both the baseline and the scenario packages are
 
 .. code-block:: python
 
-    >>> ag_loader_scenario = presamples.PackagesDataLoader([pp_path, fert_scenario_loader])
+    >>> ag_loader_scenario = presamples.PackagesDataLoader([pp_path, fert_scenario_path])
 
 We can see that the original values for fertilizer use have been replaced by those in the new package.
 

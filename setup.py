@@ -32,7 +32,7 @@ def package_files(directory):
 
 setup(
     name='presamples',
-    version="0.2.6",
+    version="0.2.7",
     packages=packages,
     author="Pascal Lesage",
     author_email="pascal.lesage@polymtl.ca",
@@ -63,6 +63,7 @@ setup(
         'Programming Language :: Python :: 3.5',
         'Programming Language :: Python :: 3.6',
         'Programming Language :: Python :: 3.7',
+        'Programming Language :: Python :: 3.8',
         'Topic :: Scientific/Engineering :: Information Analysis',
         'Topic :: Scientific/Engineering :: Mathematics',
     ],

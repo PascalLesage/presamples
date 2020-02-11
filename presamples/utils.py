@@ -65,3 +65,13 @@ def check_name_conflicts(lists):
     names = [name for lst in lists for name in lst]
     if len(set(names)) != len(names):
         raise NameConflicts
+
+def change_resource_path(resource, new_path_parent):
+    """Change the path of a resource to new_path
+
+    Does *not* actually move the presamples package, but simply changes the path
+    """
+    old_path = Path(resource.path)
+    new_path_parent = Path(new_path_parent)
+    resource.path = new_path_parent / old_path.name
+    resource.save()

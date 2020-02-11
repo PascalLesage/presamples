@@ -1,3 +1,11 @@
+# 0.2.7 (2020-02-11)
+
+Utility function to change the path of a presample resource
+
+# 0.2.6 (2019-12-20)
+
+Add possibility to collapse matrix data for repeated matrix indices when creating presample packages  
+
 # 0.2.5 (2019-06-21)
 
 Like 0.2.4, but rereleased due to readme issues

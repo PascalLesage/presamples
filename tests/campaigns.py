@@ -10,6 +10,7 @@ import time
 from presamples import create_presamples_package
 from presamples.campaigns import *
 from presamples.errors import MissingPresample
+from presamples.utils import change_resource_path
 try:
     from bw2data.tests import bw2test
 except ImportError:
@@ -367,3 +368,15 @@ def test_campaign_add_child_already_exists():
     c2 = c.add_child('two')
     with pytest.raises(ValueError):
         c2 = c.add_child('two')
+
+@bw2test
+def test_change_resource_path():
+    pr1 = PresampleResource.create(name='one', path='a')
+    change_resource_path(pr1, 'new_dir')
+    assert pr1.path == Path('new_dir/a')
+    pr2 = PresampleResource.create(name='two', path='a/b/c')
+    change_resource_path(pr2, 'new_dir')
+    assert pr2.path == Path('new_dir/c')
+    pr3 = PresampleResource.create(name='three', path='a/b/c')
+    change_resource_path(pr3, 'new/dir')
+    assert pr3.path == Path('new/dir/c')

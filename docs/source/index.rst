@@ -13,15 +13,16 @@ presamples
 
 Presamples is used to write, load, manage and verify *presample arrays*.
 
-Presample arrays refer to arrays of values that specific parameters can take on. Presamples allows these arrays
-to be generated *ahead* of their use in a particular model. This is useful if:
+Presample arrays refer to arrays of values that specific parameters or matrix elements can take on.
+The presamples package allows these arrays to be generated *ahead* of their use in a particular model.
+This is useful if:
 
 - Generating these values is computationally expensive and there is no need to recalculate them with each model run;
 - We want to reuse the *same* values every time a model is solved.
 
-Presamples was initially built specifically for parameters used in life cycle assessment (LCA), and hence has many
-methods specifically geared at making the integration of presamples in LCA models easy. However, it can be used in any
-other type of model.
+Presamples was initially built specifically for parameters and matrix elements used in life cycle assessment (LCA),
+and hence has many methods specifically geared at making the integration of presamples in LCA models easy.
+However, it can be used in any other type of model.
 
 Presample's source code is `hosted on github <https://github.com/PascalLesage/presamples/>`_.
 

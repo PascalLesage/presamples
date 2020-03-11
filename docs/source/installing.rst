@@ -46,7 +46,7 @@ Brightway2 dependencies and integration
 ----------------------------------------
 
 Presamples was initially developed to work with the `Brightway2 LCA framework
-<https://brightwaylca.org//>`_ and hence inherits some requirements from that framework.
+<https://brightwaylca.dev//>`_ and hence inherits some requirements from that framework.
 While it is possible to use with presamples without ever using Brightway, these
 dependencies still get installed. They won't be a bother, though.
 
@@ -54,5 +54,5 @@ dependencies still get installed. They won't be a bother, though.
    If you *do* want to use presamples with Brightway2, then great!
    You'll find many classes and methods that will take your LCA game
    to the next level. Make sure you have Brightway2 installed in your
-   environment, see `here<https://docs.brightwaylca.org/installation.html>`_ for
+   environment, see `here<https://docs.brightwaylca.dev/installation.html>`_ for
    more details.

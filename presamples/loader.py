@@ -275,10 +275,13 @@ class PackagesDataLoader:
                         elem['indices'][elem['col to label']],
                     ] = sample
                 else:
+                    # filter elementary flows not in database
+                    mask = np.isin(elem['indices'][elem['row to label']],matrix.indices)
+                    existing = elem['indices'][elem['row to label']][mask]
                     matrix[
-                        elem['indices'][elem['row to label']],
-                        elem['indices'][elem['row to label']],
-                    ] = sample
+                        existing,
+                        existing,
+                    ] = sample[mask]
 
     def update_package_indices(self):
         """Move to next index"""

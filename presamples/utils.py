@@ -41,8 +41,7 @@ def validate_presamples_dirpath(path):
     files = list(os.listdir(path))
     assert "datapackage.json" in files, "{} missing a datapackage file".format(path)
     metadata = json.load(
-        open(path / "datapackage.json"),
-        encoding="utf-8"
+        open(path / "datapackage.json")
     )
     for resource in metadata['resources']:
         assert os.path.isfile(path / resource['samples']['filepath'])

@@ -342,7 +342,13 @@ def test_campaign_add_local_presamples_copy(tempdir_package):
     assert len(c) == 1
     pr1 = PresampleResource.get()
     assert Path(pr1.path) != tempdir_package
-    assert os.listdir(pr1.path) == os.listdir(tempdir_package)
+    # os.listdir yields names of the entries in the directory in arbitrary order
+    # https://docs.python.org/3/library/os.html#os.listdir
+    # we could test element-wise
+    # with the "misleadingly-named" assertCountEqual
+    # https://docs.python.org/3/library/unittest.html?highlight=assertcountequal#unittest.TestCase.assertCountEqual
+    # but for a simpler solution, we test-compare sets
+    assert set(os.listdir(pr1.path)) == set(os.listdir(tempdir_package))
     PresamplesPackage(pr1.path)
     PresamplesPackage(tempdir_package)
 

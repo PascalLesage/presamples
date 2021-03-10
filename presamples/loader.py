@@ -130,8 +130,7 @@ class PackagesDataLoader:
             Dictionary with loaded data
         """
         metadata = json.load(
-            open(dirpath / "datapackage.json"),
-            encoding="utf-8"
+            open(dirpath / "datapackage.json")
         )
         get_seed = lambda x: seed if seed is not None else x
         data = {

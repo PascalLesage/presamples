@@ -1,3 +1,7 @@
+# 0.2.8 (2021-03-09)
+
+Fix #72 to allow python 3.9 to parse json files
+
 # 0.2.7 (2020-02-11)
 
 Utility function to change the path of a presample resource
